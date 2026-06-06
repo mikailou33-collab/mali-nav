@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mali Nav — Tout le Mali</title>
+<style>
+:root {
+  --green:#14a34a; --green-dark:#0d7a37; --green-light:#e8f5ee;
+  --yellow:#f5c400; --red:#ce1126; --blue:#2563eb;
+  --bg:#f2f4f7; --white:#ffffff; --text:#1a1f2e; --sub:#6b7280;
+  --border:#e4e7ec; --shadow-sm:0 1px 4px rgba(0,0,0,0.08); --shadow:0 2px 10px rgba(0,0,0,0.10);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--text);max-width:420px;margin:0 auto;height:100vh;display:flex;flex-direction:column}
+.screen{display:none;flex-direction:column;height:100vh;overflow:hidden}
+.screen.active{display:flex}
+#splash{background:linear-gradient(175deg,#0a4a24 0%,#14a34a 60%,#1cc760 100%);align-items:center;justify-content:center}
+.splash-inner{display:flex;flex-direction:column;align-items:center;gap:12px;animation:fadeUp 0.7s ease forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.splash-badge{background:var(--yellow);color:#1a1f2e;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:5px 14px;border-radius:50px}
+.splash-logo{width:88px;height:88px;background:white;border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:46px;box-shadow:0 8px 30px rgba(0,0,0,0.18)}
+.splash-title{font-size:38px;font-weight:900;color:white;letter-spacing:-1px}
+.splash-title span{color:var(--yellow)}
+.splash-sub{font-size:13px;color:rgba(255,255,255,0.8);font-weight:600;text-align:center;line-height:1.6}
+.mali-flag{display:flex;border-radius:6px;overflow:hidden;width:60px;height:6px}
+.mali-flag div{flex:1}
+.f-g{background:#14a34a}.f-y{background:#f5c400}.f-r{background:#ce1126}
+.splash-stats{display:flex;gap:12px}
+.s-stat{background:rgba(255,255,255,0.15);border-radius:12px;padding:10px 14px;text-align:center}
+.s-stat-val{font-size:20px;font-weight:900;color:white}
+.s-stat-label{font-size:10px;color:rgba(255,255,255,0.75);font-weight:700;text-transform:uppercase}
+.splash-btn{background:var(--yellow);color:#1a1f2e;border:none;padding:14px 48px;border-radius:50px;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,0.2);font-family:inherit;transition:transform 0.15s}
+.splash-btn:active{transform:scale(0.96)}
+.topbar{background:var(--green);padding:12px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,0.15);z-index:10}
+.tb-back{width:34px;height:34px;background:rgba(255,255,255,0.18);border:none;border-radius:50%;color:white;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tb-title{font-size:18px;font-weight:900;color:white;flex:1;letter-spacing:-0.3px}
+.tb-title span{color:var(--yellow)}
+.tb-title small{font-size:10px;font-weight:700;background:var(--yellow);color:#1a1f2e;padding:2px 7px;border-radius:50px;margin-left:6px;vertical-align:middle;letter-spacing:1px}
+.tb-flag{font-size:22px}
+.search-bar{background:white;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.s-wrap{display:flex;align-items:center;background:var(--bg);border-radius:10px;padding:9px 12px;gap:8px;border:1.5px solid var(--border)}
+.s-wrap:focus-within{border-color:var(--green)}
+.s-wrap input{border:none;background:transparent;font-size:14px;color:var(--text);flex:1;outline:none;font-family:inherit}
+.s-wrap input::placeholder{color:var(--sub)}
+.scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:70px}
+.hero{background:linear-gradient(135deg,#0d7a37,#14a34a);padding:16px;color:white}
+.hero h2{font-size:17px;font-weight:800;margin-bottom:3px}
+.hero p{font-size:12px;color:rgba(255,255,255,0.8);font-weight:600}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 14px 0}
+.stat-card{background:white;border-radius:12px;padding:10px 8px;text-align:center;box-shadow:var(--shadow-sm)}
+.stat-card-val{font-size:20px;font-weight:900;color:var(--green)}
+.stat-card-label{font-size:10px;color:var(--sub);font-weight:700;text-transform:uppercase;margin-top:2px}
+.sec-label{font-size:11px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:1.2px;padding:13px 14px 7px}
+.reg-scroll{display:flex;gap:8px;padding:0 14px 4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.reg-scroll::-webkit-scrollbar{display:none}
+.reg-card{background:white;border-radius:14px;padding:12px 12px;min-width:105px;box-shadow:var(--shadow-sm);cursor:pointer;flex-shrink:0;transition:transform 0.15s;border-top:4px solid var(--green)}
+.reg-card:active{transform:scale(0.96)}
+.reg-card-icon{font-size:24px;margin-bottom:5px}
+.reg-card-name{font-size:13px;font-weight:800;color:var(--text)}
+.reg-card-sub{font-size:11px;color:var(--sub);font-weight:600;margin-top:2px}
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 14px 4px}
+.cat-btn{background:white;border:none;border-radius:14px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;box-shadow:var(--shadow-sm);transition:transform 0.15s;font-family:inherit}
+.cat-btn:active{transform:scale(0.95)}
+.cat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.cat-label{font-size:11px;font-weight:700;color:var(--text);text-align:center;line-height:1.3}
+.cta{margin:4px 14px 0;border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;box-shadow:var(--shadow);transition:transform 0.15s}
+.cta:active{transform:scale(0.98)}
+.cta-green{background:linear-gradient(130deg,#0a4a24,#14a34a)}
+.cta-blue{background:linear-gradient(130deg,#1e3a8a,#2563eb)}
+.cta-icon{width:50px;height:50px;background:var(--yellow);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+.cta-icon-w{width:50px;height:50px;background:white;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+.cta-text h3{font-size:14px;font-weight:800;color:white;margin-bottom:2px}
+.cta-text p{font-size:11px;color:rgba(255,255,255,0.7);font-weight:600}
+.cta-arr{margin-left:auto;color:var(--yellow);font-size:22px;font-weight:700}
+.list-header{background:var(--green);padding:10px 14px;flex-shrink:0}
+.list-header-text{font-size:12px;font-weight:700;color:rgba(255,255,255,0.9);text-transform:uppercase;letter-spacing:1px}
+.list-item{display:flex;align-items:center;padding:13px 14px;background:white;border-bottom:1px solid var(--border);cursor:pointer;gap:12px;transition:background 0.12s;animation:itemIn 0.25s ease forwards;opacity:0}
+.list-item:active{background:var(--green-light)}
+@keyframes itemIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+.item-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.item-info{flex:1;min-width:0}
+.item-name{font-size:15px;font-weight:700;color:var(--text)}
+.item-sub{font-size:12px;color:var(--sub);font-weight:600;margin-top:2px}
+.item-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
+.item-dist{font-size:12px;font-weight:700;color:var(--green)}
+.item-arr{color:var(--sub);font-size:20px}
+.det-hero{background:linear-gradient(135deg,#0d7a37,#1db954);padding:18px 16px;flex-shrink:0}
+.det-hero-name{font-size:24px;font-weight:900;color:white;margin-bottom:5px}
+.det-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.18);border-radius:50px;padding:5px 12px;font-size:12px;color:white;font-weight:700}
+.det-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 14px 0}
+.stat-box{background:white;border-radius:12px;padding:12px 8px;text-align:center;box-shadow:var(--shadow-sm)}
+.stat-val{font-size:18px;font-weight:900;color:var(--green)}
+.stat-label{font-size:10px;color:var(--sub);font-weight:700;margin-top:2px;text-transform:uppercase}
+.det-actions{display:flex;gap:8px;margin:10px 14px 0}
+.det-btn{flex:1;padding:12px 8px;border:none;border-radius:13px;font-size:12px;font-weight:800;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:transform 0.15s}
+.det-btn:active{transform:scale(0.97)}
+.btn-go{background:var(--green);color:white}
+.btn-taxi{background:var(--yellow);color:#1a1f2e}
+.btn-bus{background:var(--blue);color:white}
+.det-section{background:white;margin:10px 14px 0;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.det-sec-title{font-size:11px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:1px;padding:12px 14px 6px;border-bottom:1px solid var(--border)}
+.det-row{display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border);gap:10px;cursor:pointer;transition:background 0.12s}
+.det-row:last-child{border-bottom:none}
+.det-row:active{background:var(--green-light)}
+.dr-icon{font-size:17px;width:24px;text-align:center;flex-shrink:0}
+.dr-label{font-size:13px;color:var(--sub);font-weight:600;flex:1}
+.dr-val{font-size:13px;font-weight:800;color:var(--text)}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:white;border-top:1px solid var(--border);display:flex;z-index:100;box-shadow:0 -2px 8px rgba(0,0,0,0.06)}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;padding:9px 4px 11px;border:none;background:transparent;font-family:inherit;color:var(--sub);cursor:pointer;gap:3px}
+.nav-btn.active{color:var(--green)}
+.nav-btn-icon{font-size:21px}
+.nav-btn-label{font-size:10px;font-weight:700}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(12px);background:#1a1f2e;color:white;padding:9px 18px;border-radius:50px;font-size:13px;font-weight:700;opacity:0;transition:all 0.28s;z-index:999;white-space:nowrap;pointer-events:none;max-width:88%;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.list-item:nth-child(1){animation-delay:.04s}.list-item:nth-child(2){animation-delay:.08s}.list-item:nth-child(3){animation-delay:.12s}.list-item:nth-child(4){animation-delay:.16s}.list-item:nth-child(5){animation-delay:.20s}.list-item:nth-child(6){animation-delay:.24s}.list-item:nth-child(7){animation-delay:.28s}.list-item:nth-child(8){animation-delay:.32s}.list-item:nth-child(9){animation-delay:.36s}.list-item:nth-child(10){animation-delay:.40s}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div class="screen active" id="splash">
+  <div class="splash-inner">
+    <div class="splash-badge">🇲🇱 TOUT LE MALI</div>
+    <div class="splash-logo">🗺️</div>
+    <div class="splash-title">Mali<span>Nav</span></div>
+    <div class="splash-sub">Navigation partout au Mali<br>Bamako • Régions • Villes • Billets Bus</div>
+    <div class="mali-flag"><div class="f-g"></div><div class="f-y"></div><div class="f-r"></div></div>
+    <div class="splash-stats">
+      <div class="s-stat"><div class="s-stat-val">10</div><div class="s-stat-label">Régions</div></div>
+      <div class="s-stat"><div class="s-stat-val">50+</div><div class="s-stat-label">Cercles</div></div>
+      <div class="s-stat"><div class="s-stat-val">200+</div><div class="s-stat-label">Villes</div></div>
+    </div>
+    <button class="splash-btn" onclick="goTo('home')">Commencer →</button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="screen" id="home">
+  <div class="topbar">
+    <div class="tb-title">Mali<span>Nav</span></div>
+    <div class="tb-flag">🇲🇱</div>
+  </div>
+  <div class="search-bar">
+    <div class="s-wrap" onclick="goTo('regions')">
+      <span style="font-size:16px;color:var(--sub)">🔍</span>
+      <input type="text" placeholder="Rechercher ville, région, quartier..." readonly>
+    </div>
+  </div>
+  <div class="scroll-area">
+    <div class="hero">
+      <h2>🇲🇱 Navigation — Tout le Mali</h2>
+      <p>10 Régions • 50+ Cercles • 200+ Villes • Billets de bus interurbains</p>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-card-val">10</div><div class="stat-card-label">Régions</div></div>
+      <div class="stat-card"><div class="stat-card-val">50+</div><div class="stat-card-label">Cercles</div></div>
+      <div class="stat-card"><div class="stat-card-val">200+</div><div class="stat-card-label">Villes</div></div>
+    </div>
+    <div class="sec-label">Accès rapide</div>
+    <div class="cat-grid">
+      <button class="cat-btn" onclick="goTo('regions')"><div class="cat-icon" style="background:#e8f5ee">🗺️</div><span class="cat-label">Régions</span></button>
+      <button class="cat-btn" onclick="loadRegion('Bamako')"><div class="cat-icon" style="background:#fff8e1">🏙️</div><span class="cat-label">Bamako</span></button>
+      <button class="cat-btn" onclick="showToast('🚌 Billets bus — bientôt !')"><div class="cat-icon" style="background:#dbeafe">🚌</div><span class="cat-label">Bus</span></button>
+      <button class="cat-btn" onclick="showToast('🏥 Hôpitaux — bientôt !')"><div class="cat-icon" style="background:#fde8e8">🏥</div><span class="cat-label">Hôpitaux</span></button>
+      <button class="cat-btn" onclick="showToast('🕌 Mosquées — bientôt !')"><div class="cat-icon" style="background:#e8eeff">🕌</div><span class="cat-label">Mosquées</span></button>
+      <button class="cat-btn" onclick="showToast('🛒 Marchés — bientôt !')"><div class="cat-icon" style="background:#fff3e0">🛒</div><span class="cat-label">Marchés</span></button>
+    </div>
+    <div class="sec-label">Régions du Mali</div>
+    <div class="reg-scroll" id="home-regions"></div>
+    <div class="sec-label">🚕 Commander un taxi</div>
+    <div class="cta cta-green" onclick="showToast('🚕 Ouverture MaliTaxi...')">
+      <div class="cta-icon">🚕</div>
+      <div class="cta-text"><h3>MaliTaxi VIP / Lite</h3><p>Taxi rapide partout à Bamako</p></div>
+      <div class="cta-arr">›</div>
+    </div>
+    <div class="sec-label">🚌 Billets de bus interurbains</div>
+    <div class="cta cta-blue" onclick="showToast('🚌 Réserver billet bus — bientôt !')">
+      <div class="cta-icon-w">🚌</div>
+      <div class="cta-text"><h3>Bamako → Toutes villes Mali</h3><p>Ségou • Sikasso • Mopti • Kayes...</p></div>
+      <div class="cta-arr">›</div>
+    </div>
+    <div style="height:10px"></div>
+  </div>
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="setNav(this)"><span class="nav-btn-icon">🏠</span><span class="nav-btn-label">Accueil</span></button>
+    <button class="nav-btn" onclick="setNav(this);goTo('regions')"><span class="nav-btn-icon">🗺️</span><span class="nav-btn-label">Régions</span></button>
+    <button class="nav-btn" onclick="setNav(this);showToast('🚌 Billets bus — bientôt !')"><span class="nav-btn-icon">🚌</span><span class="nav-btn-label">Bus</span></button>
+    <button class="nav-btn" onclick="setNav(this);showToast('🚕 MaliTaxi...')"><span class="nav-btn-icon">🚕</span><span class="nav-btn-label">MaliTaxi</span></button>
+  </nav>
+</div>
+
+<!-- REGIONS -->
+<div class="screen" id="regions">
+  <div class="topbar">
+    <button class="tb-back" onclick="goTo('home')">←</button>
+    <div class="tb-title">Régions <span>Mali</span></div>
+    <div class="tb-flag">📍</div>
+  </div>
+  <div class="list-header"><div class="list-header-text">🇲🇱 Mali — 10 Régions officielles</div></div>
+  <div class="scroll-area" id="regions-list"></div>
+  <nav class="bottom-nav">
+    <button class="nav-btn" onclick="goTo('home')"><span class="nav-btn-icon">🏠</span><span class="nav-btn-label">Accueil</span></button>
+    <button class="nav-btn active"><span class="nav-btn-icon">🗺️</span><span class="nav-btn-label">Régions</span></button>
+    <button class="nav-btn" onclick="showToast('🚌 Billets bus — bientôt !')"><span class="nav-btn-icon">🚌</span><span class="nav-btn-label">Bus</span></button>
+    <button class="nav-btn" onclick="showToast('🚕 MaliTaxi...')"><span class="nav-btn-icon">🚕</span><span class="nav-btn-label">MaliTaxi</span></button>
+  </nav>
+</div>
+
+<!-- CERCLES -->
+<div class="screen" id="cercles">
+  <div class="topbar">
+    <button class="tb-back" onclick="goTo('regions')">←</button>
+    <div class="tb-title" id="cer-title">Région<small>MALI</small></div>
+    <div class="tb-flag">🏛️</div>
+  </div>
+  <div class="list-header"><div class="list-header-text" id="cer-sub">Cercles et zones</div></div>
+  <div class="scroll-area" id="cercles-list"></div>
+  <nav class="bottom-nav">
+    <button class="nav-btn" onclick="goTo('home')"><span class="nav-btn-icon">🏠</span><span class="nav-btn-label">Accueil</span></button>
+    <button class="nav-btn active"><span class="nav-btn-icon">🗺️</span><span class="nav-btn-label">Régions</span></button>
+    <button class="nav-btn" onclick="showToast('🚌 Billets bus — bientôt !')"><span class="nav-btn-icon">🚌</span><span class="nav-btn-label">Bus</span></button>
+    <button class="nav-btn" onclick="showToast('🚕 MaliTaxi...')"><span class="nav-btn-icon">🚕</span><span class="nav-btn-label">MaliTaxi</span></button>
+  </nav>
+</div>
+
+<!-- VILLES -->
+<div class="screen" id="villes">
+  <div class="topbar">
+    <button class="tb-back" id="vil-back">←</button>
+    <div class="tb-title" id="vil-title">Villes<small>MALI</small></div>
+    <div class="tb-flag">🏘️</div>
+  </div>
+  <div class="list-header"><div class="list-header-text" id="vil-sub">Localités</div></div>
+  <div class="scroll-area" id="villes-list"></div>
+  <nav class="bottom-nav">
+    <button class="nav-btn" onclick="goTo('home')"><span class="nav-btn-icon">🏠</span><span class="nav-btn-label">Accueil</span></button>
+    <button class="nav-btn active"><span class="nav-btn-icon">🗺️</span><span class="nav-btn-label">Régions</span></button>
+    <button class="nav-btn" onclick="showToast('🚌 Billets bus — bientôt !')"><span class="nav-btn-icon">🚌</span><span class="nav-btn-label">Bus</span></button>
+    <button class="nav-btn" onclick="showToast('🚕 MaliTaxi...')"><span class="nav-btn-icon">🚕</span><span class="nav-btn-label">MaliTaxi</span></button>
+  </nav>
+</div>
+
+<!-- DETAIL -->
+<div class="screen" id="detail">
+  <div class="topbar">
+    <button class="tb-back" id="det-back">←</button>
+    <div class="tb-title" id="det-title">Ville<small>MALI</small></div>
+    <div class="tb-flag">❤️</div>
+  </div>
+  <div class="scroll-area">
+    <div class="det-hero">
+      <div class="det-hero-name" id="det-name">Ségou</div>
+      <div class="det-badge" id="det-badge">📍 Région de Ségou — Mali</div>
+    </div>
+    <div class="det-stats">
+      <div class="stat-box"><div class="stat-val" id="det-dist">235</div><div class="stat-label">km Bamako</div></div>
+      <div class="stat-box"><div class="stat-val" id="det-duree">3h</div><div class="stat-label">Durée bus</div></div>
+      <div class="stat-box"><div class="stat-val" id="det-prix">4000</div><div class="stat-label">FCFA bus</div></div>
+    </div>
+    <div class="det-actions">
+      <button class="det-btn btn-go" onclick="showToast('🧭 Navigation démarrée !')">🧭 Itinéraire</button>
+      <button class="det-btn btn-taxi" onclick="showToast('🚕 MaliTaxi...')">🚕 Taxi</button>
+      <button class="det-btn btn-bus" onclick="showToast('🚌 Réserver billet bus...')">🚌 Bus</button>
+    </div>
+    <div class="det-section">
+      <div class="det-sec-title">Informations transport</div>
+      <div class="det-row"><span class="dr-icon">🚌</span><span class="dr-label">Départ depuis</span><span class="dr-val" id="det-gare">Gare Sogoniko</span></div>
+      <div class="det-row"><span class="dr-icon">⏱️</span><span class="dr-label">Durée trajet bus</span><span class="dr-val" id="det-dur2">~3h</span></div>
+      <div class="det-row"><span class="dr-icon">💰</span><span class="dr-label">Prix billet bus</span><span class="dr-val" id="det-prix2">~4 000 FCFA</span></div>
+      <div class="det-row"><span class="dr-icon">🛣️</span><span class="dr-label">Distance Bamako</span><span class="dr-val" id="det-dist2">235 km</span></div>
+    </div>
+    <div class="det-section" style="margin-top:8px">
+      <div class="det-sec-title">Lieux importants</div>
+      <div class="det-row" onclick="showToast('Hôpital principal')"><span class="dr-icon">🏥</span><span class="dr-label">Hôpital principal</span><span class="dr-val">›</span></div>
+      <div class="det-row" onclick="showToast('Grande Mosquée')"><span class="dr-icon">🕌</span><span class="dr-label">Grande Mosquée</span><span class="dr-val">›</span></div>
+      <div class="det-row" onclick="showToast('Grand Marché')"><span class="dr-icon">🛒</span><span class="dr-label">Grand Marché</span><span class="dr-val">›</span></div>
+      <div class="det-row" onclick="showToast('Gare routière')"><span class="dr-icon">🚌</span><span class="dr-label">Gare routière</span><span class="dr-val">›</span></div>
+    </div>
+    <div class="cta cta-green" style="margin:10px 14px 0" onclick="showToast('🚕 Commander MaliTaxi...')">
+      <div class="cta-icon">🚕</div>
+      <div class="cta-text"><h3>Commander avec MaliTaxi</h3><p>Disponible à Bamako et environs</p></div>
+      <div class="cta-arr">›</div>
+    </div>
+    <div class="cta cta-blue" style="margin:8px 14px 0" onclick="showToast('🚌 Réserver billet bus...')">
+      <div class="cta-icon-w">🚌</div>
+      <div class="cta-text"><h3 id="det-bus-btn">Bamako → Ségou</h3><p style="color:rgba(255,255,255,0.7)">Réserver votre billet maintenant</p></div>
+      <div class="cta-arr">›</div>
+    </div>
+    <div style="height:10px"></div>
+  </div>
+  <nav class="bottom-nav">
+    <button class="nav-btn" onclick="goTo('home')"><span class="nav-btn-icon">🏠</span><span class="nav-btn-label">Accueil</span></button>
+    <button class="nav-btn" onclick="goTo('regions')"><span class="nav-btn-icon">🗺️</span><span class="nav-btn-label">Régions</span></button>
+    <button class="nav-btn active"><span class="nav-btn-icon">🚌</span><span class="nav-btn-label">Bus</span></button>
+    <button class="nav-btn" onclick="showToast('🚕 MaliTaxi...')"><span class="nav-btn-icon">🚕</span><span class="nav-btn-label">MaliTaxi</span></button>
+  </nav>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const MALI = {
+  'Bamako':{icon:'🏙️',color:'#e8f5ee',capital:'Bamako',dist:0,cercles:{
+    'Commune I':{icon:'🏛️',color:'#e8f5ee',villes:[{n:'Médina-Coura',d:2,b:'N/A',p:0,t:'—'},{n:'Quinzambougou',d:2,b:'N/A',p:0,t:'—'},{n:'Bagadadji',d:3,b:'N/A',p:0,t:'—'},{n:'Niarela',d:3,b:'N/A',p:0,t:'—'},{n:'Hippodrome',d:2,b:'N/A',p:0,t:'—'},{n:'Sotuba',d:4,b:'N/A',p:0,t:'—'}]},
+    'Commune II':{icon:'🕌',color:'#fff8e1',villes:[{n:'Boulkassoumbougou',d:5,b:'N/A',p:0,t:'—'},{n:'Djélibougou',d:4,b:'N/A',p:0,t:'—'},{n:'Missira',d:3,b:'N/A',p:0,t:'—'},{n:'Niaréla',d:3,b:'N/A',p:0,t:'—'},{n:'Fadjiguila',d:6,b:'N/A',p:0,t:'—'}]},
+    'Commune III':{icon:'🏘️',color:'#fde8e8',villes:[{n:'Sikoroni',d:5,b:'N/A',p:0,t:'—'},{n:'Banconi',d:5,b:'N/A',p:0,t:'—'},{n:'Lafiabougou',d:3,b:'N/A',p:0,t:'—'},{n:'Lassa',d:6,b:'N/A',p:0,t:'—'},{n:'Doumanzana',d:6,b:'N/A',p:0,t:'—'}]},
+    'Commune IV':{icon:'🏢',color:'#e8f0ff',villes:[{n:'Hamdallaye',d:1,b:'N/A',p:0,t:'—'},{n:'ACI 2000',d:2,b:'N/A',p:0,t:'—'},{n:'Kalaban-Coura',d:3,b:'N/A',p:0,t:'—'},{n:'Sabalibougou',d:4,b:'N/A',p:0,t:'—'},{n:'Sébénicoro',d:3,b:'N/A',p:0,t:'—'}]},
+    'Commune V':{icon:'🌳',color:'#f0fff4',villes:[{n:'Badalabougou',d:5,b:'N/A',p:0,t:'—'},{n:'Sogoniko — Gare',d:4,b:'Gare principale',p:0,t:'—'},{n:'Magnambougou',d:4,b:'N/A',p:0,t:'—'}]},
+    'Commune VI':{icon:'🏙️',color:'#fff3e0',villes:[{n:'Niamakoro',d:6,b:'N/A',p:0,t:'—'},{n:'Yirimadio',d:6,b:'N/A',p:0,t:'—'},{n:'Faladié',d:5,b:'N/A',p:0,t:'—'},{n:'Sénou — Aéroport',d:9,b:'N/A',p:0,t:'—'},{n:'Banankabougou',d:7,b:'N/A',p:0,t:'—'}]},
+    'Kalabancoro':{icon:'🏡',color:'#fef3c7',villes:[{n:'Kalabancoro Centre',d:9,b:'N/A',p:0,t:'—'},{n:'Niésoumana',d:10,b:'N/A',p:0,t:'—'},{n:'Sangarébougou',d:11,b:'N/A',p:0,t:'—'}]},
+    'Dialakorodji':{icon:'🌾',color:'#ecfdf5',villes:[{n:'Dialakorodji Centre',d:14,b:'N/A',p:0,t:'—'},{n:'Dialakorodji Nord',d:15,b:'N/A',p:0,t:'—'}]},
+  }},
+  'Koulikoro':{icon:'🌍',color:'#fef9c3',capital:'Koulikoro',dist:58,cercles:{
+    'Koulikoro Ville':{icon:'🏙️',color:'#ede9fe',villes:[{n:'Koulikoro Centre',d:58,b:'Gare Sogoniko',p:1500,t:'1h30'},{n:'Koulikoro Gare',d:59,b:'Gare Sogoniko',p:1500,t:'1h30'},{n:'Tiéfala',d:55,b:'Gare Sogoniko',p:1200,t:'1h'},{n:'Mountougoula',d:52,b:'Gare Sogoniko',p:1200,t:'1h'}]},
+    'Kati':{icon:'🏘️',color:'#e8f5ee',villes:[{n:'Kati Centre',d:15,b:'Gare Sogoniko',p:500,t:'30min'},{n:'Safo',d:18,b:'Gare Sogoniko',p:600,t:'35min'}]},
+    'Baguinéda':{icon:'🏭',color:'#fff1f2',villes:[{n:'Baguinéda Centre',d:30,b:'Gare Sogoniko',p:800,t:'45min'},{n:"N'Gabakoro",d:28,b:'Gare Sogoniko',p:700,t:'40min'}]},
+  }},
+  'Ségou':{icon:'🏺',color:'#fef3c7',capital:'Ségou',dist:235,cercles:{
+    'Ségou Ville':{icon:'🏛️',color:'#fef3c7',villes:[{n:'Ségou Centre',d:235,b:'Gare Sogoniko',p:4000,t:'3h'},{n:'Ségou Marché',d:235,b:'Gare Sogoniko',p:4000,t:'3h'},{n:'Pelengana',d:240,b:'Gare Sogoniko',p:4000,t:'3h'}]},
+    'San':{icon:'🌾',color:'#fff8e1',villes:[{n:'San Centre',d:390,b:'Gare Sogoniko',p:6000,t:'5h'},{n:'San Marché',d:390,b:'Gare Sogoniko',p:6000,t:'5h'}]},
+    'Bla':{icon:'🏘️',color:'#e8f5ee',villes:[{n:'Bla Centre',d:295,b:'Gare Sogoniko',p:4500,t:'3h30'}]},
+    'Niono':{icon:'🌿',color:'#ecfdf5',villes:[{n:'Niono Centre',d:280,b:'Gare Sogoniko',p:4500,t:'3h30'},{n:'Office du Niger',d:285,b:'Gare Sogoniko',p:4500,t:'3h30'}]},
+  }},
+  'Sikasso':{icon:'🌿',color:'#d1fae5',capital:'Sikasso',dist:375,cercles:{
+    'Sikasso Ville':{icon:'🏛️',color:'#d1fae5',villes:[{n:'Sikasso Centre',d:375,b:'Gare Sogoniko',p:5500,t:'5h'},{n:'Sikasso Marché',d:375,b:'Gare Sogoniko',p:5500,t:'5h'},{n:'Wayérma',d:378,b:'Gare Sogoniko',p:5500,t:'5h'}]},
+    'Bougouni':{icon:'🌳',color:'#e8f5ee',villes:[{n:'Bougouni Centre',d:160,b:'Gare Sogoniko',p:2500,t:'2h30'},{n:'Bougouni Marché',d:160,b:'Gare Sogoniko',p:2500,t:'2h30'}]},
+    'Koutiala':{icon:'🏭',color:'#fff8e1',villes:[{n:'Koutiala Centre',d:330,b:'Gare Sogoniko',p:5000,t:'4h30'},{n:'Koutiala Marché',d:330,b:'Gare Sogoniko',p:5000,t:'4h30'}]},
+    'Kadiolo':{icon:'🌄',color:'#fef3c7',villes:[{n:'Kadiolo Centre',d:450,b:'Gare Sogoniko',p:7000,t:'6h'}]},
+  }},
+  'Mopti':{icon:'🐊',color:'#dbeafe',capital:'Mopti',dist:600,cercles:{
+    'Mopti Ville':{icon:'🏛️',color:'#dbeafe',villes:[{n:'Mopti Centre',d:600,b:'Gare Sogoniko',p:8000,t:'7h'},{n:'Sévaré',d:595,b:'Gare Sogoniko',p:8000,t:'7h'},{n:'Mopti Port',d:602,b:'Gare Sogoniko',p:8000,t:'7h'}]},
+    'Djenné':{icon:'🕌',color:'#ede9fe',villes:[{n:'Djenné Centre',d:570,b:'Gare Sogoniko',p:8000,t:'7h'},{n:'Grande Mosquée Djenné',d:570,b:'Gare Sogoniko',p:8000,t:'7h'}]},
+    'Bandiagara':{icon:'🏔️',color:'#fff3e0',villes:[{n:'Bandiagara Centre',d:680,b:'Gare Sogoniko',p:9000,t:'8h'},{n:'Pays Dogon',d:700,b:'Gare Sogoniko',p:9000,t:'8h30'}]},
+    'Douentza':{icon:'🏜️',color:'#fef3c7',villes:[{n:'Douentza Centre',d:800,b:'Gare Sogoniko',p:10000,t:'9h'}]},
+  }},
+  'Kayes':{icon:'🚂',color:'#fce7f3',capital:'Kayes',dist:520,cercles:{
+    'Kayes Ville':{icon:'🏛️',color:'#fce7f3',villes:[{n:'Kayes Centre',d:520,b:'Gare Sogoniko',p:7000,t:'8h'},{n:'Kayes Gare',d:520,b:'Gare Sogoniko',p:7000,t:'8h'},{n:"Kayes N'Di",d:522,b:'Gare Sogoniko',p:7000,t:'8h'}]},
+    'Kita':{icon:'🌄',color:'#fff3e0',villes:[{n:'Kita Centre',d:180,b:'Gare Sogoniko',p:3000,t:'3h'},{n:'Kita Gare',d:180,b:'Gare Sogoniko',p:3000,t:'3h'}]},
+    'Nioro du Sahel':{icon:'🏜️',color:'#fef3c7',villes:[{n:'Nioro Centre',d:460,b:'Gare Sogoniko',p:7000,t:'7h'}]},
+    'Diéma':{icon:'🌾',color:'#e8f5ee',villes:[{n:'Diéma Centre',d:400,b:'Gare Sogoniko',p:6000,t:'6h'}]},
+  }},
+  'Tombouctou':{icon:'🕌',color:'#fef3c7',capital:'Tombouctou',dist:890,cercles:{
+    'Tombouctou Ville':{icon:'🏛️',color:'#fef3c7',villes:[{n:'Tombouctou Centre',d:890,b:'Gare Sogoniko',p:12000,t:'12h'},{n:'Tombouctou Mosquées',d:890,b:'Gare Sogoniko',p:12000,t:'12h'}]},
+    'Goundam':{icon:'🌊',color:'#dbeafe',villes:[{n:'Goundam Centre',d:800,b:'Gare Sogoniko',p:11000,t:'11h'}]},
+    'Niafunké':{icon:'🎵',color:'#ede9fe',villes:[{n:'Niafunké Centre',d:750,b:'Gare Sogoniko',p:10000,t:'10h'}]},
+  }},
+  'Gao':{icon:'🏜️',color:'#fef9c3',capital:'Gao',dist:1200,cercles:{
+    'Gao Ville':{icon:'🏛️',color:'#fef9c3',villes:[{n:'Gao Centre',d:1200,b:'Gare Sogoniko',p:15000,t:'15h'},{n:'Gao Fleuve',d:1202,b:'Gare Sogoniko',p:15000,t:'15h'}]},
+    'Ansongo':{icon:'🌄',color:'#fff3e0',villes:[{n:'Ansongo Centre',d:1280,b:'Gare Sogoniko',p:16000,t:'16h'}]},
+    'Bourem':{icon:'🏜️',color:'#fef3c7',villes:[{n:'Bourem Centre',d:1150,b:'Gare Sogoniko',p:14000,t:'14h'}]},
+  }},
+  'Kidal':{icon:'⭐',color:'#f5f3ff',capital:'Kidal',dist:1500,cercles:{
+    'Kidal Ville':{icon:'🏛️',color:'#f5f3ff',villes:[{n:'Kidal Centre',d:1500,b:'Gare Sogoniko',p:20000,t:'20h+'},{n:'Kidal Nord',d:1505,b:'Gare Sogoniko',p:20000,t:'20h+'}]},
+    'Tessalit':{icon:'🏜️',color:'#fef3c7',villes:[{n:'Tessalit Centre',d:1700,b:'Gare Sogoniko',p:22000,t:'24h+'}]},
+  }},
+  'Ménaka':{icon:'🌵',color:'#fff7ed',capital:'Ménaka',dist:1400,cercles:{
+    'Ménaka Ville':{icon:'🏛️',color:'#fff7ed',villes:[{n:'Ménaka Centre',d:1400,b:'Gare Sogoniko',p:18000,t:'18h+'},{n:'Ménaka Marché',d:1400,b:'Gare Sogoniko',p:18000,t:'18h+'}]},
+  }},
+};
+
+let curRegion='', curCercle='';
+
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function setNav(el){
+  el.closest('.bottom-nav').querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function buildHomeRegions(){
+  const w=document.getElementById('home-regions');
+  Object.entries(MALI).forEach(([n,r])=>{
+    const c=document.createElement('div');
+    c.className='reg-card';
+    c.style.borderTopColor=n==='Bamako'?'var(--green)':n==='Koulikoro'?'var(--yellow)':'var(--red)';
+    c.innerHTML=`<div class="reg-card-icon">${r.icon}</div><div class="reg-card-name">${n}</div><div class="reg-card-sub">${Object.keys(r.cercles).length} zones • ${r.dist===0?'Capitale':r.dist+' km'}</div>`;
+    c.onclick=()=>loadRegion(n);
+    w.appendChild(c);
+  });
+}
+
+function buildRegionsList(){
+  const list=document.getElementById('regions-list');
+  list.innerHTML='';
+  Object.entries(MALI).forEach(([n,r],i)=>{
+    const total=Object.values(r.cercles).reduce((s,c)=>s+c.villes.length,0);
+    const div=document.createElement('div');
+    div.className='list-item';
+    div.style.animationDelay=(i*0.06)+'s';
+    div.innerHTML=`<div class="item-icon" style="background:${r.color}">${r.icon}</div><div class="item-info"><div class="item-name">${n}</div><div class="item-sub">Capital: ${r.capital} • ${Object.keys(r.cercles).length} zones • ${total} villes</div></div><div class="item-right"><span class="item-dist">${r.dist===0?'Capitale':r.dist+' km'}</span><span class="item-arr">›</span></div>`;
+    div.onclick=()=>loadRegion(n);
+    list.appendChild(div);
+  });
+}
+
+function loadRegion(n){
+  curRegion=n;
+  const r=MALI[n];
+  document.getElementById('cer-title').innerHTML=`${n}<small>MALI</small>`;
+  document.getElementById('cer-sub').textContent=`${Object.keys(r.cercles).length} zones — ${n}`;
+  const list=document.getElementById('cercles-list');
+  list.innerHTML='';
+  Object.entries(r.cercles).forEach(([cn,c],i)=>{
+    const div=document.createElement('div');
+    div.className='list-item';
+    div.style.animationDelay=(i*0.06)+'s';
+    div.innerHTML=`<div class="item-icon" style="background:${c.color}">${c.icon}</div><div class="item-info"><div class="item-name">${cn}</div><div class="item-sub">${c.villes.length} localités</div></div><div class="item-right"><span class="item-arr">›</span></div>`;
+    div.onclick=()=>loadCercle(n,cn);
+    list.appendChild(div);
+  });
+  goTo('cercles');
+}
+
+function loadCercle(reg,cer){
+  curCercle=cer;
+  const c=MALI[reg].cercles[cer];
+  document.getElementById('vil-title').innerHTML=`${cer}<small>MALI</small>`;
+  document.getElementById('vil-sub').textContent=`${c.villes.length} localités — ${cer}`;
+  document.getElementById('vil-back').onclick=()=>goTo('cercles');
+  const list=document.getElementById('villes-list');
+  list.innerHTML='';
+  c.villes.forEach((v,i)=>{
+    const div=document.createElement('div');
+    div.className='list-item';
+    div.style.animationDelay=(i*0.05)+'s';
+    div.innerHTML=`<div class="item-icon" style="background:${c.color}">${c.icon}</div><div class="item-info"><div class="item-name">${v.n}</div><div class="item-sub">${v.d>10?'🚌 '+v.t+' de Bamako':'📍 '+v.d+' km du centre'}</div></div><div class="item-right"><span class="item-dist">${v.d} km</span><span class="item-arr">›</span></div>`;
+    div.onclick=()=>showDetail(v,cer,reg);
+    list.appendChild(div);
+  });
+  goTo('villes');
+}
+
+function showDetail(v,cer,reg){
+  document.getElementById('det-title').innerHTML=`${v.n}<small>MALI</small>`;
+  document.getElementById('det-name').textContent=v.n;
+  document.getElementById('det-badge').textContent=`📍 ${cer} — ${reg}`;
+  document.getElementById('det-dist').textContent=v.d;
+  document.getElementById('det-duree').textContent=v.t||'N/A';
+  document.getElementById('det-prix').textContent=v.p?v.p.toLocaleString():'0';
+  document.getElementById('det-gare').textContent=v.b||'N/A';
+  document.getElementById('det-dur2').textContent='~'+v.t;
+  document.getElementById('det-prix2').textContent=v.p?v.p.toLocaleString()+' FCFA':'Gratuit';
+  document.getElementById('det-dist2').textContent=v.d+' km';
+  document.getElementById('det-bus-btn').textContent=`Bamako → ${v.n}`;
+  document.getElementById('det-back').onclick=()=>goTo('villes');
+  goTo('detail');
+}
+
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+buildHomeRegions();
+buildRegionsList();
+setTimeout(()=>{
+  if(document.getElementById('splash').classList.contains('active')) goTo('home');
+},3200);
+</script>
+</body>
+</html>
