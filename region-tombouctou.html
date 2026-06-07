@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Région de Tombouctou — Mali</title>
+<style>
+:root{--green:#14a34a;--yellow:#f5c400;--blue:#2563eb;--bg:#f2f4f7;--text:#1a1f2e;--sub:#6b7280;--border:#e4e7ec;--shadow:0 2px 10px rgba(0,0,0,0.10);--accent:#b45309}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--text);max-width:420px;margin:0 auto;height:100vh;display:flex;flex-direction:column}
+.topbar{background:linear-gradient(135deg,#92400e,#d97706);padding:12px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.tb-back{width:34px;height:34px;background:rgba(255,255,255,0.18);border:none;border-radius:50%;color:white;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.tb-title{font-size:17px;font-weight:900;color:white;flex:1}
+.tb-title span{color:var(--yellow)}
+.tb-badge{background:var(--yellow);color:#1a1f2e;font-size:10px;font-weight:800;padding:3px 8px;border-radius:50px}
+.tabs{display:flex;background:white;border-bottom:2px solid var(--border);flex-shrink:0}
+.tab{flex:1;padding:10px 4px;border:none;background:transparent;font-family:inherit;font-size:11px;font-weight:700;color:var(--sub);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px}
+.tab.active{color:#d97706;border-bottom-color:#d97706}
+.content{flex:1;overflow:hidden;position:relative}
+.panel{display:none;height:100%;flex-direction:column}
+.panel.active{display:flex}
+.map-wrap{flex:1;position:relative;overflow:hidden;background:#f5e6c8}
+.scroll-area{flex:1;overflow-y:auto;padding-bottom:10px}
+.section-header{background:#d97706;padding:8px 14px;font-size:11px;font-weight:800;color:white;text-transform:uppercase;letter-spacing:1px}
+.lieu-item{display:flex;align-items:center;padding:11px 14px;background:white;border-bottom:1px solid var(--border);cursor:pointer;gap:12px}
+.lieu-item:active{background:#fef3c7}
+.lieu-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.lieu-info{flex:1}
+.lieu-name{font-size:14px;font-weight:700}
+.lieu-sub{font-size:11px;color:var(--sub);font-weight:600;margin-top:1px}
+.lieu-dist{font-size:11px;font-weight:700;color:#d97706}
+.cercle-card{background:white;margin:8px 14px 0;border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.c-header{padding:12px 14px;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#92400e,#d97706)}
+.c-icon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;background:var(--yellow);flex-shrink:0}
+.c-name{font-size:15px;font-weight:800;color:white}
+.c-pop{font-size:11px;color:rgba(255,255,255,0.8);font-weight:600;margin-top:1px}
+.c-body{padding:10px 14px}
+.c-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)}
+.c-row:last-child{border-bottom:none}
+.c-row-icon{font-size:14px;width:20px;text-align:center}
+.c-row-text{font-size:12px;color:var(--sub);font-weight:600;flex:1}
+.c-row-val{font-size:12px;font-weight:700}
+.bottom-nav{background:white;border-top:1px solid var(--border);display:flex;flex-shrink:0}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;padding:9px 4px 11px;border:none;background:transparent;font-family:inherit;color:var(--sub);cursor:pointer;gap:3px}
+.nav-btn-icon{font-size:20px}
+.nav-btn-label{font-size:10px;font-weight:700}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(12px);background:#1a1f2e;color:white;padding:8px 16px;border-radius:50px;font-size:12px;font-weight:700;opacity:0;transition:all 0.28s;z-index:999;pointer-events:none;max-width:88%;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;align-items:flex-end;justify-content:center}
+.modal-box{background:white;border-radius:20px 20px 0 0;width:100%;max-width:420px;max-height:92vh;overflow-y:auto}
+.modal-hdr{background:linear-gradient(135deg,#92400e,#d97706);padding:16px 20px;border-radius:20px 20px 0 0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.modal-title{font-size:17px;font-weight:900;color:white}
+.modal-close{background:rgba(255,255,255,0.2);border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;color:white}
+.modal-body{padding:16px 20px 24px}
+.m-label{font-size:11px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:block;margin-top:12px}
+.m-select{width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:12px;font-size:14px;font-family:inherit;font-weight:700;color:var(--text);background:white;outline:none;cursor:pointer}
+.m-select:focus{border-color:var(--green)}
+.m-grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.m-btn{padding:12px 8px;border:2px solid var(--border);border-radius:12px;background:white;cursor:pointer;font-family:inherit;font-size:12px;font-weight:800;text-align:center;transition:all 0.2s}
+.m-btn.sel{border-color:var(--green);background:#f0fdf4}
+.m-input{width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:12px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box}
+.m-input:focus{border-color:var(--blue)}
+.m-hbtn{padding:8px 4px;border:2px solid var(--border);border-radius:10px;background:white;cursor:pointer;font-family:inherit;font-size:12px;font-weight:800;text-align:center;transition:all 0.2s;line-height:1.4}
+.m-hbtn.sel{border-color:var(--green);background:#f0fdf4;color:#14532d}
+.m-recap{background:#eff6ff;border-radius:12px;padding:12px;border:1.5px solid #bfdbfe;margin-top:12px}
+.m-recap-t{font-size:11px;font-weight:800;color:var(--blue);margin-bottom:6px;text-transform:uppercase}
+.m-rrow{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #dbeafe;font-size:12px}
+.m-rrow:last-child{border-bottom:none;font-weight:900;font-size:14px;color:var(--green);margin-top:4px}
+.m-pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.m-pay-btn{padding:12px 8px;border:2px solid var(--border);border-radius:12px;background:white;cursor:pointer;font-family:inherit;text-align:center;transition:all 0.2s}
+.m-pay-btn.sel{border-color:#f97316;background:#fff7ed}
+.pol-box{background:#fef9c3;border-radius:12px;padding:10px;border:1px solid #fde047;margin-top:12px}
+.pol-t{font-size:11px;font-weight:800;color:#92400e;margin-bottom:4px}
+.pol-r{font-size:10px;color:#78350f;font-weight:600;margin-bottom:2px}
+.btn-confirm{width:100%;padding:14px;border:none;border-radius:14px;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;margin-top:4px}
+.btn-confirm.on{background:linear-gradient(135deg,#14a34a,#16a34a);color:white}
+.btn-confirm.off{background:#f3f4f6;color:#9ca3af;cursor:not-allowed}
+
+.comp-btn{padding:10px 6px;border:2px solid var(--border);border-radius:12px;background:white;cursor:pointer;font-family:inherit;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
+.comp-btn.sel{border-color:#14a34a !important;background:#f0fdf4 !important;color:#14532d}
+.comp-name{font-size:11px;font-weight:800;color:var(--text)}
+.comp-info{font-size:9px;color:var(--sub);font-weight:600}
+
+.motif-btn{padding:10px 6px;border:2px solid var(--border);border-radius:12px;background:white;cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;text-align:center;line-height:1.6}
+.motif-btn.sel{border-color:#dc2626;background:#fef2f2;color:#dc2626}
+
+.nav-btn-mali{background:linear-gradient(135deg,#f5c400,#f59e0b) !important;border-radius:50% !important;width:56px !important;height:56px !important;margin-top:-18px;box-shadow:0 4px 16px rgba(245,196,0,0.5);flex-direction:column;align-items:center;justify-content:center;padding:0 !important;border:3px solid white !important;flex-shrink:0}
+.nav-btn-icon-mali{font-size:24px;display:block}
+.nav-btn-label-mali{font-size:8px;font-weight:900;color:#78350f;margin-top:1px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="tb-back" onclick="showToast('← Retour Mali Nav')">←</button>
+  <div class="tb-title">🕌 Région de <span>Tombouctou</span></div>
+  <div class="tb-badge">Région 6</div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('carte',this)">🗺️ Carte</button>
+  <button class="tab" onclick="switchTab('lieux',this)">📍 Lieux</button>
+  <button class="tab" onclick="switchTab('cercles',this)">🏛️ Cercles</button>
+  <button class="tab" onclick="switchTab('transport',this)">🚌 Transport</button>
+</div>
+
+<div class="content">
+
+  <!-- CARTE -->
+  <div class="panel active" id="panel-carte">
+    <div class="map-wrap">
+      <svg width="100%" height="100%" viewBox="0 0 420 480" xmlns="http://www.w3.org/2000/svg">
+        <rect width="420" height="480" fill="#f5e6c8"/>
+        <!-- Désert Sahara -->
+        <rect x="0" y="0" width="420" height="200" fill="#f0d5a0" opacity="0.7"/>
+        <text x="210" y="60" font-size="14" fill="#c8a050" font-family="sans-serif" font-weight="900" text-anchor="middle" opacity="0.5">🏜️ SAHARA</text>
+        <!-- Dunes -->
+        <ellipse cx="80" cy="80" rx="60" ry="20" fill="#e8c878" opacity="0.4"/>
+        <ellipse cx="320" cy="100" rx="70" ry="18" fill="#e8c878" opacity="0.4"/>
+        <ellipse cx="200" cy="50" rx="80" ry="15" fill="#e8c878" opacity="0.3"/>
+
+        <!-- Fleuve Niger -->
+        <path d="M0,300 Q60,290 100,285 Q160,278 210,282 Q260,286 310,280 Q360,274 420,278 L420,298 Q360,294 310,298 Q260,304 210,300 Q160,296 100,303 Q60,308 0,318Z" fill="#60a5fa" opacity="0.85"/>
+        <text x="180" y="295" font-size="9" fill="#1e40af" font-family="sans-serif" font-style="italic" font-weight="700">Fleuve Niger</text>
+
+        <!-- Routes -->
+        <line x1="210" y1="350" x2="210" y2="480" stroke="#c8b86e" stroke-width="4"/>
+        <text x="215" y="460" font-size="8" fill="#7a6020" font-family="sans-serif" font-weight="700">↓ Mopti/Bamako</text>
+        <line x1="0" y1="310" x2="420" y2="310" stroke="#d4c88a" stroke-width="3"/>
+
+        <!-- TOMBOUCTOU ville chef-lieu -->
+        <circle cx="210" cy="240" r="26" fill="#d97706" stroke="white" stroke-width="3"/>
+        <text x="210" y="234" font-size="8" fill="white" font-family="sans-serif" font-weight="900" text-anchor="middle">TOMBOUCTOU</text>
+        <text x="210" y="245" font-size="7" fill="rgba(255,255,255,0.9)" font-family="sans-serif" text-anchor="middle">Cité Mystérieuse</text>
+        <text x="210" y="256" font-size="7" fill="rgba(255,255,255,0.8)" font-family="sans-serif" text-anchor="middle">UNESCO 🌍</text>
+
+        <!-- Diré -->
+        <circle cx="100" cy="290" r="12" fill="#92400e" stroke="white" stroke-width="2"/>
+        <text x="100" y="294" font-size="7" fill="white" font-family="sans-serif" font-weight="800" text-anchor="middle">DIR</text>
+        <text x="100" y="312" font-size="8" fill="#92400e" font-family="sans-serif" font-weight="700" text-anchor="middle">Diré</text>
+
+        <!-- Niafunké -->
+        <circle cx="60" cy="340" r="11" fill="#92400e" stroke="white" stroke-width="2"/>
+        <text x="60" y="344" font-size="7" fill="white" font-family="sans-serif" font-weight="700" text-anchor="middle">NIA</text>
+        <text x="60" y="362" font-size="8" fill="#92400e" font-family="sans-serif" font-weight="700" text-anchor="middle">Niafunké</text>
+
+        <!-- Goundam -->
+        <circle cx="140" cy="220" r="11" fill="#92400e" stroke="white" stroke-width="2"/>
+        <text x="140" y="224" font-size="7" fill="white" font-family="sans-serif" font-weight="700" text-anchor="middle">GND</text>
+        <text x="140" y="242" font-size="8" fill="#92400e" font-family="sans-serif" font-weight="700" text-anchor="middle">Goundam</text>
+
+        <!-- Gourma-Rharous -->
+        <circle cx="350" cy="280" r="11" fill="#92400e" stroke="white" stroke-width="2"/>
+        <text x="350" y="284" font-size="7" fill="white" font-family="sans-serif" font-weight="700" text-anchor="middle">GRM</text>
+        <text x="350" y="302" font-size="8" fill="#92400e" font-family="sans-serif" font-weight="700" text-anchor="middle">Gourma-Rharous</text>
+
+        <!-- Lac Faguibine -->
+        <ellipse cx="60" cy="180" rx="55" ry="25" fill="#60a5fa" opacity="0.5"/>
+        <text x="60" y="184" font-size="8" fill="#1e40af" font-family="sans-serif" font-weight="700" text-anchor="middle">Lac Faguibine</text>
+
+        <!-- Mosquées UNESCO -->
+        <polygon points="207,210 220,190 233,210" fill="#7c3aed" stroke="white" stroke-width="1.5"/>
+        <text x="220" y="205" font-size="8" fill="#5b21b6" font-family="sans-serif" font-weight="800" text-anchor="middle">🕌</text>
+        <text x="248" y="218" font-size="7" fill="#5b21b6" font-family="sans-serif" font-weight="700" text-anchor="middle">Djingareyber</text>
+
+        <!-- Hôpital -->
+        <rect x="228" y="222" width="18" height="18" rx="4" fill="#ef4444" stroke="white" stroke-width="1.5"/>
+        <text x="237" y="234" font-size="13" text-anchor="middle" fill="white" font-weight="900">+</text>
+        <text x="237" y="252" font-size="7" fill="#b91c1c" font-family="sans-serif" font-weight="700" text-anchor="middle">Hôp. Tbct</text>
+
+        <!-- Marché -->
+        <rect x="165" y="258" width="68" height="18" rx="5" fill="#16a34a" stroke="white" stroke-width="1.5"/>
+        <text x="199" y="270" font-size="9" fill="white" font-family="sans-serif" font-weight="800" text-anchor="middle">🛒 Marché</text>
+
+        <!-- Aéroport -->
+        <rect x="165" y="278" width="58" height="16" rx="4" fill="#374151" stroke="white" stroke-width="1.5"/>
+        <text x="194" y="289" font-size="8" fill="white" font-family="sans-serif" font-weight="800" text-anchor="middle">✈️ Aéroport</text>
+
+        <!-- Caravane chameaux -->
+        <text x="310" y="140" font-size="14" fill="#92400e" font-family="sans-serif" text-anchor="middle">🐪🐪🐪</text>
+        <text x="310" y="155" font-size="7" fill="#92400e" font-family="sans-serif" font-weight="700" text-anchor="middle">Route des caravanes</text>
+
+        <!-- Salt trade -->
+        <text x="80" y="140" font-size="8" fill="#92400e" font-family="sans-serif" font-weight="700" text-anchor="middle">🧂 Sel d'Araouane</text>
+
+        <!-- Frontières -->
+        <line x1="0" y1="20" x2="420" y2="20" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6,4"/>
+        <text x="5" y="16" font-size="8" fill="#6b7280" font-family="sans-serif">↑ Taoudénit / Algérie / Mauritanie</text>
+        <text x="370" y="300" font-size="7" fill="#6b7280" font-family="sans-serif">→ Gao</text>
+
+        <!-- Légende -->
+        <rect x="5" y="380" width="130" height="90" rx="8" fill="rgba(255,255,255,0.95)"/>
+        <text x="12" y="396" font-size="10" fill="#444" font-family="sans-serif" font-weight="800">LÉGENDE</text>
+        <circle cx="18" cy="410" r="5" fill="#d97706"/><text x="28" y="414" font-size="8" fill="#444" font-family="sans-serif" font-weight="700">Tombouctou — Chef-lieu</text>
+        <circle cx="18" cy="424" r="5" fill="#92400e"/><text x="28" y="428" font-size="8" fill="#444" font-family="sans-serif" font-weight="700">Villes principales</text>
+        <circle cx="18" cy="438" r="5" fill="#60a5fa"/><text x="28" y="442" font-size="8" fill="#444" font-family="sans-serif" font-weight="700">Fleuve Niger / Lacs</text>
+        <circle cx="18" cy="452" r="5" fill="#7c3aed"/><text x="28" y="456" font-size="8" fill="#444" font-family="sans-serif" font-weight="700">Mosquées UNESCO</text>
+        <circle cx="18" cy="466" r="5" fill="#ef4444"/><text x="28" y="470" font-size="8" fill="#444" font-family="sans-serif" font-weight="700">Hôpital</text>
+
+        <!-- Position -->
+        <circle cx="210" cy="240" r="8" fill="#1a73e8" stroke="white" stroke-width="2" opacity="0.85"/>
+        <circle cx="210" cy="240" r="15" fill="#1a73e8" opacity="0.15"/>
+      </svg>
+      <div style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,0.95);border-radius:10px;padding:6px 10px;font-size:9px;font-weight:800;color:#444;box-shadow:var(--shadow)">🕌 890km de Bamako</div>
+    </div>
+  </div>
+
+  <!-- LIEUX -->
+  <div class="panel" id="panel-lieux">
+    <div class="scroll-area">
+      <div style="background:linear-gradient(135deg,#92400e,#d97706);padding:14px 16px;color:white">
+        <div style="font-size:16px;font-weight:900;margin-bottom:4px">🕌 Tombouctou — La Cité Mystérieuse</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.8)">890km Bamako • 1 047 917 hab. • 5 cercles • UNESCO • Carrefour saharien</div>
+      </div>
+      <div class="section-header">🏥 Hôpitaux</div>
+      <div class="lieu-item" onclick="showToast('Hôpital Régional de Tombouctou')">
+        <div class="lieu-icon" style="background:#fde8e8">🏥</div>
+        <div class="lieu-info"><div class="lieu-name">Hôpital Régional Tombouctou</div><div class="lieu-sub">Tombouctou — Principal hôpital</div></div>
+        <div class="lieu-dist">Centre</div>
+      </div>
+      <div class="section-header">🕌 Sites UNESCO et Histoire</div>
+      <div class="lieu-item" onclick="showToast('Mosquée Djingareyber — XIVe siècle — UNESCO !')">
+        <div class="lieu-icon" style="background:#ede9fe">🕌</div>
+        <div class="lieu-info"><div class="lieu-name">Mosquée Djingareyber</div><div class="lieu-sub">XIVe siècle — Patrimoine UNESCO 1988</div></div>
+        <div class="lieu-dist">Centre</div>
+      </div>
+      <div class="lieu-item" onclick="showToast('Mosquée Sankore — Ancienne université islamique')">
+        <div class="lieu-icon" style="background:#ede9fe">🕌</div>
+        <div class="lieu-info"><div class="lieu-name">Mosquée Sankore</div><div class="lieu-sub">Ancienne université islamique — UNESCO</div></div>
+        <div class="lieu-dist">Centre</div>
+      </div>
+      <div class="lieu-item" onclick="showToast('Mosquée Sidi Yahia — XVe siècle UNESCO')">
+        <div class="lieu-icon" style="background:#ede9fe">🕌</div>
+        <div class="lieu-info"><div class="lieu-name">Mosquée Sidi Yahia</div><div class="lieu-sub">XVe siècle — 3 mosquées UNESCO</div></div>
+        <div class="lieu-dist">Centre</div>
+      </div>
+      <div class="lieu-item" onclick="showToast('Manuscrits de Tombouctou — Bibliothèque Ahmed Baba')">
+        <div class="lieu-icon" style="background:#fef3c7">📜</div>
+        <div class="lieu-info"><div class="lieu-name">Manuscrits de Tombouctou</div><div class="lieu-sub">700 000 manuscrits anciens — Trésor mondial</div></div>
+        <div class="lieu-dist">Centre</div>
+      </div>
+      <div class="lieu-item" onclick="showToast('Route des Caravanes — Sel d Araouane')">
+        <div class="lieu-icon" style="background:#fef3c7">🐪</div>
+        <div class="lieu-info"><div class="lieu-name">Route des Caravanes</div><div class="lieu-sub">Sel d'Araouane — Commerce saharien</div></div>
+        <div class="lieu-dist">Sahara</div>
+      </div>
+      <div class="section-header">🛒 Marchés et Économie</div>
+      <div class="lieu-item" onclick="showToast('Grand Marché de Tombouctou')">
+        <div class="lieu-icon" style="background:#e8f5ee">🛒</div>
+        <div class="lieu-info"><div class="lieu-name">Grand Marché de Tombouctou</div><div class="lieu-sub">Sel, dattes, artisanat touareg</div></div>
+        <div class="lieu-dist">Centre</div>
+      </div>
+      <div class="lieu-item" onclick="showToast('Lac Faguibine — Lac saharien unique au monde')">
+        <div class="lieu-icon" style="background:#dbeafe">💧</div>
+        <div class="lieu-info"><div class="lieu-name">Lac Faguibine</div><div class="lieu-sub">Lac saharien — Zone humide unique</div></div>
+        <div class="lieu-dist">Goundam</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CERCLES -->
+  <div class="panel" id="panel-cercles">
+    <div class="scroll-area">
+      <div class="cercle-card">
+        <div class="c-header"><div class="c-icon">🕌</div><div><div class="c-name">Cercle de Tombouctou</div><div class="c-pop">Chef-lieu • 347 488 km² • UNESCO</div></div></div>
+        <div class="c-body">
+          <div class="c-row"><span class="c-row-icon">🕌</span><span class="c-row-text">UNESCO</span><span class="c-row-val">3 mosquées + vieille ville</span></div>
+          <div class="c-row"><span class="c-row-icon">📜</span><span class="c-row-text">Manuscrits</span><span class="c-row-val">700 000 manuscrits anciens</span></div>
+          <div class="c-row"><span class="c-row-icon">✈️</span><span class="c-row-text">Aéroport</span><span class="c-row-val">Vols vers Bamako et Gao</span></div>
+          <div class="c-row"><span class="c-row-icon">🐪</span><span class="c-row-text">Commerce</span><span class="c-row-val">Route des caravanes — Sel</span></div>
+        </div>
+      </div>
+      <div class="cercle-card">
+        <div class="c-header"><div class="c-icon">💧</div><div><div class="c-name">Cercle de Goundam</div><div class="c-pop">Lac Faguibine • 92 688 km²</div></div></div>
+        <div class="c-body">
+          <div class="c-row"><span class="c-row-icon">💧</span><span class="c-row-text">Lac</span><span class="c-row-val">Faguibine — Lac saharien</span></div>
+          <div class="c-row"><span class="c-row-icon">🐟</span><span class="c-row-text">Pêche</span><span class="c-row-val">Bozo — Pêche traditionnelle</span></div>
+        </div>
+      </div>
+      <div class="cercle-card">
+        <div class="c-header"><div class="c-icon">🌊</div><div><div class="c-name">Cercle de Diré</div><div class="c-pop">Fleuve Niger • 1 750 km²</div></div></div>
+        <div class="c-body">
+          <div class="c-row"><span class="c-row-icon">🌊</span><span class="c-row-text">Niger</span><span class="c-row-val">Bord du fleuve Niger</span></div>
+          <div class="c-row"><span class="c-row-icon">🌾</span><span class="c-row-text">Agriculture</span><span class="c-row-val">Riz, mil le long du fleuve</span></div>
+        </div>
+      </div>
+      <div class="cercle-card">
+        <div class="c-header"><div class="c-icon">🐟</div><div><div class="c-name">Cercle de Niafunké</div><div class="c-pop">Delta • 12 000 km²</div></div></div>
+        <div class="c-body">
+          <div class="c-row"><span class="c-row-icon">🎵</span><span class="c-row-text">Musique</span><span class="c-row-val">Terre d'Ali Farka Touré</span></div>
+          <div class="c-row"><span class="c-row-icon">🐟</span><span class="c-row-text">Pêche</span><span class="c-row-val">Delta du Niger</span></div>
+        </div>
+      </div>
+      <div class="cercle-card">
+        <div class="c-header"><div class="c-icon">🏜️</div><div><div class="c-name">Cercle Gourma-Rharous</div><div class="c-pop">Est • Zone nomade</div></div></div>
+        <div class="c-body">
+          <div class="c-row"><span class="c-row-icon">🐪</span><span class="c-row-text">Élevage</span><span class="c-row-val">Touareg — Nomades</span></div>
+          <div class="c-row"><span class="c-row-icon">📊</span><span class="c-row-text">Total</span><span class="c-row-val">5 cercles • 51 communes</span></div>
+        </div>
+      </div>
+      <div style="height:10px"></div>
+    </div>
+  </div>
+
+  <!-- TRANSPORT -->
+  <div class="panel" id="panel-transport">
+    <div class="scroll-area">
+      <div class="section-header">🎫 Réserver un Billet Bus</div>
+      <div class="lieu-item" onclick="ouvrirReservation()">
+        <div class="lieu-icon" style="background:#fef3c7">🎫</div>
+        <div class="lieu-info"><div class="lieu-name">Réserver Bus — Tombouctou</div><div class="lieu-sub">Toutes destinations Mali</div></div>
+        <div class="lieu-dist" style="color:#d97706">→</div>
+      </div>
+      <div class="section-header">🚌 Prix Bus depuis Bamako</div>
+      <div class="lieu-item"><div class="lieu-icon" style="background:#fef3c7">🚌</div><div class="lieu-info"><div class="lieu-name">Bamako → Tombouctou</div><div class="lieu-sub">~12h • Via Mopti • SONEF, Rimbo</div></div><div class="lieu-dist">12 000 F</div></div>
+      <div class="lieu-item"><div class="lieu-icon" style="background:#fef3c7">🚌</div><div class="lieu-info"><div class="lieu-name">Mopti → Tombouctou</div><div class="lieu-sub">~6h • Route du désert</div></div><div class="lieu-dist">6 000 F</div></div>
+      <div class="lieu-item"><div class="lieu-icon" style="background:#fef3c7">🚌</div><div class="lieu-info"><div class="lieu-name">Tombouctou → Gao</div><div class="lieu-sub">~6h • Route nationale</div></div><div class="lieu-dist">6 000 F</div></div>
+      <div class="lieu-item"><div class="lieu-icon" style="background:#fef3c7">🚌</div><div class="lieu-info"><div class="lieu-name">Tombouctou → Niafunké</div><div class="lieu-sub">~3h • Via fleuve</div></div><div class="lieu-dist">3 000 F</div></div>
+      <div style="height:10px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RÉSERVATION -->
+<div class="modal" id="modal-resa">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="modal-title">🎫 Réserver Bus — Tombouctou</div>
+      <button class="modal-close" onclick="fermerModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <label class="m-label" style="margin-top:0">🎫 Type de billet</label>
+      <div class="m-grid2">
+        <button class="m-btn sel" id="mb-simple" onclick="setMBillet('simple')">🎫 Aller simple</button>
+        <button class="m-btn" id="mb-retour" onclick="setMBillet('retour')">🔄 Aller-Retour</button>
+      </div>
+      
+      <label class="m-label">🚌 Compagnie de transport</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
+        <button class="comp-btn" id="cp-sonef" onclick="setComp('SONEF','cp-sonef')"><span style="font-size:20px">🚌</span><span class="comp-name">SONEF</span><span class="comp-info">Bamako-Ségou-Mopti</span></button>
+        <button class="comp-btn" id="cp-rimbo" onclick="setComp('Rimbo Transport','cp-rimbo')"><span style="font-size:20px">🚌</span><span class="comp-name">Rimbo</span><span class="comp-info">Toutes destinations</span></button>
+        <button class="comp-btn" id="cp-bani" onclick="setComp('Bani Transport','cp-bani')"><span style="font-size:20px">🚌</span><span class="comp-name">Bani Transport</span><span class="comp-info">Nord Mali</span></button>
+        <button class="comp-btn" id="cp-bittar" onclick="setComp('Bittar Transport','cp-bittar')"><span style="font-size:20px">🚌</span><span class="comp-name">Bittar</span><span class="comp-info">Kayes-Dakar</span></button>
+        <button class="comp-btn" id="cp-diarra" onclick="setComp('Diarra Bus','cp-diarra')"><span style="font-size:20px">🚌</span><span class="comp-name">Diarra Bus</span><span class="comp-info">Sikasso-Bougouni</span></button>
+        <button class="comp-btn" id="cp-autre" onclick="setComp('Autre compagnie','cp-autre')"><span style="font-size:20px">🚌</span><span class="comp-name">Autre</span><span class="comp-info">Autre compagnie</span></button>
+      </div>
+      <div id="comp-choisie" style="display:none;text-align:center;font-size:12px;font-weight:700;color:#1d4ed8;margin-bottom:4px;padding:7px;background:#eff6ff;border-radius:8px">✅ Compagnie: <span id="comp-val"></span></div>
+<label class="m-label">📍 Ville de départ</label>
+      <select id="m-depart" onchange="majModal()" class="m-select"><option value="">-- Choisir --</option></select>
+      <label class="m-label">🏁 Ville d'arrivée</label>
+      <select id="m-arrivee" onchange="majModal()" class="m-select"><option value="">-- Choisir --</option></select>
+      <label class="m-label">📅 Date de voyage (aller)</label>
+      <input type="date" id="m-date" class="m-input" onchange="majModal()">
+      <div id="m-retour-box" style="display:none;margin-top:8px">
+        <label class="m-label" style="margin-top:0">🔄 Date de retour</label>
+        <input type="date" id="m-date-retour" class="m-input">
+      </div>
+      <label class="m-label">⏰ Horaire de départ</label>
+      <div style="background:#f0fdf4;border-radius:12px;padding:10px 14px;border:1px solid #bbf7d0;margin-bottom:4px">
+        <div style="font-size:11px;color:#166534;font-weight:700;margin-bottom:8px">🏢 Horaires fixés par la compagnie</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+          <button class="m-hbtn" id="h1" onclick="selHeure('05h30','h1')">05h30<br><small>12 places</small></button>
+          <button class="m-hbtn" id="h2" onclick="selHeure('09h00','h2')">09h00<br><small>8 places</small></button>
+          <button class="m-hbtn" id="h3" onclick="selHeure('14h00','h3')">14h00<br><small>15 places</small></button>
+          <button class="m-hbtn" id="h4" onclick="selHeure('17h30','h4')">17h30<br><small>6 places</small></button>
+          <button class="m-hbtn" id="h5" onclick="selHeure('20h00','h5')">20h00<br><small>10 places</small></button>
+          <div style="background:#fde8e8;border-radius:8px;padding:8px;text-align:center;font-size:10px;font-weight:700;color:#dc2626">11h00<br>Complet</div>
+        </div>
+        <div id="m-heure-choisie" style="display:none;text-align:center;font-size:12px;font-weight:700;color:#1d4ed8;margin-top:8px">✅ Départ: <span id="m-heure-val"></span></div>
+      </div>
+      <label class="m-label">🪑 Choisir votre place</label>
+      <div style="background:#f8fafc;border-radius:12px;padding:10px 14px;border:1px solid #e4e7ec;margin-bottom:4px">
+        <div style="text-align:center;margin-bottom:8px"><span style="background:#374151;color:white;padding:4px 16px;border-radius:8px;font-size:11px;font-weight:700">👨‍✈️ CHAUFFEUR</span></div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#6b7280"><div style="width:12px;height:12px;border-radius:3px;background:#16a34a"></div>Libre</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#6b7280"><div style="width:12px;height:12px;border-radius:3px;background:#ef4444"></div>Occupé</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#6b7280"><div style="width:12px;height:12px;border-radius:3px;background:#f5c400"></div>Votre choix</div>
+        </div>
+        <div id="plan-grid" style="display:grid;grid-template-columns:1fr 8px 1fr 1fr;gap:4px;max-width:260px;margin:0 auto"></div>
+        <div id="siege-info" style="display:none;text-align:center;font-size:12px;font-weight:700;color:#1d4ed8;margin-top:8px;padding:7px;background:#eff6ff;border-radius:8px"></div>
+      </div>
+      <label class="m-label">👤 Nom complet</label>
+      <input type="text" id="m-nom" class="m-input" placeholder="Ex: Mamadou Coulibaly" oninput="majModal()">
+      <label class="m-label">📞 Téléphone</label>
+      <input type="tel" id="m-tel" class="m-input" placeholder="+223 76 XX XX XX">
+      <label class="m-label">👥 Passagers</label>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
+        <button onclick="chgMPass(-1)" style="width:36px;height:36px;background:#f3f4f6;border:none;border-radius:50%;font-size:18px;font-weight:700;cursor:pointer">−</button>
+        <span id="m-nb-pass" style="font-size:20px;font-weight:900;min-width:28px;text-align:center">1</span>
+        <button onclick="chgMPass(1)" style="width:36px;height:36px;background:#f3f4f6;border:none;border-radius:50%;font-size:18px;font-weight:700;cursor:pointer">+</button>
+        <span id="m-prix-lbl" style="margin-left:auto;font-size:14px;font-weight:900;color:#2563eb"></span>
+      </div>
+      <label class="m-label">💳 Mode de paiement</label>
+      <div class="m-pay-grid">
+        <button class="m-pay-btn" id="mp-orange" onclick="setMPay('orange')"><div style="font-size:20px">🟠</div><div style="font-size:11px;font-weight:800">Orange Money</div></button>
+        <button class="m-pay-btn" id="mp-wave" onclick="setMPay('wave')"><div style="font-size:20px">🔵</div><div style="font-size:11px;font-weight:800">Wave</div></button>
+        <button class="m-pay-btn" id="mp-moov" onclick="setMPay('moov')"><div style="font-size:20px">🟡</div><div style="font-size:11px;font-weight:800">Moov Money</div></button>
+        <button class="m-pay-btn" id="mp-card" onclick="setMPay('card')"><div style="font-size:20px">💳</div><div style="font-size:11px;font-weight:800">Carte bancaire</div></button>
+      </div>
+      <div class="m-recap" id="m-recap" style="display:none">
+        <div class="m-recap-t">📋 Récapitulatif</div>
+        <div class="m-rrow"><span style="color:var(--sub);font-weight:600">🚌 Compagnie</span><span style="font-weight:700" id="mr-comp">—</span></div>
+        <div class="m-rrow"><span style="color:var(--sub);font-weight:600">Trajet</span><span style="font-weight:700" id="mr-trajet">—</span></div>
+        <div class="m-rrow"><span style="color:var(--sub);font-weight:600">🪑 Place</span><span style="font-weight:700" id="mr-siege">—</span></div>
+        <div class="m-rrow"><span style="color:var(--sub);font-weight:600">⏰ Départ</span><span style="font-weight:700" id="mr-heure">—</span></div>
+        <div class="m-rrow"><span style="color:var(--sub);font-weight:600">Billet</span><span style="font-weight:700" id="mr-billet">—</span></div>
+        <div class="m-rrow"><span style="color:var(--sub);font-weight:600">Date</span><span style="font-weight:700" id="mr-date">—</span></div>
+        <div class="m-rrow"><span style="color:var(--sub);font-weight:600">Frais service</span><span style="font-weight:700" id="mr-frais">—</span></div>
+        <div class="m-rrow"><span style="color:var(--sub);font-weight:600">💰 TOTAL</span><span style="font-weight:700;color:var(--green);font-size:14px" id="mr-total">—</span></div>
+      </div>
+      <div class="pol-box">
+        <div class="pol-t">📋 Politique d'annulation</div>
+        <div class="pol-r">✅ Avant 24h → 20% retenu / 80% remboursé</div>
+        <div class="pol-r">⚠️ Après 24h → 40% retenu / 60% remboursé</div>
+        <div class="pol-r">❌ No-show → 0% + pénalité 10% prochaine résa</div>
+        <div class="pol-r" style="font-weight:700;color:#92400e">💳 Paiement en ligne OBLIGATOIRE</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+        <button id="btn-wa" class="btn-confirm off" onclick="confirmerWA()">📱 WhatsApp</button>
+        <button id="btn-sms" class="btn-confirm off" onclick="confirmerSMS()">💬 SMS</button>
+      </div>
+      <!-- ANNULATION SIMPLE -->
+      <div style="text-align:center;margin-top:14px;padding-top:12px;border-top:2px dashed #fde047">
+        <div style="font-size:11px;color:var(--sub);margin-bottom:8px">Vous avez déjà réservé ?</div>
+        <button onclick="annulerReservation()" style="background:#fef2f2;color:#dc2626;border:2px solid #fecaca;border-radius:12px;padding:10px 20px;font-size:13px;font-weight:800;font-family:inherit;cursor:pointer;width:100%">❌ Annuler ma réservation</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SOS MODAL -->
+<div id="sos-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:700;align-items:flex-end;justify-content:center">
+  <div style="background:white;border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:420px">
+    <div style="font-size:32px;text-align:center;margin-bottom:8px">🆘</div>
+    <div style="font-size:18px;font-weight:900;text-align:center;color:#dc2626;margin-bottom:16px">URGENCE — SOS</div>
+    <button onclick="window.location.href='tel:15'" style="width:100%;padding:14px;background:#dc2626;color:white;border:none;border-radius:12px;font-size:15px;font-weight:800;margin-bottom:10px;font-family:inherit;cursor:pointer">📞 SAMU — 15</button>
+    <button onclick="window.location.href='tel:17'" style="width:100%;padding:14px;background:#1d4ed8;color:white;border:none;border-radius:12px;font-size:15px;font-weight:800;margin-bottom:10px;font-family:inherit;cursor:pointer">🚔 Police — 17</button>
+    <button onclick="window.location.href='tel:18'" style="width:100%;padding:14px;background:#f59e0b;color:#1a1f2e;border:none;border-radius:12px;font-size:15px;font-weight:800;margin-bottom:10px;font-family:inherit;cursor:pointer">🚒 Pompiers — 18</button>
+    <button onclick="sosSendWA()" style="width:100%;padding:14px;background:#25d366;color:white;border:none;border-radius:12px;font-size:15px;font-weight:800;margin-bottom:10px;font-family:inherit;cursor:pointer">📱 SOS WhatsApp + Position</button>
+    <button onclick="sosClose()" style="width:100%;padding:12px;background:#f3f4f6;color:#374151;border:none;border-radius:12px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer">Annuler</button>
+  </div>
+</div>
+
+<!-- MODAL PARTAGER -->
+<div id="share-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:700;align-items:flex-end;justify-content:center">
+  <div style="background:white;border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:420px">
+    <div style="font-size:28px;text-align:center;margin-bottom:8px">↗️</div>
+    <div style="font-size:17px;font-weight:900;text-align:center;margin-bottom:16px">Partager la position</div>
+    <button onclick="shareWhatsApp()" style="width:100%;padding:14px;background:#25d366;color:white;border:none;border-radius:12px;font-size:15px;font-weight:800;margin-bottom:10px;font-family:inherit;cursor:pointer">📱 Partager sur WhatsApp</button>
+    <button onclick="shareSMS()" style="width:100%;padding:14px;background:#2563eb;color:white;border:none;border-radius:12px;font-size:15px;font-weight:800;margin-bottom:10px;font-family:inherit;cursor:pointer">💬 Partager par SMS</button>
+    <button onclick="copyPosition()" style="width:100%;padding:14px;background:#f3f4f6;color:#374151;border:none;border-radius:12px;font-size:15px;font-weight:800;margin-bottom:10px;font-family:inherit;cursor:pointer">📋 Copier le lien</button>
+    <button onclick="openGoogleMaps()" style="width:100%;padding:14px;background:#ea4335;color:white;border:none;border-radius:12px;font-size:15px;font-weight:800;margin-bottom:10px;font-family:inherit;cursor:pointer">🗺️ Ouvrir Google Maps</button>
+    <button onclick="closeShare()" style="width:100%;padding:12px;background:#f3f4f6;color:#374151;border:none;border-radius:12px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer">Annuler</button>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-btn" onclick="ouvrirReservation()"><span class="nav-btn-icon">🎫</span><span class="nav-btn-label">Billet</span></button>
+  <button class="nav-btn" onclick="openNav()"><span class="nav-btn-icon">🧭</span><span class="nav-btn-label">Naviguer</span></button>
+  <button class="nav-btn nav-btn-mali" onclick="ouvrirMaliTaxi()"><span class="nav-btn-icon-mali">🚖</span><span class="nav-btn-label-mali">MaliTaxi</span></button>
+  <button class="nav-btn" onclick="callSOS()"><span class="nav-btn-icon">🆘</span><span class="nav-btn-label">SOS</span></button>
+  <button class="nav-btn" onclick="partager()"><span class="nav-btn-icon">↗️</span><span class="nav-btn-label">Partager</span></button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+
+function ouvrirMaliTaxi(){
+  window.open('https://mikailou33-collab.github.io/malitaxi-vip/','_blank');
+}
+
+var VM=[
+  {n:'Bamako',f:'🏙️',p:'Mali'},{n:'Tombouctou',f:'🕌',p:'Mali'},{n:'Niafunké',f:'🎵',p:'Mali'},
+  {n:'Goundam',f:'💧',p:'Mali'},{n:'Diré',f:'🌊',p:'Mali'},{n:'Mopti',f:'🐊',p:'Mali'},
+  {n:'Ségou',f:'🏺',p:'Mali'},{n:'Gao',f:'🏜️',p:'Mali'},{n:'Kayes',f:'🚂',p:'Mali'},
+  {n:'Koulikoro',f:'🌍',p:'Mali'},{n:'Sikasso',f:'🌿',p:'Mali'},{n:'Kidal',f:'⭐',p:'Mali'},
+  {n:'Douentza',f:'🏜️',p:'Mali'},{n:'Bandiagara',f:'🏔️',p:'Mali'},{n:'San',f:'🌾',p:'Mali'},
+];
+var VAO=[
+  {n:'Dakar',f:'🇸🇳',p:'Sénégal'},{n:'Ouagadougou',f:'🇧🇫',p:'Burkina Faso'},
+  {n:'Niamey',f:'🇳🇪',p:'Niger'},{n:'Nouakchott',f:'🇲🇷',p:'Mauritanie'},
+];
+var DIST={Bamako:890,Mopti:450,Ségou:700,Gao:490,Kayes:1410,Niafunke:200,Goundam:100,Dire:180,Douentza:280,Kidal:980,Dakar:1880,Ouagadougou:1180,Niamey:1100,Nouakchott:1300};
+var FMALI=150,FHORS=250;
+
+function setComp(nom,btnId){
+  mComp=nom;
+  ['cp-sonef','cp-rimbo','cp-bani','cp-bittar','cp-diarra','cp-autre'].forEach(function(x){var b=document.getElementById(x);if(b)b.className='comp-btn';});
+  var sel=document.getElementById(btnId);if(sel)sel.className='comp-btn sel';
+  var cd=document.getElementById('comp-choisie');if(cd)cd.style.display='block';
+  var cv=document.getElementById('comp-val');if(cv)cv.textContent=nom;
+  majModal();
+}
+var mComp='';
+var mBillet='simple',mPass=1,mPay='',mHeure='',mSiege=0;
+
+function remplirSelects(){
+  var optsM=VM.map(function(v){return '<option value="'+v.n+'|'+v.f+'|'+v.p+'">'+v.f+' '+v.n+'</option>';}).join('');
+  var optsAO=VAO.map(function(v){return '<option value="'+v.n+'|'+v.f+'|'+v.p+'">'+v.f+' '+v.n+' ('+v.p+')</option>';}).join('');
+  ['m-depart','m-arrivee'].forEach(function(id){
+    var sel=document.getElementById(id);if(!sel)return;
+    var old=sel.value;
+    sel.innerHTML='<option value="">-- Choisir --</option><optgroup label="🇲🇱 Mali">'+optsM+'</optgroup><optgroup label="🌍 Afrique Ouest">'+optsAO+'</optgroup>';
+    if(old)sel.value=old;
+  });
+}
+function genererPlan(){
+  var grid=document.getElementById('plan-grid');if(!grid)return;
+  grid.innerHTML='';var occ=[];
+  for(var i=1;i<=44;i++){if(Math.random()<0.28&&i!==mSiege)occ.push(i);}
+  var col=0;
+  for(var s=1;s<=44;s++){
+    if(col===2){var sp=document.createElement('div');sp.style.background='transparent';grid.appendChild(sp);}
+    var isOcc=occ.indexOf(s)>=0;
+    var btn=document.createElement('button');btn.textContent=s;
+    if(isOcc){btn.style.cssText='padding:8px 4px;border:none;border-radius:7px;font-size:11px;font-weight:800;cursor:not-allowed;font-family:inherit;color:white;background:#ef4444;opacity:0.7';btn.disabled=true;}
+    else if(s===mSiege){btn.style.cssText='padding:8px 4px;border:none;border-radius:7px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;color:#1a1f2e;background:#f5c400';}
+    else{btn.style.cssText='padding:8px 4px;border:none;border-radius:7px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;color:white;background:#16a34a';}
+    if(!isOcc){(function(num,b){b.onclick=function(){
+      mSiege=num;
+      document.querySelectorAll('#plan-grid button').forEach(function(bt){if(!bt.disabled){bt.style.background=(parseInt(bt.textContent)===mSiege)?'#f5c400':'#16a34a';bt.style.color=(parseInt(bt.textContent)===mSiege)?'#1a1f2e':'white';}});
+      var si=document.getElementById('siege-info');if(si){si.style.display='block';si.textContent='✅ Place N°'+num+(num<=15?' — Avant':num<=30?' — Milieu':' — Arrière');}
+      majModal();
+    };})(s,btn);}
+    grid.appendChild(btn);col=(col+1)%4;
+  }
+}
+function selHeure(h,id){
+  mHeure=h;
+  ['h1','h2','h3','h4','h5'].forEach(function(x){var b=document.getElementById(x);if(b)b.className='m-hbtn';});
+  var sel=document.getElementById(id);if(sel)sel.className='m-hbtn sel';
+  document.getElementById('m-heure-choisie').style.display='block';
+  document.getElementById('m-heure-val').textContent=h;
+  majModal();
+}
+function ouvrirReservation(){
+  var t=new Date().toISOString().split('T')[0];
+  document.getElementById('m-date').min=t;document.getElementById('m-date').value=t;
+  document.getElementById('m-date-retour').min=t;
+  mBillet='simple';mPass=1;mPay='';mHeure='';mSiege=0;mComp='';
+  document.getElementById('mb-simple').className='m-btn sel';
+  document.getElementById('mb-retour').className='m-btn';
+  document.getElementById('m-retour-box').style.display='none';
+  document.getElementById('m-nb-pass').textContent='1';
+  document.querySelectorAll('.m-hbtn').forEach(function(b){b.className='m-hbtn';});
+  document.querySelectorAll('.m-pay-btn').forEach(function(b){b.className='m-pay-btn';});
+  document.querySelectorAll('.comp-btn').forEach(function(b){b.className='comp-btn';});
+  var cd=document.getElementById('comp-choisie');if(cd)cd.style.display='none';
+  var si=document.getElementById('siege-info');if(si)si.style.display='none';
+  document.getElementById('m-recap').style.display='none';
+  remplirSelects();genererPlan();majModal();
+  document.getElementById('modal-resa').style.display='flex';
+}
+function fermerModal(){document.getElementById('modal-resa').style.display='none';}
+function setMBillet(b){mBillet=b;document.getElementById('mb-simple').className='m-btn'+(b==='simple'?' sel':'');document.getElementById('mb-retour').className='m-btn'+(b==='retour'?' sel':'');document.getElementById('m-retour-box').style.display=b==='retour'?'block':'none';majModal();}
+function chgMPass(n){mPass=Math.max(1,Math.min(10,mPass+n));document.getElementById('m-nb-pass').textContent=mPass;majModal();}
+function setMPay(p){mPay=p;['orange','wave','moov','card'].forEach(function(x){document.getElementById('mp-'+x).className='m-pay-btn'+(p===x?' sel':'');});majModal();}
+function getFrais(d,a){return(VM.some(function(v){return v.n===d;})&&VM.some(function(v){return v.n===a;}))?FMALI:FHORS;}
+function getPrix(d,a){var dist=DIST[a]||DIST[d]||800;var base=Math.round(dist*13/10)*10*mPass;return base*(mBillet==='retour'?2:1);}
+function majModal(){
+  var dep=(document.getElementById('m-depart').value||'').split('|')[0];
+  var arr=(document.getElementById('m-arrivee').value||'').split('|')[0];
+  var date=document.getElementById('m-date').value;
+  var nom=document.getElementById('m-nom').value.trim();
+  var ok=dep&&arr&&dep!==arr&&date&&nom&&mPay&&mHeure&&mSiege>0;
+  if(dep&&arr&&dep!==arr){
+    var prix=getPrix(dep,arr);var frais=getFrais(dep,arr);
+    document.getElementById('m-prix-lbl').textContent=(prix+frais).toLocaleString()+' FCFA';
+    if(date){
+      document.getElementById('m-recap').style.display='block';
+      var mc=document.getElementById('mr-comp');if(mc)mc.textContent=mComp?mComp:'À choisir';
+      document.getElementById('mr-trajet').textContent=dep+' → '+arr;
+      document.getElementById('mr-siege').textContent=mSiege?'N°'+mSiege:'À choisir';
+      document.getElementById('mr-heure').textContent=mHeure?'⏰ '+mHeure:'À choisir';
+      document.getElementById('mr-billet').textContent=mBillet==='retour'?'🔄 Aller-Retour':'🎫 Aller simple';
+      var dr=document.getElementById('m-date-retour');
+      document.getElementById('mr-date').textContent=date+(mBillet==='retour'&&dr&&dr.value?' | Retour: '+dr.value:'');
+      document.getElementById('mr-frais').textContent=frais+' FCFA '+(frais===FMALI?'🇲🇱':'🌍');
+      document.getElementById('mr-total').textContent=(prix+frais).toLocaleString()+' FCFA';
+    }
+  } else {document.getElementById('m-recap').style.display='none';document.getElementById('m-prix-lbl').textContent='';}
+  document.getElementById('btn-wa').className=ok?'btn-confirm on':'btn-confirm off';
+  document.getElementById('btn-sms').className=ok?'btn-confirm on':'btn-confirm off';
+}
+function getMsg(){
+  var dep=(document.getElementById('m-depart').value||'').split('|')[0];
+  var arr=(document.getElementById('m-arrivee').value||'').split('|')[0];
+  var date=document.getElementById('m-date').value;
+  var nom=document.getElementById('m-nom').value;var tel=document.getElementById('m-tel').value;
+  var prix=getPrix(dep,arr);var frais=getFrais(dep,arr);
+  var ref='MT-'+Math.random().toString(36).substr(2,6).toUpperCase();
+  var dr=document.getElementById('m-date-retour');
+  var ret=mBillet==='retour'&&dr&&dr.value?'\n📅 Retour: '+dr.value:'';
+  return '🎫 BILLET MALITAXI\n━━━━━━━━━━━━━━\n🔖 Réf: '+ref+'\n🚌 '+mComp+'\n🗺️ '+dep+' → '+arr+'\n⏰ Départ: '+mHeure+' (fixé par compagnie)\n🪑 Place N°'+mSiege+'\n🎫 '+(mBillet==='retour'?'Aller-Retour':'Aller Simple')+'\n📅 Aller: '+date+ret+'\n👤 '+nom+(tel?' • '+tel:'')+' | 👥 '+mPass+' passager(s)\n💳 Paiement: '+mPay+'\n💰 Frais: '+frais+' FCFA\n💰 TOTAL: '+(prix+frais).toLocaleString()+' FCFA\n━━━━━━━━━━━━━━\n✅ Avant 24h = 20% retenu\n⚠️ Après 24h = 40% retenu\n❌ No-show = 0% + pénalité 10%\n\n🇲🇱 Bon voyage ! MaliTaxi';
+}
+function confirmerWA(){
+  var dep=(document.getElementById('m-depart').value||'').split('|')[0];
+  var arr=(document.getElementById('m-arrivee').value||'').split('|')[0];
+  if(!mComp){showToast('⚠️ Choisissez une compagnie !');return;}
+  if(!dep||!arr||dep===arr||!document.getElementById('m-date').value||!document.getElementById('m-nom').value.trim()||!mPay||!mHeure||!mSiege){showToast('⚠️ Complétez tous les champs !');return;}
+  window.open('https://wa.me/?text='+encodeURIComponent(getMsg()),'_blank');
+  fermerModal();showToast('✅ Réservation envoyée sur WhatsApp !');
+}
+function confirmerSMS(){
+  var dep=(document.getElementById('m-depart').value||'').split('|')[0];
+  var arr=(document.getElementById('m-arrivee').value||'').split('|')[0];
+  if(!mComp){showToast('⚠️ Choisissez une compagnie !');return;}
+  if(!dep||!arr||dep===arr||!document.getElementById('m-date').value||!document.getElementById('m-nom').value.trim()||!mPay||!mHeure||!mSiege){showToast('⚠️ Complétez tous les champs !');return;}
+  window.location.href='sms:?body='+encodeURIComponent(getMsg());
+  fermerModal();showToast('✅ Réservation envoyée par SMS !');
+}
+
+
+function annulerReservation(){
+  var msg = '❌ DEMANDE ANNULATION\n━━━━━━━━━━━━━━\n';
+  var ref = prompt('Entrez votre numéro de référence (ex: MT-ABC123):');
+  if(!ref || ref.trim().length < 4){showToast('⚠️ Réf invalide !'); return;}
+  var motifs = ['📅 Changement de programme','👨‍👩‍👧 Urgence familiale','🏥 Problème de santé','💼 Raisons professionnelles','🎫 Billet en double','✏️ Autre motif'];
+  var motif = motifs[0];
+  msg += '🔖 Réf: ' + ref.trim().toUpperCase() + '\n';
+  msg += '❌ Motif: ' + motif + '\n';
+  msg += '📅 Le: ' + new Date().toLocaleDateString('fr-FR') + '\n';
+  msg += '━━━━━━━━━━━━━━\n✅ Avant 24h = 80% remboursé\n⚠️ Après 24h = 60% remboursé\n🇲🇱 MaliTaxi — Service client';
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
+function switchTab(name,el){document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});el.classList.add('active');document.getElementById('panel-'+name).classList.add('active');}
+function callSOS(){document.getElementById('sos-modal').style.display='flex';}
+function sosClose(){document.getElementById('sos-modal').style.display='none';}
+function sosSendWA(){var m='🆘 SOS URGENCE!\n📍 Région de Tombouctou, Mali\nhttps://maps.google.com/?q=16.775,-3.009\nJ ai besoin d aide!';window.open('https://wa.me/?text='+encodeURIComponent(m),'_blank');sosClose();}
+function openNav(){window.open('https://maps.google.com/maps?daddr=16.775,-3.009&dirflg=d','_blank');}
+function partager(){document.getElementById('share-modal').style.display='flex';}
+function closeShare(){document.getElementById('share-modal').style.display='none';}
+function shareWhatsApp(){window.open('https://wa.me/?text='+encodeURIComponent('📍 Région de Tombouctou, Mali\nhttps://maps.google.com/?q=16.775,-3.009\n🗺️ Via Mali Nav'),'_blank');closeShare();}
+function shareSMS(){window.location.href='sms:?body='+encodeURIComponent('📍 Région de Tombouctou: https://maps.google.com/?q=16.775,-3.009');closeShare();}
+function copyPosition(){if(navigator.clipboard){navigator.clipboard.writeText('https://maps.google.com/?q=16.775,-3.009');}showToast('✅ Lien copié !');closeShare();}
+function openGoogleMaps(){window.open('https://maps.google.com/?q=16.775,-3.009','_blank');closeShare();}
+var tt;
+function showToast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(function(){t.classList.remove('show');},2500);}
+</script>
+</body>
+</html>

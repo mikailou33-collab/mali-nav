@@ -1,0 +1,2690 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0"/>
+<title>MaliTaxi VIP</title>
+
+<!-- PWA Meta Tags -->
+<meta name="application-name" content="MaliTaxi VIP"/>
+<meta name="description" content="Transport & Voyage au Mali - Taxi, Bus, Avion"/>
+<meta name="theme-color" content="#F5A623"/>
+<meta name="background-color" content="#1A1A2E"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="MaliTaxi VIP"/>
+<meta name="msapplication-TileColor" content="#F5A623"/>
+<meta name="msapplication-tap-highlight" content="no"/>
+
+<!-- Open Graph -->
+<meta property="og:title" content="MaliTaxi VIP"/>
+<meta property="og:description" content="Transport & Voyage au Mali"/>
+<meta property="og:type" content="website"/>
+
+<!-- Manifest PWA -->
+<link rel="manifest" href="manifest.json"/>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1A1A2E;--card:#22223A;--card2:#2A2A45;
+  --gold:#F5A623;--text:#FFF;--muted:#8A8AA8;
+  --border:#333355;--green:#2ECC71;--red:#E74C3C;--blue:#3498DB;
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:420px;margin:0 auto;overflow-x:hidden}
+
+/* MAP GPS */
+#map-gps{height:220px;width:100%;border-radius:0;z-index:1;display:none}
+.leaflet-container{background:#1A2235 !important}
+.map-controls{position:absolute;top:8px;right:8px;z-index:10;display:flex;flex-direction:column;gap:6px}
+.map-ctrl-btn{width:36px;height:36px;border-radius:10px;background:var(--card);border:1px solid var(--border);color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.map-ctrl-btn:hover{background:var(--card2)}
+.map-wrap{position:relative}
+.map-dest-bar{position:absolute;bottom:0;left:0;right:0;z-index:10;background:linear-gradient(transparent,rgba(26,26,46,.95));padding:10px 14px 14px}
+.map-dest-inp{width:100%;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-family:inherit;outline:none}
+.map-dest-inp::placeholder{color:var(--muted)}
+.driver-nearby{display:flex;gap:8px;overflow-x:auto;padding:10px 16px 4px;flex-shrink:0}
+.driver-chip{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:8px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0;cursor:pointer;transition:all .2s}
+.driver-chip:hover{border-color:var(--gold)}
+.driver-chip.sel{border-color:var(--gold);background:rgba(245,166,35,.12)}
+.dist-badge{background:rgba(46,204,113,.2);color:var(--green);font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px}
+.route-info{background:var(--card);border-radius:12px;padding:12px 16px;margin:10px 16px;border:1px solid var(--gold);display:none;align-items:center;gap:12px}
+.route-info.show{display:flex}
+
+/* SPLASH */
+.splash{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 30px;text-align:center}
+.splash .logo{font-size:80px;margin-bottom:20px}
+.splash .brand{font-size:32px;font-weight:800;color:var(--gold);margin-bottom:8px}
+.splash .tagline{font-size:15px;color:var(--muted);margin-bottom:50px}
+.splash .foot{font-size:12px;color:var(--muted);margin-top:30px}
+
+/* AUTH */
+.auth-page{padding:40px 24px;min-height:100vh}
+.auth-logo{text-align:center;margin-bottom:30px}
+.auth-tabs{display:flex;background:var(--card);border-radius:12px;padding:4px;margin-bottom:24px}
+.auth-tab{flex:1;padding:10px;border-radius:10px;border:none;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:all .2s}
+.auth-tab.active{background:var(--gold);color:#1A1000}
+.auth-tab:not(.active){background:transparent;color:var(--muted)}
+.auth-inp{width:100%;padding:14px 16px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:inherit;outline:none;margin-bottom:12px;transition:border-color .2s}
+.auth-inp:focus{border-color:var(--gold)}
+.auth-inp::placeholder{color:var(--muted)}
+.auth-err{color:var(--red);font-size:12px;font-weight:600;margin-bottom:10px}
+.auth-link{color:var(--gold);cursor:pointer;font-weight:700}
+
+/* MAIN */
+.app-wrap{position:relative}
+#map-area{height:190px;background:#0A0D18;overflow:hidden;position:relative}
+#map-area svg{position:absolute;inset:0;width:100%;height:100%}
+.taxi-pin{position:absolute;font-size:24px;animation:bounce 2s infinite ease-in-out}
+.pos-dot{position:absolute;left:47%;top:70px;width:14px;height:14px;border-radius:50%;background:var(--red);border:2px solid #fff;z-index:2}
+.pos-ring{position:absolute;left:47%;top:70px;width:14px;height:14px;border-radius:50%;border:2px solid var(--red);animation:ping 1.5s infinite;z-index:1}
+.map-fade{position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(transparent,var(--bg));pointer-events:none}
+
+/* HEADER */
+.app-header{padding:14px 20px 0;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.app-header .greet{font-size:13px;color:var(--muted)}
+.app-header .name{font-size:20px;font-weight:800;color:var(--gold)}
+.header-actions{display:flex;align-items:center;gap:10px}
+.bell-wrap{position:relative;cursor:pointer}
+.bell-btn{width:40px;height:40px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px}
+.bell-badge{position:absolute;top:-3px;right:-3px;width:17px;height:17px;border-radius:50%;background:var(--red);color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg)}
+.avatar-btn{width:44px;height:44px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:22px}
+
+/* LOCATION */
+.loc-box{margin:0 20px 12px;background:var(--card);border-radius:12px;padding:11px 14px;display:flex;align-items:center;gap:10px;border:1px solid var(--border)}
+.loc-lbl{font-size:11px;color:var(--muted)}
+.loc-city{font-size:13px;font-weight:700}
+
+/* SERVICES */
+.svc-section{padding:0 20px 12px}
+.svc-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1.2px;margin-bottom:10px}
+.svc-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.svc-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:11px 8px;border-radius:13px;border:2px solid var(--border);background:var(--card);cursor:pointer;transition:all .2s;min-width:64px;font-family:inherit}
+.svc-btn.active{border-color:var(--gold);background:rgba(245,166,35,.12)}
+.svc-btn .ico{font-size:22px}
+.svc-btn .lbl{font-size:11px;font-weight:700;color:var(--muted)}
+.svc-btn.active .lbl{color:var(--gold)}
+
+/* CONTENT */
+#content{padding:0 20px 90px}
+.inp{width:100%;padding:13px 14px 13px 40px;background:var(--card2);border:1px solid var(--border);border-radius:11px;color:var(--text);font-size:14px;font-family:inherit;outline:none;margin-bottom:10px;transition:border-color .2s}
+.inp:focus{border-color:var(--gold)}
+.inp::placeholder{color:var(--muted)}
+.inp-wrap{position:relative;margin-bottom:0}
+.inp-dot{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:10px}
+.driver-card{background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--border);margin-bottom:14px;display:flex;align-items:center;gap:13px}
+.driver-photo{width:50px;height:50px;border-radius:50%;background:var(--card2);font-size:28px;display:flex;align-items:center;justify-content:center;border:2px solid var(--gold);flex-shrink:0}
+.online-badge{background:rgba(46,204,113,.2);color:var(--green);font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;border:1px solid rgba(46,204,113,.4)}
+.price-box{background:var(--card);border-radius:12px;padding:13px 15px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border:1px solid var(--border)}
+.cmd-btn{width:100%;padding:15px;border-radius:13px;border:none;background:var(--gold);color:#1A1000;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;box-shadow:0 4px 18px rgba(245,166,35,.4);transition:all .2s}
+.cmd-btn:hover{transform:translateY(-2px)}
+.cmd-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* BUS/AVION */
+.back-btn{background:none;border:none;color:var(--gold);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;margin-bottom:13px;font-family:inherit;padding:0}
+.promo-banner{border-radius:15px;padding:17px;margin-bottom:14px;position:relative;overflow:hidden}
+.promo-banner .deco{position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,.07)}
+.section-lbl{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.5px;margin-bottom:9px}
+.dest-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px}
+.dest-chip{padding:9px 13px;border-radius:11px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;text-align:left}
+.dest-chip:hover{border-color:var(--gold);background:rgba(245,166,35,.1)}
+.region-btn{width:100%;padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;font-weight:700;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:inherit;transition:all .2s;margin-bottom:6px}
+.region-btn.open{border-color:var(--gold);color:var(--gold)}
+.info-card{background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:14px;border:1px solid var(--border)}
+.schedule-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}
+.sched-btn{padding:11px 13px;border-radius:11px;border:2px solid;cursor:pointer;transition:all .2s;font-family:inherit;font-weight:700;text-align:center;background:none}
+.seat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;max-width:200px;margin:0 auto 14px}
+.seat{width:36px;height:36px;border-radius:7px;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;cursor:pointer;transition:all .15s}
+.seat.libre{border-color:var(--green);background:rgba(46,204,113,.12);color:var(--green)}
+.seat.pris{border-color:var(--border);background:var(--card2);color:var(--muted);cursor:not-allowed}
+.seat.choisi{border-color:var(--gold);background:var(--gold);color:#1A1000}
+.seat-recap{background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.35);border-radius:11px;padding:11px 14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.pay-opt{padding:13px 15px;border-radius:11px;border:2px solid var(--border);background:var(--card);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:11px;margin-bottom:9px}
+.pay-opt.sel{border-color:var(--gold);background:rgba(245,166,35,.1)}
+.pay-ico{width:40px;height:40px;border-radius:11px;font-size:21px;display:flex;align-items:center;justify-content:center;background:var(--card2)}
+.recap-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px}
+.recap-row:last-child{border-bottom:none}
+.recap-row .k{color:var(--muted)}
+.recap-row .v{font-weight:700}
+.recap-row .v.gold{color:var(--gold)}
+.ticket-card{background:var(--card);border-radius:18px;overflow:hidden;margin-bottom:18px;border:1px solid rgba(245,166,35,.25)}
+.qr-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;width:76px;height:76px;margin:0 auto}
+.ticket-actions{display:flex;gap:9px}
+.btn-ghost{flex:1;padding:12px;border-radius:11px;border:1px solid var(--border);background:none;color:var(--text);font-weight:700;cursor:pointer;font-family:inherit;font-size:13px}
+.btn-solid{flex:2;padding:12px;border-radius:11px;border:none;font-weight:800;cursor:pointer;font-family:inherit;font-size:13px;color:#fff}
+.classe-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}
+.classe-btn{padding:13px 9px;border-radius:11px;border:2px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;font-family:inherit;text-align:center;transition:all .2s}
+.classe-btn.sel{border-color:var(--gold);background:rgba(245,166,35,.14);color:var(--gold)}
+
+/* PANELS */
+.panel{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;height:100vh;background:var(--bg);z-index:50;display:flex;flex-direction:column;animation:slideUp .3s ease}
+.panel-header{padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);flex-shrink:0}
+.panel-body{overflow-y:auto;flex:1}
+.close-btn{background:var(--card2);border:none;border-radius:50%;width:36px;height:36px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.notif-item{display:flex;gap:13px;padding:14px 20px;border-bottom:1px solid var(--border);cursor:pointer}
+.notif-item.unread{background:rgba(245,166,35,.05);border-left:3px solid var(--gold)}
+.notif-ico{width:42px;height:42px;border-radius:12px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.unread-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:6px}
+
+/* FIDÉLITÉ */
+.niveau-card{border-radius:18px;padding:20px;margin-bottom:18px;border:1px solid rgba(245,166,35,.4)}
+.progress-bar{height:8px;border-radius:4px;background:var(--border);margin:8px 0;overflow:hidden}
+.progress-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--gold),#FFB84D)}
+.reward-card{background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--border);margin-bottom:10px;display:flex;align-items:center;gap:13px}
+.reward-card.dispo{border-color:var(--gold);background:rgba(245,166,35,.08)}
+.reward-ico{width:44px;height:44px;border-radius:12px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.reward-ico.dispo{background:rgba(245,166,35,.2)}
+.use-btn{padding:8px 14px;border-radius:10px;border:none;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit}
+
+/* HISTORIQUE */
+.histo-tabs{display:flex;background:var(--card);margin:12px 20px;border-radius:12px;padding:4px;flex-shrink:0}
+.histo-tab{flex:1;padding:9px;border-radius:10px;border:none;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 20px 14px;flex-shrink:0}
+.stat-cell{background:var(--card);border-radius:10px;padding:10px;text-align:center}
+.histo-item{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start}
+.histo-ico{width:42px;height:42px;border-radius:12px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+
+/* RATING */
+.rating-overlay{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;height:100vh;background:rgba(0,0,0,.7);z-index:60;display:flex;align-items:flex-end;animation:fadeUp .3s ease}
+.rating-sheet{background:var(--card);border-radius:24px 24px 0 0;padding:24px 24px 40px;width:100%;animation:slideUp .35s ease}
+.star-row{display:flex;justify-content:center;gap:4px;margin-bottom:14px}
+.star-btn{font-size:38px;cursor:pointer;transition:transform .15s;background:none;border:none;padding:4px}
+.star-btn:hover{transform:scale(1.15)}
+.tag-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.rtag{padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.rtag.sel{border-color:var(--gold);background:rgba(245,166,35,.2);color:var(--gold)}
+
+/* CHAT */
+.chat-panel{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;height:100vh;background:var(--bg);z-index:55;display:flex;flex-direction:column;animation:slideUp .3s ease}
+.chat-header{padding:14px 16px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
+.chat-avatar{width:42px;height:42px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.chat-online{width:10px;height:10px;border-radius:50%;background:var(--green);border:2px solid var(--card);position:absolute;bottom:0;right:0}
+.chat-messages{flex:1;overflow-y:auto;padding:16px 16px 10px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:78%;padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.4;animation:fadeUp .2s ease}
+.msg.sent{background:var(--gold);color:#1A1000;border-radius:16px 16px 4px 16px;align-self:flex-end;font-weight:600}
+.msg.recv{background:var(--card);color:var(--text);border-radius:16px 16px 16px 4px;align-self:flex-start;border:1px solid var(--border)}
+.msg-time{font-size:10px;opacity:.6;margin-top:4px}
+.msg.sent .msg-time{text-align:right}
+.chat-input-bar{padding:10px 14px;background:var(--card);border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-shrink:0}
+.chat-inp{flex:1;padding:11px 14px;background:var(--card2);border:1px solid var(--border);border-radius:22px;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.chat-inp::placeholder{color:var(--muted)}
+.chat-send{width:42px;height:42px;border-radius:50%;border:none;background:var(--gold);color:#1A1000;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.chat-quick{display:flex;gap:7px;overflow-x:auto;padding:8px 14px 4px;flex-shrink:0}
+.quick-btn{padding:7px 13px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s}
+.quick-btn:hover{border-color:var(--gold);color:var(--gold)}
+.typing{display:flex;gap:4px;align-items:center;padding:8px 12px}
+.typing span{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:bounce .8s infinite}
+.typing span:nth-child(2){animation-delay:.15s}
+.typing span:nth-child(3){animation-delay:.3s}
+
+/* PAIEMENT PANEL */
+.pay-panel-item{display:flex;align-items:center;gap:13px;padding:14px 16px;border-radius:14px;border:1px solid var(--border);background:var(--card);margin-bottom:10px;cursor:pointer;transition:all .2s}
+.pay-panel-item:hover{border-color:var(--gold)}
+.pay-panel-item.active{border-color:var(--gold);background:rgba(245,166,35,.1)}
+.pay-panel-logo{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+
+/* LANGUE */
+.lang-overlay{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;height:100vh;background:rgba(0,0,0,.7);z-index:80;display:flex;align-items:flex-end;animation:fadeUp .3s ease}
+.lang-sheet{background:var(--card);border-radius:24px 24px 0 0;padding:24px 24px 40px;width:100%;animation:slideUp .35s ease}
+.lang-opt{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;border:2px solid var(--border);background:var(--card2);margin-bottom:10px;cursor:pointer;transition:all .2s}
+.lang-opt.active{border-color:var(--gold);background:rgba(245,166,35,.12)}
+.lang-flag{font-size:32px;width:48px;text-align:center}
+.lang-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);margin-left:auto;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.lang-check.active{background:var(--gold);border-color:var(--gold)}
+
+/* PROFIL */
+.profil-avatar{width:90px;height:90px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:46px;margin:0 auto 12px;border:4px solid rgba(245,166,35,.3);position:relative}
+.profil-edit{position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:var(--card);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer}
+.profil-stat{background:var(--card);border-radius:14px;padding:14px;text-align:center;flex:1}
+.profil-menu-item{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .2s}
+.profil-menu-item:hover{background:var(--card)}
+.profil-menu-ico{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.profil-badge{padding:4px 10px;border-radius:10px;font-size:11px;font-weight:800}
+.toggle-sw{width:44px;height:24px;border-radius:12px;border:none;cursor:pointer;position:relative;transition:background .3s;flex-shrink:0}
+.toggle-sw .knob{position:absolute;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .3s}
+
+/* SOS */
+.sos-btn{position:fixed;bottom:85px;right:16px;width:54px;height:54px;border-radius:50%;background:var(--red);border:none;color:#fff;font-size:22px;cursor:pointer;z-index:30;box-shadow:0 4px 20px rgba(231,76,60,.6);animation:sosPulse 2s infinite;display:none;align-items:center;justify-content:center;font-family:inherit;font-weight:800}
+.sos-btn.show{display:flex}
+.sos-overlay{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;height:100vh;background:rgba(0,0,0,.85);z-index:70;display:flex;align-items:center;justify-content:center;animation:fadeUp .3s ease}
+.sos-panel{background:var(--card);border-radius:24px;padding:28px 24px;margin:20px;width:100%;border:2px solid var(--red);animation:slideUp .35s ease}
+.sos-big-btn{width:130px;height:130px;border-radius:50%;background:var(--red);border:6px solid rgba(231,76,60,.3);color:#fff;font-size:40px;cursor:pointer;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 12px rgba(231,76,60,.15);animation:sosPulse 1.5s infinite;font-family:inherit}
+.sos-contact{background:var(--card2);border-radius:14px;padding:13px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;border:1px solid var(--border)}
+@keyframes sosPulse{0%,100%{box-shadow:0 4px 20px rgba(231,76,60,.6)}50%{box-shadow:0 4px 30px rgba(231,76,60,.9),0 0 0 8px rgba(231,76,60,.2)}}
+
+/* PARTENAIRES */
+.f-btn{padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s;flex-shrink:0}
+.f-btn.active{background:var(--gold);color:#1A1000;border-color:var(--gold)}
+.part-card{margin:0 16px 12px;background:var(--card);border-radius:16px;border:1px solid var(--border);overflow:hidden;transition:all .2s}
+.part-card:hover{border-color:var(--gold)}
+.part-banner{height:90px;display:flex;align-items:center;justify-content:center;font-size:42px;position:relative}
+.part-promo{position:absolute;top:8px;right:8px;background:var(--red);color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:10px}
+.part-info{padding:12px 14px}
+.part-tag{display:inline-block;padding:3px 9px;border-radius:10px;font-size:10px;font-weight:700;margin-right:5px;margin-bottom:4px}
+
+/* NAV */
+#nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:var(--card);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:9px 0 15px;z-index:20}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.nav-item .ico{font-size:21px}
+.nav-item .lbl{font-size:10px;font-weight:700;color:var(--muted)}
+.nav-item.active .lbl{color:var(--gold)}
+
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes ping{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.2);opacity:0}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="page-splash" class="splash">
+  <div class="logo">🚕</div>
+  <div class="brand">MaliTaxi VIP</div>
+  <div class="tagline">Transport &amp; Voyage au Mali 🇲🇱</div>
+  <button class="cmd-btn" style="margin-bottom:12px" onclick="showAuth('login')">🔐 Se connecter</button>
+  <button style="width:100%;padding:15px;border-radius:13px;border:2px solid var(--gold);background:none;color:var(--gold);font-size:15px;font-weight:800;cursor:pointer;font-family:inherit" onclick="showAuth('register')">✨ Créer un compte</button>
+  <div class="foot">Bamako · Mali · Afrique de l'Ouest</div>
+</div>
+
+<!-- AUTH -->
+<div id="page-auth" class="auth-page" style="display:none">
+  <div class="auth-logo">
+    <div style="font-size:48px;margin-bottom:10px">🚕</div>
+    <div style="font-size:24px;font-weight:800;color:var(--gold)">MaliTaxi VIP</div>
+  </div>
+  <div class="auth-tabs">
+    <button id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">🔐 Connexion</button>
+    <button id="tab-register" class="auth-tab" onclick="switchAuthTab('register')">✨ Inscription</button>
+  </div>
+  <!-- Login -->
+  <div id="form-login">
+    <div style="font-size:16px;font-weight:700;margin-bottom:18px">Bon retour ! 👋</div>
+    <input class="auth-inp" id="login-tel" placeholder="📱 Numéro de téléphone" type="tel"/>
+    <input class="auth-inp" id="login-mdp" placeholder="🔒 Mot de passe" type="password"/>
+    <div id="login-err" class="auth-err" style="display:none"></div>
+    <button class="cmd-btn" onclick="doLogin()">Se connecter →</button>
+    <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--muted)">Pas de compte ? <span class="auth-link" onclick="switchAuthTab('register')">S'inscrire</span></div>
+  </div>
+  <!-- Register -->
+  <div id="form-register" style="display:none">
+    <div style="font-size:16px;font-weight:700;margin-bottom:18px">Créer votre compte 🎉</div>
+    <input class="auth-inp" id="reg-nom" placeholder="👤 Nom complet"/>
+    <input class="auth-inp" id="reg-tel" placeholder="📱 Numéro de téléphone" type="tel"/>
+    <input class="auth-inp" id="reg-mdp" placeholder="🔒 Mot de passe" type="password"/>
+    <input class="auth-inp" id="reg-mdp2" placeholder="🔒 Confirmer mot de passe" type="password"/>
+    <div id="reg-err" class="auth-err" style="display:none"></div>
+    <button class="cmd-btn" onclick="doRegister()">Créer mon compte →</button>
+    <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--muted)">Déjà un compte ? <span class="auth-link" onclick="switchAuthTab('login')">Se connecter</span></div>
+  </div>
+  <button onclick="showSplash()" style="background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;display:block;margin:24px auto 0;font-family:inherit">← Retour</button>
+</div>
+
+<!-- APP -->
+<div id="page-app" style="display:none">
+  <!-- MAP GPS -->
+  <div class="map-wrap">
+    <div id="map-gps"></div>
+    <!-- Fake map (avant connexion) -->
+    <div id="map-fake">
+      <div id="map-area">
+        <svg><defs><radialGradient id="mg" cx="50%" cy="50%" r="70%"><stop offset="0%" stop-color="#12182E"/><stop offset="100%" stop-color="#0A0D18"/></radialGradient></defs>
+          <rect width="100%" height="100%" fill="url(#mg)"/>
+          <line x1="0" y1="90" x2="100%" y2="130" stroke="#1A2235" stroke-width="9"/>
+          <line x1="0" y1="130" x2="100%" y2="100" stroke="#1A2235" stroke-width="6"/>
+          <line x1="0" y1="60" x2="100%" y2="170" stroke="#1A2235" stroke-width="7"/>
+        </svg>
+        <div class="taxi-pin" style="left:15%;top:48px">🚕</div>
+        <div class="taxi-pin" style="left:55%;top:75px;animation-delay:.4s">🚕</div>
+        <div class="taxi-pin" style="left:75%;top:55px;animation-delay:.8s">🏍️</div>
+        <div class="pos-dot"></div><div class="pos-ring"></div>
+        <div class="map-fade"></div>
+      </div>
+    </div>
+    <!-- Contrôles carte -->
+    <div class="map-controls" id="map-controls" style="display:none">
+      <button class="map-ctrl-btn" onclick="centerMap()" title="Ma position">📍</button>
+      <button class="map-ctrl-btn" onclick="gpsMap.zoomIn()" title="Zoom +">＋</button>
+      <button class="map-ctrl-btn" onclick="gpsMap.zoomOut()" title="Zoom -">－</button>
+    </div>
+    <!-- Barre destination sur carte -->
+    <div class="map-dest-bar" id="map-dest-bar" style="display:none">
+      <input class="map-dest-inp" id="map-dest-input" placeholder="🔍 Chercher une destination..." oninput="filterDest(this.value)"/>
+    </div>
+  </div>
+
+  <!-- Chauffeurs proches -->
+  <div id="drivers-nearby" style="display:none">
+    <div style="padding:10px 16px 4px;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px">🚕 CHAUFFEURS PROCHES</div>
+    <div class="driver-nearby" id="driver-list"></div>
+    <div class="route-info" id="route-info">
+      <div style="font-size:28px">🚕</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700" id="route-driver-name">Moussa C.</div>
+        <div style="font-size:12px;color:var(--muted)" id="route-eta">Arrive dans 4 min · ~2.3 km</div>
+      </div>
+      <button class="cmd-btn" style="width:auto;padding:10px 16px;font-size:13px" onclick="openRating()">Commander</button>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <div class="app-header">
+    <div><div class="greet">Bonjour 👋</div><div class="name" id="user-name-display">Client VIP 👑</div></div>
+    <div class="header-actions">
+      <div class="bell-wrap" onclick="openPanel('notifs')">
+        <div class="bell-btn">🔔</div>
+        <div class="bell-badge" id="bell-count">3</div>
+      </div>
+      <div class="avatar-btn">😊</div>
+    </div>
+  </div>
+
+  <!-- LOCATION -->
+  <div class="loc-box">
+    <span style="font-size:20px">📍</span>
+    <div><div class="loc-lbl">Votre position</div><div class="loc-city">Bamako, Mali</div></div>
+  </div>
+
+  <!-- SERVICES -->
+  <div class="svc-section">
+    <div class="svc-title">CHOISIR UN SERVICE</div>
+    <div class="svc-row" id="svc-row"></div>
+  </div>
+
+  <!-- CONTENT -->
+  <div id="content"></div>
+
+  <!-- PARTENAIRES -->
+  <div id="partenaires-section" style="display:none;padding-bottom:90px"></div>
+
+  <!-- NAV -->
+  <div id="nav">
+    <div class="nav-item active" id="nav-home" onclick="navTo('home')"><div class="ico">🏠</div><div class="lbl">Accueil</div></div>
+    <div class="nav-item" id="nav-courses" onclick="navTo('courses')"><div class="ico">📋</div><div class="lbl">Courses</div></div>
+    <div class="nav-item" id="nav-partenaires" onclick="navTo('partenaires')"><div class="ico">🤝</div><div class="lbl">Partenaires</div></div>
+    <div class="nav-item" id="nav-fidelite" onclick="navTo('fidelite')"><div class="ico">🎁</div><div class="lbl">Fidélité</div></div>
+    <div class="nav-item" id="nav-profil" onclick="navTo('profil')"><div class="ico">👤</div><div class="lbl">Profil</div></div>
+  </div>
+</div>
+
+<!-- RATING OVERLAY -->
+<div id="rating-overlay" class="rating-overlay" style="display:none" onclick="if(event.target===this)closeRating()">
+  <div class="rating-sheet" id="rating-sheet"></div>
+</div>
+
+<!-- PANEL NOTIFICATIONS -->
+<div id="panel-notifs" class="panel" style="display:none">
+  <div class="panel-header">
+    <div><div style="font-size:17px;font-weight:800">🔔 Notifications</div><div id="notif-count-lbl" style="font-size:12px;color:var(--muted);margin-top:2px"></div></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onclick="markAllRead()" style="background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:inherit">Tout lire</button>
+      <button class="close-btn" onclick="closePanel()">✕</button>
+    </div>
+  </div>
+  <div class="panel-body" id="notifs-list"></div>
+</div>
+
+<!-- PANEL FIDÉLITÉ -->
+<div id="panel-fidelite" class="panel" style="display:none">
+  <div class="panel-header">
+    <div style="font-size:17px;font-weight:800">🎁 Programme Fidélité</div>
+    <button class="close-btn" onclick="closePanel()">✕</button>
+  </div>
+  <div class="panel-body" id="fidelite-body"></div>
+</div>
+
+<!-- PANEL PAIEMENT -->
+<div id="panel-paiement" class="panel" style="display:none">
+  <div class="panel-header">
+    <div style="font-size:17px;font-weight:800">💳 Moyens de paiement</div>
+    <button class="close-btn" onclick="closePanel()">✕</button>
+  </div>
+  <div class="panel-body" id="paiement-body"></div>
+</div>
+
+<!-- LANGUE OVERLAY -->
+<div id="lang-overlay" class="lang-overlay" style="display:none" onclick="if(event.target===this)closeLang()">
+  <div class="lang-sheet">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.5px;margin-bottom:6px">CHOISIR LA LANGUE</div>
+      <div style="font-size:18px;font-weight:800">🌍 Langue de l'app</div>
+    </div>
+    <div id="lang-options"></div>
+    <button onclick="closeLang()" style="width:100%;padding:13px;border-radius:12px;border:1px solid var(--border);background:none;color:var(--muted);font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;margin-top:6px" id="btn-annuler-lang">Annuler</button>
+  </div>
+</div>
+
+<!-- PANEL PROFIL -->
+<div id="panel-profil" class="panel" style="display:none">
+  <div class="panel-header">
+    <div style="font-size:17px;font-weight:800">👤 Mon Profil</div>
+    <button class="close-btn" onclick="closePanel()">✕</button>
+  </div>
+  <div class="panel-body" id="profil-body"></div>
+</div>
+
+<!-- SOS BUTTON -->
+<button class="sos-btn" id="sos-btn" onclick="openSOS()">🆘</button>
+
+<!-- SOS PANEL -->
+<div id="sos-overlay" class="sos-overlay" style="display:none" onclick="if(event.target===this)closeSOS()">
+  <div class="sos-panel">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:13px;font-weight:700;color:var(--red);letter-spacing:1px;margin-bottom:6px">🆘 URGENCE</div>
+      <div style="font-size:20px;font-weight:800;margin-bottom:6px">Besoin d'aide ?</div>
+      <div style="font-size:13px;color:var(--muted)">Appuyez pour alerter vos contacts et les secours</div>
+    </div>
+
+    <!-- Grand bouton SOS -->
+    <div id="sos-big" class="sos-big-btn" onclick="triggerSOS()">🆘</div>
+    <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:20px" id="sos-status">Appuyez pour envoyer une alerte</div>
+
+    <!-- Position actuelle -->
+    <div style="background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);border-radius:12px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:20px">📍</span>
+      <div>
+        <div style="font-size:12px;color:var(--muted)">Votre position</div>
+        <div style="font-size:13px;font-weight:700" id="sos-position">Bamako, Mali · En cours de localisation...</div>
+      </div>
+    </div>
+
+    <!-- Contacts d'urgence -->
+    <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.5px;margin-bottom:10px">CONTACTS D'URGENCE</div>
+    <div class="sos-contact">
+      <div style="width:40px;height:40px;border-radius:50%;background:rgba(231,76,60,.2);display:flex;align-items:center;justify-content:center;font-size:20px">👨‍👩‍👧</div>
+      <div style="flex:1"><div style="font-size:14px;font-weight:700">Famille</div><div style="font-size:12px;color:var(--muted)">+223 70 00 00 00</div></div>
+      <button onclick="callContact('Famille')" style="background:var(--green);border:none;border-radius:8px;color:#fff;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📞</button>
+    </div>
+    <div class="sos-contact">
+      <div style="width:40px;height:40px;border-radius:50%;background:rgba(52,152,219,.2);display:flex;align-items:center;justify-content:center;font-size:20px">🚔</div>
+      <div style="flex:1"><div style="font-size:14px;font-weight:700">Police</div><div style="font-size:12px;color:var(--muted)">17</div></div>
+      <button onclick="callContact('Police - 17')" style="background:var(--blue);border:none;border-radius:8px;color:#fff;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📞</button>
+    </div>
+    <div class="sos-contact">
+      <div style="width:40px;height:40px;border-radius:50%;background:rgba(46,204,113,.2);display:flex;align-items:center;justify-content:center;font-size:20px">🚑</div>
+      <div style="flex:1"><div style="font-size:14px;font-weight:700">SAMU / Ambulance</div><div style="font-size:12px;color:var(--muted)">15</div></div>
+      <button onclick="callContact('SAMU - 15')" style="background:var(--green);border:none;border-radius:8px;color:#fff;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📞</button>
+    </div>
+
+    <button onclick="closeSOS()" style="width:100%;padding:13px;border-radius:12px;border:1px solid var(--border);background:none;color:var(--muted);font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;margin-top:14px">Annuler</button>
+  </div>
+</div>
+
+<!-- PANEL CHAT -->
+<div id="panel-chat" class="chat-panel" style="display:none">
+  <div class="chat-header">
+    <button onclick="closePanel()" style="background:none;border:none;color:var(--gold);font-size:20px;cursor:pointer;padding:0;margin-right:4px">←</button>
+    <div style="position:relative">
+      <div class="chat-avatar" id="chat-avatar">🧑🏿</div>
+      <div class="chat-online"></div>
+    </div>
+    <div style="flex:1">
+      <div style="font-size:15px;font-weight:800" id="chat-driver-name">Moussa Coulibaly</div>
+      <div style="font-size:11px;color:var(--green);font-weight:600">● En ligne · Chauffeur</div>
+    </div>
+    <button onclick="makeCall()" style="background:var(--green);border:none;border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">📞</button>
+  </div>
+  <!-- Messages rapides -->
+  <div class="chat-quick" id="chat-quick">
+    <button class="quick-btn" onclick="quickMsg('Je suis prêt, venez me chercher 📍')">Je suis prêt 📍</button>
+    <button class="quick-btn" onclick="quickMsg('Où êtes-vous exactement ?')">Où êtes-vous ?</button>
+    <button class="quick-btn" onclick="quickMsg('J\'arrive dans 2 minutes ⏱️')">J'arrive ⏱️</button>
+    <button class="quick-btn" onclick="quickMsg('Merci beaucoup ! 🙏')">Merci 🙏</button>
+    <button class="quick-btn" onclick="quickMsg('Pouvez-vous patienter 5 min ?')">Patientez 5 min</button>
+  </div>
+  <!-- Messages -->
+  <div class="chat-messages" id="chat-messages"></div>
+  <!-- Saisie -->
+  <div class="chat-input-bar">
+    <input class="chat-inp" id="chat-inp" placeholder="Écrire un message..." onkeydown="if(event.key==='Enter')sendMsg()"/>
+    <button class="chat-send" onclick="sendMsg()">➤</button>
+  </div>
+</div>
+
+<!-- PANEL HISTORIQUE -->
+<div id="panel-historique" class="panel" style="display:none">
+  <div class="panel-header">
+    <div style="font-size:17px;font-weight:800">📋 Mes Courses &amp; Billets</div>
+    <button class="close-btn" onclick="closePanel()">✕</button>
+  </div>
+  <div class="histo-tabs" id="histo-tabs">
+    <button class="histo-tab" id="htab-courses" onclick="switchHistoTab('courses')" style="background:var(--gold);color:#1A1000">🚕 Courses</button>
+    <button class="histo-tab" id="htab-billets" onclick="switchHistoTab('billets')" style="background:transparent;color:var(--muted)">🎫 Billets</button>
+  </div>
+  <div class="stats-grid" id="histo-stats"></div>
+  <div class="panel-body" id="histo-list"></div>
+</div>
+
+<script>
+// ── DATA ──
+const SERVICES = [
+  {id:"taxi",    ico:"🚕",label:"Taxi"    },
+  {id:"moto",    ico:"🏍️",label:"Moto"    },
+  {id:"livraison",ico:"📦",label:"Livraison"},
+  {id:"aeroport",ico:"✈️",label:"Avion"   },
+  {id:"bus",     ico:"🚍",label:"Bus"     },
+];
+const CHAUFFEURS = [
+  {nom:"Moussa Coulibaly", note:4.8,courses:312,photo:"🧑🏿"},
+  {nom:"Ibrahim Diallo",   note:4.6,courses:187,photo:"👨🏿"},
+  {nom:"Aminata Traoré",   note:4.9,courses:425,photo:"👩🏿"},
+  {nom:"Seydou Koné",      note:4.5,courses:98, photo:"🧔🏿"},
+];
+const CHAUFFEUR = CHAUFFEURS[Math.floor(Math.random()*CHAUFFEURS.length)];
+const SIEGES_PRIS = [2,5,8,12,15,17,20,23,28];
+const LIGNES_MULTI={
+  "Ségou":      {dist:"240 km", duree:"3h",    companies:[
+    {cie:"Sahel Voyage",    prix:2500, deps:[{h:"06:00",p:12},{h:"09:00",p:4},{h:"14:00",p:28}]},
+    {cie:"Binke Transport", prix:3200, deps:[{h:"07:30",p:18},{h:"13:00",p:8}]},
+    {cie:"Sud Express",     prix:3800, deps:[{h:"08:00",p:20},{h:"15:00",p:14}]},
+  ]},
+  "Sikasso":    {dist:"376 km", duree:"5h",    companies:[
+    {cie:"Sud Express",     prix:8000, deps:[{h:"07:00",p:18},{h:"10:30",p:32},{h:"15:00",p:8}]},
+    {cie:"Sahel Voyage",    prix:4800, deps:[{h:"06:30",p:22},{h:"14:00",p:16}]},
+    {cie:"Diarra Transport",prix:5200, deps:[{h:"08:00",p:14},{h:"16:00",p:10}]},
+  ]},
+  "Mopti":      {dist:"630 km", duree:"8h",    companies:[
+    {cie:"Binke Transport", prix:8000, deps:[{h:"08:00",p:22},{h:"21:00",p:40}]},
+    {cie:"Nord Sahel",      prix:7000, deps:[{h:"07:00",p:16},{h:"20:00",p:28}]},
+    {cie:"Sahel Voyage",    prix:7800, deps:[{h:"06:00",p:18},{h:"22:00",p:32}]},
+  ]},
+  "Kayes":      {dist:"497 km", duree:"6h30",  companies:[
+    {cie:"Ouest Rapide",    prix:12000, deps:[{h:"06:30",p:14},{h:"13:00",p:6}]},
+    {cie:"Sahel Voyage",    prix:5800, deps:[{h:"07:00",p:20},{h:"14:00",p:12}]},
+    {cie:"Kayes Express",   prix:6200, deps:[{h:"08:00",p:16},{h:"15:00",p:8}]},
+  ]},
+  "Koulikoro":  {dist:"57 km",  duree:"1h",    companies:[
+    {cie:"Koulikoro Exp.",  prix:1000, deps:[{h:"06:00",p:20},{h:"09:00",p:35},{h:"12:00",p:8}]},
+    {cie:"Binke Transport", prix:900,  deps:[{h:"07:00",p:25},{h:"10:00",p:18},{h:"14:00",p:22}]},
+  ]},
+  "Bougouni":   {dist:"166 km", duree:"2h30",  companies:[
+    {cie:"Sud Express",     prix:3000, deps:[{h:"07:00",p:28},{h:"10:00",p:12},{h:"14:00",p:20}]},
+    {cie:"Sahel Voyage",    prix:2300, deps:[{h:"08:00",p:16},{h:"13:00",p:24}]},
+  ]},
+  "Tombouctou": {dist:"1000 km",duree:"14h",   companies:[
+    {cie:"Nord Sahel",      prix:18000,deps:[{h:"06:00",p:0},{h:"20:00",p:32}]},
+    {cie:"Binke Transport", prix:11500,deps:[{h:"07:00",p:18},{h:"21:00",p:24}]},
+  ]},
+  "Gao":        {dist:"1200 km",duree:"18h",   companies:[
+    {cie:"Nord Sahel",      prix:13000,deps:[{h:"06:00",p:12},{h:"20:00",p:28}]},
+    {cie:"Sahel Voyage",    prix:14500,deps:[{h:"07:00",p:16},{h:"21:00",p:20}]},
+  ]},
+  "Abidjan":    {dist:"1150 km",duree:"16h",   companies:[
+    {cie:"Trans Ivoire",    prix:28000,deps:[{h:"06:00",p:22},{h:"18:00",p:30}]},
+    {cie:"Côte d'Ivoire Exp.",prix:17500,deps:[{h:"07:00",p:18},{h:"19:00",p:24}]},
+    {cie:"West Africa Bus", prix:19000,deps:[{h:"08:00",p:14},{h:"20:00",p:20}]},
+  ]},
+  "Dakar":      {dist:"1400 km",duree:"20h",   companies:[
+    {cie:"Dakar Express",   prix:26000,deps:[{h:"06:00",p:16},{h:"20:00",p:28}]},
+    {cie:"Sénégal Trans",   prix:21000,deps:[{h:"07:00",p:20},{h:"21:00",p:22}]},
+  ]},
+  "Ouagadougou":{dist:"870 km", duree:"12h",   companies:[
+    {cie:"Burkina Trans",   prix:15000,deps:[{h:"06:00",p:24},{h:"14:00",p:18}]},
+    {cie:"STMB",            prix:11500,deps:[{h:"07:00",p:20},{h:"15:00",p:14}]},
+    {cie:"TSR",             prix:12500,deps:[{h:"08:00",p:16},{h:"16:00",p:22}]},
+  ]},
+  "Niamey":     {dist:"1180 km",duree:"16h",   companies:[
+    {cie:"Niger Voyages",   prix:16000,deps:[{h:"06:00",p:14},{h:"20:00",p:22}]},
+    {cie:"SNTV",            prix:15500,deps:[{h:"07:00",p:18},{h:"21:00",p:16}]},
+  ]},
+  "Lagos":      {dist:"2500 km",duree:"36h",   companies:[
+    {cie:"West Africa Bus", prix:32000,deps:[{h:"06:00",p:18},{h:"18:00",p:22}]},
+    {cie:"Cross Border Exp.",prix:34000,deps:[{h:"07:00",p:14},{h:"19:00",p:18}]},
+  ]},
+  "Accra":      {dist:"1800 km",duree:"24h",   companies:[
+    {cie:"Ghana Express",   prix:22000,deps:[{h:"06:00",p:20},{h:"18:00",p:28}]},
+    {cie:"West Africa Bus", prix:23000,deps:[{h:"07:00",p:16},{h:"19:00",p:22}]},
+  ]},
+};
+
+const VOLS_MULTI={
+  "Mopti":      {dist:"~500 km",duree:"1h",    companies:[
+    {cie:"Air Mali",           code:"BKO-MOP",eco:75000, biz:120000,vols:[{h:"07:30",p:8},{h:"14:00",p:12}]},
+    {cie:"Malian Air Express", code:"BKO-MOP",eco:72000, biz:115000,vols:[{h:"09:00",p:10},{h:"16:00",p:8}]},
+  ]},
+  "Tombouctou": {dist:"~900 km",duree:"1h30",  companies:[
+    {cie:"Air Mali",           code:"BKO-TOM",eco:95000, biz:145000,vols:[{h:"08:00",p:6},{h:"15:00",p:10}]},
+  ]},
+  "Abidjan":    {dist:"~1150 km",duree:"1h20", companies:[
+    {cie:"Air Côte d'Ivoire",  code:"BKO-ABJ",eco:150000,biz:280000,vols:[{h:"08:00",p:20},{h:"14:30",p:30},{h:"20:00",p:15}]},
+    {cie:"ASKY Airlines",      code:"BKO-ABJ",eco:145000,biz:270000,vols:[{h:"09:00",p:18},{h:"16:00",p:22}]},
+    {cie:"Ethiopian Airlines", code:"BKO-ABJ",eco:155000,biz:290000,vols:[{h:"07:00",p:24},{h:"21:00",p:18}]},
+  ]},
+  "Dakar":      {dist:"~1400 km",duree:"1h30", companies:[
+    {cie:"Air Sénégal",        code:"BKO-DSS",eco:160000,biz:295000,vols:[{h:"07:00",p:25},{h:"15:00",p:18}]},
+    {cie:"ASKY Airlines",      code:"BKO-DSS",eco:155000,biz:285000,vols:[{h:"08:00",p:20},{h:"16:00",p:22}]},
+    {cie:"Transair",           code:"BKO-DSS",eco:152000,biz:280000,vols:[{h:"09:00",p:16},{h:"17:00",p:14}]},
+  ]},
+  "Ouagadougou":{dist:"~870 km", duree:"1h",   companies:[
+    {cie:"ASKY Airlines",      code:"BKO-OUA",eco:120000,biz:220000,vols:[{h:"07:30",p:22},{h:"13:00",p:28}]},
+    {cie:"Air Burkina",        code:"BKO-OUA",eco:115000,biz:210000,vols:[{h:"08:00",p:18},{h:"14:00",p:20}]},
+    {cie:"Ethiopian Airlines", code:"BKO-OUA",eco:125000,biz:230000,vols:[{h:"09:00",p:16},{h:"15:00",p:14}]},
+  ]},
+  "Niamey":     {dist:"~1180 km",duree:"1h30", companies:[
+    {cie:"ASKY Airlines",      code:"BKO-NIM",eco:130000,biz:240000,vols:[{h:"08:00",p:18},{h:"16:00",p:24}]},
+    {cie:"Air Niger",          code:"BKO-NIM",eco:125000,biz:230000,vols:[{h:"09:00",p:14},{h:"17:00",p:18}]},
+  ]},
+  "Conakry":    {dist:"~780 km", duree:"1h10", companies:[
+    {cie:"Air Guinée",         code:"BKO-CKY",eco:125000,biz:230000,vols:[{h:"09:00",p:16},{h:"17:00",p:20}]},
+    {cie:"ASKY Airlines",      code:"BKO-CKY",eco:120000,biz:220000,vols:[{h:"08:00",p:14},{h:"16:00",p:18}]},
+  ]},
+  "Accra":      {dist:"~1800 km",duree:"2h",   companies:[
+    {cie:"Ghana Airways",      code:"BKO-ACC",eco:180000,biz:320000,vols:[{h:"08:30",p:22},{h:"16:00",p:18}]},
+    {cie:"ASKY Airlines",      code:"BKO-ACC",eco:175000,biz:310000,vols:[{h:"09:00",p:18},{h:"17:00",p:20}]},
+  ]},
+  "Lagos":      {dist:"~2500 km",duree:"2h30", companies:[
+    {cie:"Air Peace",          code:"BKO-LOS",eco:220000,biz:390000,vols:[{h:"07:00",p:28},{h:"15:00",p:20}]},
+    {cie:"Ethiopian Airlines", code:"BKO-LOS",eco:215000,biz:380000,vols:[{h:"08:00",p:22},{h:"16:00",p:18}]},
+    {cie:"ASKY Airlines",      code:"BKO-LOS",eco:210000,biz:375000,vols:[{h:"09:00",p:16},{h:"17:00",p:22}]},
+  ]},
+  "Paris":      {dist:"~4000 km",duree:"5h30", companies:[
+    {cie:"Air France",         code:"BKO-CDG",eco:550000,biz:950000, vols:[{h:"01:30",p:30},{h:"23:00",p:28}]},
+    {cie:"Turkish Airlines",   code:"BKO-CDG",eco:520000,biz:900000, vols:[{h:"02:00",p:24},{h:"22:00",p:20}]},
+    {cie:"Royal Air Maroc",    code:"BKO-CDG",eco:510000,biz:880000, vols:[{h:"03:00",p:18},{h:"21:00",p:22}]},
+  ]},
+  "Casablanca": {dist:"~2800 km",duree:"3h30", companies:[
+    {cie:"Royal Air Maroc",    code:"BKO-CMN",eco:290000,biz:500000, vols:[{h:"07:00",p:24},{h:"22:00",p:28}]},
+    {cie:"Air Arabia Maroc",   code:"BKO-CMN",eco:275000,biz:480000, vols:[{h:"08:00",p:20},{h:"21:00",p:16}]},
+  ]},
+  "Dubaï":      {dist:"~5000 km",duree:"7h",   companies:[
+    {cie:"Emirates",           code:"BKO-DXB",eco:650000,biz:1100000,vols:[{h:"02:30",p:35},{h:"22:00",p:30}]},
+    {cie:"flydubai",           code:"BKO-DXB",eco:620000,biz:1050000,vols:[{h:"03:00",p:28},{h:"21:00",p:24}]},
+    {cie:"Air Arabia",         code:"BKO-DXB",eco:600000,biz:1000000,vols:[{h:"04:00",p:22},{h:"20:00",p:18}]},
+  ]},
+  "Istanbul":   {dist:"~4500 km",duree:"6h",   companies:[
+    {cie:"Turkish Airlines",   code:"BKO-IST",eco:560000,biz:960000, vols:[{h:"02:00",p:30},{h:"22:00",p:28}]},
+    {cie:"Pegasus Airlines",   code:"BKO-IST",eco:530000,biz:900000, vols:[{h:"03:00",p:24},{h:"21:00",p:20}]},
+  ]},
+  "New York":   {dist:"~8000 km",duree:"10h",  companies:[
+    {cie:"Delta Airlines",     code:"BKO-JFK",eco:980000,biz:1700000,vols:[{h:"22:00",p:28},{h:"10:00",p:22}]},
+    {cie:"Air France",         code:"BKO-JFK",eco:950000,biz:1650000,vols:[{h:"23:00",p:24},{h:"11:00",p:18}]},
+  ]},
+};
+
+// Garde les anciens pour compatibilité
+const LIGNES=Object.entries(LIGNES_MULTI).map(([to,v])=>({to,...v,prix:v.companies[0].prix,cie:v.companies[0].cie,deps:v.companies[0].deps}));
+const VOLS=Object.entries(VOLS_MULTI).map(([to,v])=>({to,...v,...v.companies[0]}));
+const REGIONS={
+  "Koulikoro":["Koulikoro","Kati","Kangaba","Fana","Banamba","Nara","Dioïla"],
+  "Ségou":    ["Ségou","San","Bla","Niono","Tominian","Markala"],
+  "Sikasso":  ["Sikasso","Koutiala","Bougouni","Yanfolila","Kadiolo","Zégoua"],
+  "Kayes":    ["Kayes","Kita","Nioro du Sahel","Diéma","Kéniéba","Bafoulabé"],
+  "Mopti":    ["Mopti","Bandiagara","Djenné","Douentza","Bankass","Koro"],
+  "Tombouctou":["Tombouctou","Goundam","Diré","Niafunké"],
+  "Gao":      ["Gao","Ansongo","Ménaka"],
+  "🇨🇮 Côte d'Ivoire":["Abidjan","Bouaké"],
+  "🇸🇳 Sénégal":      ["Dakar","Thiès"],
+  "🇧🇫 Burkina Faso": ["Ouagadougou","Bobo-Dioulasso"],
+  "🇳🇪 Niger":        ["Niamey","Zinder"],
+  "🇬🇳 Guinée":       ["Conakry","Kankan"],
+  "🇲🇷 Mauritanie":   ["Nouakchott"],
+  "🇹🇬 Togo":         ["Lomé"],
+  "🇧🇯 Bénin":        ["Cotonou"],
+  "🇳🇬 Nigeria":      ["Lagos","Abuja"],
+  "🇬🇭 Ghana":        ["Accra","Kumasi"],
+};
+const DESTINATIONS_VOL={
+  "🇲🇱 Mali":           ["Mopti","Tombouctou","Gao","Kayes"],
+  "🇨🇮 Côte d'Ivoire":  ["Abidjan","Bouaké"],
+  "🇸🇳 Sénégal":        ["Dakar"],
+  "🇧🇫 Burkina Faso":   ["Ouagadougou"],
+  "🇳🇪 Niger":          ["Niamey"],
+  "🇬🇳 Guinée":         ["Conakry"],
+  "🇳🇬 Nigeria":        ["Lagos","Abuja"],
+  "🇬🇭 Ghana":          ["Accra"],
+  "🇲🇦 Maroc":          ["Casablanca","Marrakech"],
+  "🇫🇷 France":         ["Paris","Lyon","Marseille"],
+  "🇧🇪 Belgique":       ["Bruxelles"],
+  "🇨🇭 Suisse":         ["Genève","Zurich"],
+  "🇪🇸 Espagne":        ["Madrid","Barcelone"],
+  "🇹🇷 Turquie":        ["Istanbul"],
+  "🇸🇦 Arabie Saoudite":["Riyad","Djeddah","La Mecque"],
+  "🇦🇪 Émirats Arabes": ["Dubaï","Abu Dhabi"],
+  "🇺🇸 États-Unis":     ["New York","Atlanta"],
+  "🇨🇳 Chine":          ["Pékin","Shanghai"],
+};
+const NOTIFS=[
+  {id:1,ico:"🚕",title:"Chauffeur en route",   msg:"Votre taxi arrive dans 3 min",          time:"À l'instant",lu:false},
+  {id:2,ico:"🚍",title:"Billet confirmé",       msg:"Bamako → Ségou · Siège N°7 · 06:00",   time:"Il y a 5 min",lu:false},
+  {id:3,ico:"🎁",title:"Offre spéciale -20%",  msg:"Réduction sur tous les bus ce weekend !",time:"Il y a 1h",  lu:false},
+  {id:4,ico:"✈️",title:"Vol confirmé",          msg:"Bamako → Abidjan · BKO-ABJ · 08:00",   time:"Il y a 2h",  lu:true},
+  {id:5,ico:"✅",title:"Course terminée",        msg:"Trajet Bamako Centre → ACI 2000",       time:"Hier",       lu:true},
+  {id:6,ico:"💰",title:"Cashback disponible",  msg:"500 FCFA ajoutés à votre portefeuille", time:"Hier",       lu:true},
+  {id:7,ico:"🔔",title:"Bienvenue sur MaliTaxi VIP",msg:"Votre compte est activé !",        time:"Il y a 2j",  lu:true},
+];
+const HIST_COURSES=[
+  {ico:"🚕",type:"Taxi",    de:"Bamako Centre",de2:"ACI 2000",       prix:"1 500",date:"Aujourd'hui 14:32",note:5,cha:"Moussa C."},
+  {ico:"🏍️",type:"Moto",    de:"Hamdallaye",  de2:"Badalabougou",   prix:"400", date:"Hier 09:15",       note:4,cha:"Ibrahim D."},
+  {ico:"🚕",type:"Taxi",    de:"Aéroport",    de2:"Hippodrome",      prix:"25 000",date:"Il y a 3j",        note:5,cha:"Aminata T."},
+  {ico:"📦",type:"Livraison",de:"Magnambougou",de2:"Lafiabougou",   prix:"800", date:"Il y a 5j",        note:3,cha:"Seydou K."},
+  {ico:"🚕",type:"Taxi",    de:"Sogoniko",    de2:"Quinzambougou",  prix:"12 000",date:"Il y a 1 sem",      note:4,cha:"Moussa C."},
+];
+const HIST_BILLETS=[
+  {ico:"🚍",type:"Bus",  de:"Bamako",vers:"Ségou",      prix:"3 500",  date:"Il y a 2j",   code:"MT-A3F2K1",statut:"Utilisé"},
+  {ico:"✈️",type:"Avion",de:"Bamako",vers:"Abidjan",    prix:"150 000",date:"Il y a 1 sem",code:"MT-X9B4L2",statut:"Utilisé"},
+  {ico:"🚍",type:"Bus",  de:"Bamako",vers:"Ouagadougou",prix:"12 000", date:"Il y a 2 sem",code:"MT-P7Q3R5",statut:"Utilisé"},
+  {ico:"✈️",type:"Avion",de:"Bamako",vers:"Dakar",      prix:"160 000",date:"Dans 3j",     code:"MT-Z1M8N6",statut:"À venir"},
+  {ico:"🚍",type:"Bus",  de:"Bamako",vers:"Sikasso",    prix:"5 000",  date:"Dans 5j",     code:"MT-W2T4V7",statut:"À venir"},
+];
+
+// ── STATE ──
+let svc="taxi", busStep=0, busDest="", busDep=null, busSiege=null;
+
+// ── DÉTECTION POSITION CLIENT ──
+let clientDansBamako = null; // null=inconnu, true=Bamako, false=hors Bamako
+
+// Coordonnées Bamako (rayon ~40km)
+function estDansBamako(lat, lng){
+  var bamakoLat = 12.6392;
+  var bamakoLng = -8.0029;
+  var dLat = lat - bamakoLat;
+  var dLng = lng - bamakoLng;
+  var dist = Math.sqrt(dLat*dLat + dLng*dLng);
+  return dist < 0.45; // ~45km de rayon autour de Bamako
+}
+
+// Détecter position au chargement
+if(navigator.geolocation){
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      clientDansBamako = estDansBamako(pos.coords.latitude, pos.coords.longitude);
+    },
+    function(){ clientDansBamako = null; } // Si refus GPS → pas de restriction
+  );
+}
+let avStep=0, avDest="", avVol=null, avClasse="eco";
+let payMeth="orange", openReg=null, histTab="courses";
+let points=1250, ratingNote=0, ratingTags=[], userName="Client VIP";
+let notifs=[...NOTIFS];
+
+// ── Choix compagnie & type voyage ──
+let busTypeVoyage="simple", busCieIdx=0, busScheduled=false, busScheduleDate="";
+let avTypeVoyage="simple", avCieIdx=0, avScheduled=false, avScheduleDate="";
+
+// ── AUTH ──
+function showSplash(){hide("page-auth");hide("page-app");show("page-splash")}
+function showAuth(tab){hide("page-splash");hide("page-app");show("page-auth");switchAuthTab(tab)}
+function switchAuthTab(t){
+  document.getElementById("tab-login").className="auth-tab"+(t==="login"?" active":"");
+  document.getElementById("tab-register").className="auth-tab"+(t==="register"?" active":"");
+  show("form-"+t); hide("form-"+(t==="login"?"register":"login"));
+}
+function doLogin(){
+  const tel=document.getElementById("login-tel").value;
+  const mdp=document.getElementById("login-mdp").value;
+  const err=document.getElementById("login-err");
+  if(!tel||!mdp){showErr(err,"Remplissez tous les champs");return}
+  if(tel.length<8){showErr(err,"Numéro invalide");return}
+  userName=tel; launchApp();
+}
+function doRegister(){
+  const nom=document.getElementById("reg-nom").value;
+  const tel=document.getElementById("reg-tel").value;
+  const mdp=document.getElementById("reg-mdp").value;
+  const mdp2=document.getElementById("reg-mdp2").value;
+  const err=document.getElementById("reg-err");
+  if(!nom||!tel||!mdp||!mdp2){showErr(err,"Remplissez tous les champs");return}
+  if(mdp!==mdp2){showErr(err,"Les mots de passe ne correspondent pas");return}
+  if(mdp.length<4){showErr(err,"Mot de passe trop court (min 4 chiffres)");return}
+  userName=nom; launchApp();
+}
+function showErr(el,msg){el.textContent="⚠️ "+msg;el.style.display="block"}
+function launchApp(){
+  hide("page-splash");hide("page-auth");show("page-app");
+  document.getElementById("user-name-display").textContent="Bonjour, "+userName+" 👑";
+  renderServices(); renderContent(); updateBellBadge();
+  document.getElementById("sos-btn").classList.add("show");
+  setTimeout(initMap, 300);
+}
+
+// ── UTILS ──
+function show(id){document.getElementById(id).style.display=""}
+function hide(id){document.getElementById(id).style.display="none"}
+function fmt(n){return n.toLocaleString("fr-FR")}
+function randCode(){return "MT-"+Math.random().toString(36).slice(2,8).toUpperCase()}
+function getLigne(d){return LIGNES.find(l=>l.to===d)||{to:d,dist:"~km",duree:"~h",prix:800,cie:"Sahel Voyage",deps:[{h:"07:00",p:20},{h:"14:00",p:15}]}}
+function getVol(d){return VOLS.find(v=>v.to===d)||{to:d,code:"BKO-???",duree:"~h",eco:150000,biz:280000,cie:"Air Mali",vols:[{h:"08:00",p:20},{h:"16:00",p:15}]}}
+
+
+// ── QUARTIERS BAMAKO ──
+const QUARTIERS_BAMAKO = [
+  // Commune I
+  "Banconi","Boulkassoumbougou","Djélibougou","Doumanzana","Faladié",
+  "Sotuba","Titibougou","Wayerma I","Wayerma II",
+  // Commune II
+  "Bagadadji","Bozola","Hippodrome","Médina Coura","Missira",
+  "Niarela","Quinzambougou","Sabalibougou","TSF",
+  // Commune III
+  "Bamako Coura","Bolibana","Daoudabougou","Djelidougou",
+  "Koulouninko","Ouolofobougou","Touban","Tidjaneyabougou",
+  // Commune IV
+  "Kalaban Coura","Lafiabougou","Lassa","Magnambougou",
+  "Mouribabougou","N'Gabacoro","Sébénicoro","Sogoniko","Taliko",
+  // Commune V
+  "ACI 2000","Badalabougou","Hamdallaye","Korofina",
+  "Quartier du Fleuve","Sebeninkoro","Torokorobougou",
+  // Commune VI
+  "Banankabougou","Dianéguela","Faladié","Garantiguibougou",
+  "Kabala","Kalaban","Missabougou","N'Tabacoro","Niamakoro",
+  "Senou","Yirimadio",
+  // Lieux importants
+  "Aéroport Bamako-Sénou","Gare Routière de Sogoniko",
+  "Gare de Bamako","Hôpital Gabriel Touré","Hôpital du Point G",
+  "Université de Bamako","Grand Marché","Marché de Médine",
+  "Stade du 26 Mars","Palais de Koulouba","Centre Ville Bamako",
+  "Zone Industrielle","Pont des Martyrs","Pont du Roi Fahd",
+];
+
+function filterQuartiers(query){
+  if(!query || query.length < 2) return [];
+  const q = query.toLowerCase();
+  return QUARTIERS_BAMAKO.filter(n => n.toLowerCase().includes(q)).slice(0,6);
+}
+
+function showSuggestions(inputId, listId, val){
+  const list = document.getElementById(listId);
+  if(!list) return;
+  const results = filterQuartiers(val);
+  if(results.length === 0){ list.style.display="none"; return; }
+  list.innerHTML = results.map(q =>
+    '<div onclick="selectQuartier(\''+inputId+'\',\''+listId+'\',\''+q+'\')" style="padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px;display:flex;align-items:center;gap:10px" onmouseover="this.style.background=\'var(--card2)\'" onmouseout="this.style.background=\'transparent\'">'
+    +'<span style="color:var(--gold)">📍</span>'+q+'</div>'
+  ).join("");
+  list.style.display = "block";
+}
+
+function selectQuartier(inputId, listId, value){
+  const inp = document.getElementById(inputId);
+  if(inp){ inp.value = value; }
+  if(inputId === "dep-inp") rideDepart = value;
+  if(inputId === "dest-inp") rideDest = value;
+  const list = document.getElementById(listId);
+  if(list) list.style.display = "none";
+}
+
+// Close suggestions on outside click
+document.addEventListener("click", function(e){
+  ["dep-suggestions","dest-suggestions","stop-suggestions"].forEach(id => {
+    const el = document.getElementById(id);
+    if(el && !el.contains(e.target)) el.style.display = "none";
+  });
+});
+
+// ── SERVICES ──
+let taxiType = null; // null | "standard" | "vip"
+let rideStep=0, rideDepart="", rideDest="", rideStops=[], rideScheduled=false, rideRating=0;
+
+function renderServices(){
+  document.getElementById("svc-row").innerHTML=SERVICES.map(s=>`
+    <button class="svc-btn${svc===s.id?" active":""}" onclick="setSvc('${s.id}')">
+      <span class="ico">${s.ico}</span><span class="lbl">${s.label}</span>
+    </button>`).join("");
+}
+// setSvc moved above
+
+// ── ANNULATION AVEC MOTIF ──
+function openCancelRide(){
+  const motifs=["Temps d'attente trop long","J'ai changé de plan","J'ai trouvé un autre moyen","Erreur de commande","Autre raison"];
+  let selMotif="";
+  const overlay=document.createElement("div");
+  overlay.id="cancel-overlay";
+  overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:80;display:flex;align-items:flex-end;left:50%;transform:translateX(-50%);width:100%;max-width:420px";
+  overlay.innerHTML=`<div style="background:var(--bg);border-radius:22px 22px 0 0;padding:22px 20px 36px;width:100%">
+    <div style="font-size:16px;font-weight:800;margin-bottom:16px;text-align:center">❌ Annuler la course</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Pourquoi annulez-vous ?</div>
+    <div id="motif-list">
+      ${motifs.map((m,i)=>`<div id="motif-${i}" onclick="document.querySelectorAll('[id^=motif-]').forEach(e=>e.style.borderColor='var(--border)');document.getElementById('motif-${i}').style.borderColor='var(--red)';selMotif='${m}'" style="padding:12px 15px;border-radius:13px;border:1.5px solid var(--border);margin-bottom:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s">${m}</div>`).join("")}
+    </div>
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <button onclick="document.getElementById('cancel-overlay').remove()" style="flex:1;padding:13px;border-radius:13px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">← Retour</button>
+      <button onclick="confirmCancel()" style="flex:1;padding:13px;border-radius:13px;border:none;background:rgba(231,76,60,.2);color:var(--red);font-size:14px;font-weight:800;cursor:pointer;font-family:inherit">Annuler la course</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+}
+function confirmCancel(){
+  const o=document.getElementById("cancel-overlay");if(o)o.remove();
+  rideStep=0;taxiType=null;rideStops=[];rideDepart="";rideDest="";
+  renderContent();
+  showToast("❌ Course annulée");
+}
+
+// ── NOTATION ──
+function setRating(n){
+  rideRating=n;
+  for(let i=1;i<=5;i++){
+    const el=document.getElementById("star-"+i);
+    if(el) el.style.filter=i<=n?"grayscale(0)":"grayscale(1)";
+  }
+}
+function submitRating(){
+  const avis=document.getElementById("avis-txt")?.value||"";
+  if(rideRating===0){showToast("⚠️ Choisissez une note d'abord");return;}
+  // Add to history
+  HIST.unshift({
+    type:svc==="taxi"?(taxiType==="vip"?"VIP":"Standard"):"Moto",
+    from:rideDepart||"Position actuelle",
+    to:rideDest||"Destination",
+    prix:Math.round(2000+Math.random()*3000),
+    date:"Aujourd'hui",
+    statut:"terminée",
+    note:rideRating,
+    chauffeur:taxiType==="vip"?"Amadou Diarra":"Seydou Koné"
+  });
+  rideStep=0;taxiType=null;rideStops=[];rideDepart="";rideDest="";rideRating=0;
+  renderContent();
+  showToast("⭐ Merci pour votre avis !");
+}
+
+// ── CHAT CHAUFFEUR ──
+function openChatChauffeur(){
+  const panel=document.getElementById("panel-chat");
+  if(panel){
+    document.getElementById("chat-nom-display").textContent=taxiType==="vip"?"Amadou Diarra":"Seydou Koné";
+    chatMsgs=[{from:"driver",text:"Bonjour ! Je suis en route vers vous 📍",time:getNow()}];
+    renderChat();
+    panel.style.display="flex";
+  }
+}
+
+// ── RESET RIDE ──
+function setSvc(id){
+  // Bloquer Taxi, Moto, Livraison si client hors Bamako
+  if((id==="taxi"||id==="moto"||id==="livraison") && clientDansBamako===false){
+    // Afficher message informatif
+    var exist=document.getElementById('modal-hors-bamako');
+    if(exist){exist.style.display='flex';return;}
+    var div=document.createElement('div');
+    div.id='modal-hors-bamako';
+    div.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:900;align-items:flex-end;justify-content:center';
+    var html='<div style="background:#1A1A2E;border-radius:20px 20px 0 0;padding:28px 20px 36px;width:100%;max-width:420px;text-align:center;border-top:3px solid #F5A623">';
+    html+='<div style="font-size:52px;margin-bottom:12px">🚖</div>';
+    html+='<div style="font-size:18px;font-weight:900;color:#F5A623;margin-bottom:6px">MaliTaxi VIP</div>';
+    html+='<div style="background:rgba(220,38,38,0.15);border-radius:12px;padding:14px;margin-bottom:14px;border:1px solid rgba(220,38,38,0.4)">';
+    html+='<div style="font-size:14px;font-weight:800;color:#f87171;margin-bottom:6px">⚠️ Service non disponible</div>';
+    html+='<div style="font-size:12px;color:#fca5a5;line-height:1.5">Vous êtes actuellement hors de Bamako.<br>Les services <b>Taxi 🚕, Moto 🏍️ et Livraison 📦</b> sont disponibles <b>uniquement à Bamako</b>.<br>Nous travaillons à étendre le service !</div>';
+    html+='</div>';
+    html+='<div style="background:rgba(20,163,74,0.15);border-radius:12px;padding:12px;margin-bottom:16px;border:1px solid rgba(20,163,74,0.4)">';
+    html+='<div style="font-size:13px;font-weight:800;color:#4ade80;margin-bottom:8px">✅ Disponible dans votre région</div>';
+    html+='<div style="display:flex;justify-content:center;gap:24px">';
+    html+='<div><div style="font-size:36px">🚌</div><div style="font-size:12px;font-weight:800;color:#86efac">Bus intercité</div></div>';
+    html+='</div></div>';
+    html+='<button id="btn-close-hors" style="width:100%;padding:14px;background:#F5A623;color:#1A1A2E;border:none;border-radius:12px;font-size:15px;font-weight:900;font-family:inherit;cursor:pointer;margin-bottom:8px">✅ Compris</button>';
+    html+='<button id="btn-bus-hors" style="width:100%;padding:14px;background:rgba(255,255,255,0.08);color:white;border:1px solid rgba(255,255,255,0.2);border-radius:12px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer">🚌 Voir les Bus disponibles</button>';
+    html+='</div>';
+    div.innerHTML=html;
+    document.body.appendChild(div);
+    document.getElementById('btn-close-hors').onclick=function(){div.style.display='none';};
+    document.getElementById('btn-bus-hors').onclick=function(){div.style.display='none';setSvc('bus');};
+    return;
+  }
+  svc=id;
+  rideStep=0;rideStops=[];rideDepart="";rideDest="";
+  if(id==="taxi") taxiType=null;
+  if(id!=="bus"){busStep=0;busDest="";busDep=null;busSiege=null;openReg=null;}
+  if(id!=="aeroport"){avStep=0;avDest="";avVol=null;avClasse="eco";openReg=null;}
+  renderServices(); renderContent();
+}
+function payWidget(){
+  return [{id:"orange",ico:"🟠",label:"Orange Money",sub:"Paiement instantané"},
+          {id:"moov",  ico:"🔵",label:"Moov Money",  sub:"Paiement instantané"},
+          {id:"wave",  ico:"🌊",label:"Wave",         sub:"Paiement instantané"},
+          {id:"cash",  ico:"💵",label:"Cash",         sub:"Paiement à la gare/agence"}]
+    .map(p=>`<div class="pay-opt${payMeth===p.id?" sel":""}" onclick="payMeth='${p.id}';renderContent()">
+      <div class="pay-ico">${p.ico}</div>
+      <div><div style="font-size:14px;font-weight:700">${p.label}</div><div style="font-size:11px;color:var(--muted)">${p.sub}</div></div>
+      <div style="margin-left:auto;width:19px;height:19px;border-radius:50%;border:2px solid ${payMeth===p.id?"var(--gold)":"var(--border)"};background:${payMeth===p.id?"var(--gold)":"transparent"};display:flex;align-items:center;justify-content:center">
+        ${payMeth===p.id?`<div style="width:7px;height:7px;border-radius:50%;background:var(--bg)"></div>`:""}
+      </div></div>`).join("");
+}
+
+// ── QR ──
+function qrHTML(){
+  let h=`<div class="qr-grid">`;
+  for(let i=0;i<64;i++) h+=`<div style="background:${Math.random()>.5?"#fff":"transparent"};border-radius:1px"></div>`;
+  return h+`</div><div style="text-align:center;font-size:10px;color:var(--muted);margin-top:5px">Scanner à la gare / aéroport</div>`;
+}
+
+// ── RENDER CONTENT ──
+function renderContent(){
+  const c=document.getElementById("content");
+  if(["taxi","moto","livraison"].includes(svc)){ c.innerHTML=renderRide(); return; }
+  if(svc==="aeroport"){ c.innerHTML=renderAvion(); return; }
+  if(svc==="bus"){ c.innerHTML=renderBus(); return; }
+}
+
+// ── RIDE ──
+function renderRide(){
+
+  // Taxi → choix Standard ou VIP
+  if(svc==="taxi" && !taxiType){
+    return `<div style="animation:fadeUp .3s ease">
+      <div style="font-size:16px;font-weight:800;margin-bottom:16px;text-align:center">🚕 Choisir votre type de taxi</div>
+
+      <!-- Standard -->
+      <div onclick="taxiType='standard';renderContent()" style="background:var(--card);border:2px solid var(--border);border-radius:18px;padding:20px 18px;margin-bottom:14px;cursor:pointer;transition:all .2s;display:flex;gap:16px;align-items:center" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:48px">🚕</div>
+        <div style="flex:1">
+          <div style="font-size:18px;font-weight:800;margin-bottom:4px">Standard</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Taxi classique · Confortable</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <span style="background:var(--card2);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700">👤 1-4 passagers</span>
+            <span style="background:var(--card2);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700">⏱️ 5 min</span>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:20px;font-weight:800;color:var(--gold)">1 500</div>
+          <div style="font-size:11px;color:var(--muted)">FCFA</div>
+        </div>
+      </div>
+
+      <!-- VIP -->
+      <div onclick="taxiType='vip';renderContent()" style="background:linear-gradient(135deg,#2A1A00,rgba(245,166,35,.15));border:2px solid var(--gold);border-radius:18px;padding:20px 18px;cursor:pointer;transition:all .2s;display:flex;gap:16px;align-items:center;position:relative;overflow:hidden">
+        <div style="position:absolute;top:8px;right:12px;background:var(--gold);color:#1A1000;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px">👑 VIP</div>
+        <div style="font-size:48px">🚙</div>
+        <div style="flex:1">
+          <div style="font-size:18px;font-weight:800;color:var(--gold);margin-bottom:4px">VIP Premium</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Berline luxe · Climatisé</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <span style="background:rgba(245,166,35,.15);color:var(--gold);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700">👤 1-4 passagers</span>
+            <span style="background:rgba(245,166,35,.15);color:var(--gold);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700">⏱️ 7 min</span>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:20px;font-weight:800;color:var(--gold)">4 000</div>
+          <div style="font-size:11px;color:var(--muted)">FCFA</div>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--muted)">
+        💡 VIP = Berline climatisée avec chauffeur professionnel
+      </div>
+    </div>`;
+  }
+
+  const isVip = svc==="taxi" && taxiType==="vip";
+  const ico  = isVip ? "🚙" : svc==="moto" ? "🏍️" : svc==="livraison" ? "📦" : "🚕";
+
+  // ── STEP ROUTING ──
+  if(rideStep===1) return renderRideConfirm();
+  if(rideStep===2) return renderRideTracking();
+  if(rideStep===3) return renderRideRating();
+
+  // ── TARIFS PAR TRAJET ──
+  var TARIFS = {
+    standard:{base:300,km:150,min:20,minPrix:500},
+    vip:     {base:500,km:250,min:35,minPrix:1000},
+    moto:    {base:200,km:100,min:15,minPrix:400},
+    livraison:{base:900,km:120,min:10,minPrix:900},
+  };
+  var tarif = isVip ? TARIFS.vip : svc==="moto" ? TARIFS.moto : svc==="livraison" ? TARIFS.livraison : TARIFS.standard;
+  var estimKm = (3 + rideStops.filter(function(s){return s;}).length * 1.5 + Math.random()*5).toFixed(1);
+  var estimMin = Math.round(parseFloat(estimKm)*3 + Math.random()*5);
+  var estimPrix = Math.max(tarif.base + tarif.km*parseFloat(estimKm) + tarif.min*estimMin, tarif.minPrix);
+
+  var stopsList = "";
+  for(var si=0; si<rideStops.length; si++){
+    stopsList += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
+      +'<div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:11px;display:flex;align-items:center;padding:0 10px">'
+      +'<span style="font-size:16px;margin-right:8px">📍</span>'
+      +'<input style="flex:1;background:none;border:none;color:var(--text);font-size:13px;padding:11px 0;outline:none;font-family:inherit" placeholder="Arrêt '+(si+1)+'" value="'+rideStops[si]+'" oninput="rideStops['+si+']=this.value"/>'
+      +'</div>'
+      +'<button onclick="rideStops.splice('+si+',1);renderContent()" style="width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:rgba(231,76,60,.1);color:var(--red);cursor:pointer;font-size:16px">×</button>'
+      +'</div>';
+  }
+
+  return '<div style="animation:fadeUp .3s ease">'
+    +(svc==="taxi"?'<button onclick="taxiType=null;renderContent()" style="background:none;border:none;color:var(--gold);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;margin-bottom:13px;font-family:inherit;padding:0">← Changer de type</button>':"")
+    +(isVip?'<div style="background:linear-gradient(135deg,#2A1A00,rgba(245,166,35,.12));border:1px solid var(--gold);border-radius:14px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px"><span style="font-size:24px">👑</span><div><div style="font-size:14px;font-weight:800;color:var(--gold)">Taxi VIP Premium</div><div style="font-size:12px;color:var(--muted)">Berline luxe · Climatisé · Chauffeur privé</div></div></div>':"")
+    // Réservation type
+    +'<div style="display:flex;gap:8px;margin-bottom:14px">'
+    +'<button id="btn-now" onclick="rideScheduled=false;document.getElementById(\'btn-now\').style.background=\'var(--gold)\';document.getElementById(\'btn-now\').style.color=\'#000\';document.getElementById(\'btn-later\').style.background=\'var(--card2)\';document.getElementById(\'btn-later\').style.color=\'var(--muted)\';document.getElementById(\'schedule-wrap\').style.display=\'none\'" style="flex:1;padding:10px;border-radius:11px;border:none;background:var(--gold);color:#000;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit">⚡ Maintenant</button>'
+    +'<button id="btn-later" onclick="rideScheduled=true;document.getElementById(\'btn-later\').style.background=\'var(--gold)\';document.getElementById(\'btn-later\').style.color=\'#000\';document.getElementById(\'btn-now\').style.background=\'var(--card2)\';document.getElementById(\'btn-now\').style.color=\'var(--muted)\';document.getElementById(\'schedule-wrap\').style.display=\'block\'" style="flex:1;padding:10px;border-radius:11px;border:none;background:var(--card2);color:var(--muted);font-size:12px;font-weight:800;cursor:pointer;font-family:inherit">📅 Programmer</button>'
+    +'</div>'
+    +'<div id="schedule-wrap" style="display:none;margin-bottom:12px"><input type="datetime-local" id="schedule-time" style="width:100%;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:13px;font-family:inherit;outline:none;margin-bottom:8px"/></div>'
+    // Itinéraire
+    +'<div style="font-size:15px;font-weight:700;margin-bottom:11px">📍 Itinéraire</div>'
+    +'<div style="position:relative;margin-bottom:8px"><div class="inp-wrap"><span class="inp-dot">🟢</span><input class="inp" id="dep-inp" placeholder="Votre position actuelle" value=""+rideDepart+"" oninput="rideDepart=this.value;showSuggestions(\'dep-inp\',\'dep-suggestions\',this.value)"/></div><div id="dep-suggestions" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--card);border:1px solid var(--border);border-radius:0 0 12px 12px;z-index:50;overflow:hidden"></div></div>'
+    // Arrêts
+    +'<div id="stops-list">'+stopsList+'</div>'
+    +'<button onclick="rideStops.push(\'\');renderContent()" style="width:100%;padding:10px;border-radius:11px;border:1px dashed var(--border);background:transparent;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:6px"><span style="font-size:18px;color:var(--gold)">+</span> Ajouter un arrêt</button>'
+    // Destination
+    +'<div style="position:relative;margin-bottom:16px"><div class="inp-wrap"><span class="inp-dot">🔴</span><input class="inp" id="dest-inp" placeholder="Destination finale" value=""+rideDest+"" oninput="rideDest=this.value;showSuggestions(\'dest-inp\',\'dest-suggestions\',this.value)"/></div><div id="dest-suggestions" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--card);border:1px solid var(--border);border-radius:0 0 12px 12px;z-index:50;overflow:hidden"></div></div>'
+    // Estimation prix
+    +'<div style="background:linear-gradient(135deg,var(--card),rgba(245,166,35,.08));border:1px solid rgba(245,166,35,.3);border-radius:16px;padding:14px 16px;margin-bottom:14px">'
+    +'<div style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.5px;margin-bottom:8px">💰 ESTIMATION DU PRIX</div>'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
+    +'<div><div style="font-size:24px;font-weight:900;color:var(--gold)">'+fmt(Math.round(estimPrix))+' FCFA</div>'
+    +'<div style="font-size:11px;color:var(--muted);margin-top:2px">~'+estimKm+' km · ~'+estimMin+' min</div></div>'
+    +'<div style="text-align:right;font-size:11px;color:var(--muted)">'
+    +'<div>Base: '+tarif.base+' F</div><div>'+tarif.km+' F/km</div><div>'+tarif.min+' F/min</div></div></div>'
+    +'<div style="font-size:11px;color:var(--muted);background:var(--card2);border-radius:8px;padding:7px 10px">⚠️ Prix final selon trajet réel · Min: '+fmt(tarif.minPrix)+' FCFA</div>'
+    +'</div>'
+    // Chauffeur card
+    +'<div class="driver-card">'
+    +'<div class="driver-photo">'+(isVip?"🧑🏿‍💼":CHAUFFEUR.photo)+'</div>'
+    +'<div style="flex:1"><div style="font-size:14px;font-weight:800">'+(isVip?"Amadou Diarra":CHAUFFEUR.nom)+'</div>'
+    +'<div style="display:flex;align-items:center;gap:6px;margin-top:2px"><span style="color:var(--gold);font-size:12px">⭐⭐⭐⭐⭐</span><span style="font-size:12px;font-weight:700;color:var(--gold)">'+(isVip?"5.0":CHAUFFEUR.note)+'</span></div>'
+    +'<div style="font-size:11px;color:var(--muted);margin-top:3px">🚗 Toyota Corolla · ML-1234-A</div></div>'
+    +'<div class="online-badge">'+(isVip?"👑 VIP":"✓ En ligne")+'</div></div>'
+    // Bouton commander
+    +'<button class="cmd-btn" '+(isVip?'style="background:linear-gradient(135deg,var(--gold),#FFB84D)"':'')+' onclick="rideEstimPrix='+Math.round(estimPrix)+';rideEstimKm='+estimKm+';rideEstimMin='+estimMin+';rideStep=1;renderContent()">'
+    +ico+' Commander '+(isVip?"VIP":"maintenant")+' — '+fmt(Math.round(estimPrix))+' FCFA'
+    +'</button></div>';
+}
+
+// ── RIDE CONFIRM ──
+function renderRideConfirm(){
+  const isVip = svc==="taxi" && taxiType==="vip";
+  return '<div style="animation:fadeUp .3s ease">'
+    +'<div style="text-align:center;margin-bottom:16px">'
+    +'<div style="width:64px;height:64px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 10px">'+(isVip?"🧑🏿‍💼":CHAUFFEUR.photo)+'</div>'
+    +'<div style="font-size:16px;font-weight:800">'+(isVip?"Amadou Diarra":CHAUFFEUR.nom)+'</div>'
+    +'<div style="color:var(--gold);font-size:13px">⭐ '+(isVip?"5.0":CHAUFFEUR.note)+' · '+(isVip?"VIP certifié":CHAUFFEUR.courses+" courses")+'</div>'
+    +'</div>'
+    // Sécurité
+    +'<div style="background:linear-gradient(135deg,#0A1A0A,rgba(46,204,113,.08));border:1px solid rgba(46,204,113,.3);border-radius:16px;padding:14px 16px;margin-bottom:14px">'
+    +'<div style="font-size:11px;color:var(--green);font-weight:700;letter-spacing:.5px;margin-bottom:10px">🛡️ INFORMATIONS DE SÉCURITÉ</div>'
+    +[["🚗 Véhicule","Toyota Corolla 2022"],["🔢 Plaque","ML-1234-A"],["📱 Téléphone","+223 76 11 22 33"],["⭐ Note",isVip?"5.0 / 5.0":CHAUFFEUR.note+" / 5.0"],["🏅 Statut",isVip?"VIP Certifié ✓":"Chauffeur Vérifié ✓"]].map(function(x){return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="font-size:12px;color:var(--muted)">'+x[0]+'</span><span style="font-size:12px;font-weight:700">'+x[1]+'</span></div>';}).join("")
+    +'</div>'
+    // Trajet
+    +'<div style="background:var(--card);border-radius:14px;padding:13px 15px;margin-bottom:14px;border:1px solid var(--border)">'
+    +'<div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:8px">🗺️ VOTRE TRAJET</div>'
+    +'<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:6px"><span style="color:var(--green)">🟢</span><span style="font-size:13px;font-weight:700">'+(rideDepart||"Position actuelle")+'</span></div>'
+    +rideStops.filter(function(s){return s;}).map(function(s,i){return '<div style="display:flex;gap:10px;margin-bottom:6px"><span>📍</span><span style="font-size:12px;color:var(--muted)">Arrêt '+(i+1)+': '+s+'</span></div>';}).join("")
+    +'<div style="display:flex;gap:10px"><span style="color:var(--red)">🔴</span><span style="font-size:13px;font-weight:700">'+(rideDest||"Destination")+'</span></div>'
+    +'</div>'
+    // Prix
+    +'<div style="background:linear-gradient(135deg,var(--card),rgba(245,166,35,.08));border:1px solid rgba(245,166,35,.3);border-radius:14px;padding:13px 15px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">'
+    +'<div><div style="font-size:11px;color:var(--muted)">Prix estimé</div><div style="font-size:22px;font-weight:900;color:var(--gold)">'+fmt(rideEstimPrix)+' FCFA</div><div style="font-size:11px;color:var(--muted)">~'+rideEstimKm+' km · ~'+rideEstimMin+' min</div></div>'
+    +'<div style="text-align:right"><div style="font-size:11px;color:var(--muted)">Arrivée estimée</div><div style="font-size:16px;font-weight:800">'+rideEstimMin+' min</div></div>'
+    +'</div>'
+    // Paiement
+    +'<div style="margin-bottom:14px"><div class="section-lbl">💳 PAIEMENT</div>'+payWidget()+'</div>'
+    +'<div style="display:flex;gap:10px">'
+    +'<button onclick="rideStep=0;renderContent()" style="flex:1;padding:13px;border-radius:13px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">← Retour</button>'
+    +'<button onclick="rideStep=2;renderContent()" '+(isVip?'style="flex:2;padding:13px;border-radius:13px;border:none;background:linear-gradient(135deg,var(--gold),#FFB84D);color:#000;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit"':'style="flex:2;padding:13px;border-radius:13px;border:none;background:linear-gradient(135deg,var(--green),#27AE60);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit"')+'>'
+    +'✅ Confirmer '+fmt(rideEstimPrix)+' FCFA</button>'
+    +'</div></div>';
+}
+
+// ── RIDE TRACKING ──
+function renderRideTracking(){
+  const isVip = svc==="taxi" && taxiType==="vip";
+  return '<div style="animation:fadeUp .3s ease">'
+    +'<div style="text-align:center;background:linear-gradient(135deg,#0A1A0A,rgba(46,204,113,.1));border:1px solid rgba(46,204,113,.3);border-radius:18px;padding:20px;margin-bottom:14px">'
+    +'<div style="font-size:36px;margin-bottom:8px;animation:spin 2s linear infinite">🔄</div>'
+    +'<div style="font-size:16px;font-weight:800;color:var(--green)">Chauffeur en route !</div>'
+    +'<div style="font-size:13px;color:var(--muted);margin-top:5px">Arrivée dans <strong style="color:var(--green)">'+rideEstimMin+' minutes</strong></div>'
+    +'</div>'
+    // Suivi temps réel
+    +'<div style="background:var(--card);border-radius:16px;border:1px solid var(--border);overflow:hidden;margin-bottom:14px">'
+    +'<div style="height:140px;background:linear-gradient(135deg,#0D1A0D,#1A2A1A);display:flex;align-items:center;justify-content:center;position:relative">'
+    +'<div style="font-size:11px;color:rgba(255,255,255,.4);letter-spacing:1px">🗺️ SUIVI EN TEMPS RÉEL</div>'
+    +'<div style="position:absolute;top:50%;left:40%;transform:translate(-50%,-50%)"><div style="width:20px;height:20px;border-radius:50%;background:var(--gold);border:3px solid #fff;box-shadow:0 0 15px rgba(245,166,35,.8);animation:pulse 1.5s infinite"></div></div>'
+    +'<div style="position:absolute;top:35%;right:30%"><div style="font-size:24px">📍</div></div>'
+    +'<div style="position:absolute;top:50%;left:40%;width:80px;height:2px;background:linear-gradient(90deg,var(--gold),var(--green));transform:translateY(-50%)"></div>'
+    +'</div>'
+    +'<div style="padding:12px 16px"><div style="display:flex;justify-content:space-between;align-items:center">'
+    +'<div><div style="font-size:13px;font-weight:800">'+(isVip?"Amadou Diarra":CHAUFFEUR.nom)+'</div>'
+    +'<div style="font-size:11px;color:var(--muted)">🚗 Toyota Corolla · ML-1234-A</div></div>'
+    +'<div style="text-align:right"><div style="font-size:20px;font-weight:900;color:var(--gold)">'+rideEstimMin+' min</div><div style="font-size:10px;color:var(--muted)">Arrivée estimée</div></div>'
+    +'</div></div></div>'
+    // Actions
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">'
+    +'<button onclick="makeCall()" style="padding:12px;border-radius:13px;border:1px solid var(--green);background:rgba(46,204,113,.1);color:var(--green);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">📞 Appeler</button>'
+    +'<button onclick="openChatChauffeur()" style="padding:12px;border-radius:13px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">💬 Chat</button>'
+    +'</div>'
+    +'<button onclick="openCancelRide()" style="width:100%;padding:12px;border-radius:13px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">❌ Annuler la course</button>'
+    +'<div style="text-align:center;margin-top:12px">'
+    +'<button onclick="rideStep=3;renderContent()" style="padding:10px 24px;border-radius:20px;border:none;background:var(--card2);color:var(--muted);font-size:11px;cursor:pointer;font-family:inherit">🏁 Simuler arrivée (test)</button>'
+    +'</div></div>';
+}
+
+// ── RIDE RATING ──
+function renderRideRating(){
+  return '<div style="animation:fadeUp .3s ease">'
+    +'<div style="text-align:center;margin-bottom:20px">'
+    +'<div style="width:70px;height:70px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:34px;margin:0 auto 12px;box-shadow:0 8px 26px rgba(46,204,113,.4)">✓</div>'
+    +'<div style="font-size:18px;font-weight:800">Arrivée ! 🎉</div>'
+    +'<div style="font-size:13px;color:var(--muted);margin-top:4px">'+(rideDest||"Destination atteinte")+'</div>'
+    +'</div>'
+    // Prix final
+    +'<div style="background:linear-gradient(135deg,var(--card),rgba(245,166,35,.08));border:1px solid rgba(245,166,35,.3);border-radius:16px;padding:16px;margin-bottom:14px;text-align:center">'
+    +'<div style="font-size:12px;color:var(--muted);margin-bottom:5px">💰 MONTANT TOTAL</div>'
+    +'<div style="font-size:32px;font-weight:900;color:var(--gold)">'+fmt(rideEstimPrix)+' FCFA</div>'
+    +'<div style="font-size:11px;color:var(--muted);margin-top:4px">'+rideEstimKm+' km · '+rideEstimMin+' min</div>'
+    +'</div>'
+    // Notation
+    +'<div style="background:var(--card);border-radius:16px;padding:16px;border:1px solid var(--border);margin-bottom:14px">'
+    +'<div style="font-size:14px;font-weight:800;margin-bottom:12px;text-align:center">⭐ Notez votre chauffeur</div>'
+    +'<div style="display:flex;justify-content:center;gap:8px;margin-bottom:14px" id="stars-row">'
+    +'<span id="star-1" onclick="setRating(1)" style="font-size:36px;cursor:pointer;filter:grayscale(1)">⭐</span>'
+    +'<span id="star-2" onclick="setRating(2)" style="font-size:36px;cursor:pointer;filter:grayscale(1)">⭐</span>'
+    +'<span id="star-3" onclick="setRating(3)" style="font-size:36px;cursor:pointer;filter:grayscale(1)">⭐</span>'
+    +'<span id="star-4" onclick="setRating(4)" style="font-size:36px;cursor:pointer;filter:grayscale(1)">⭐</span>'
+    +'<span id="star-5" onclick="setRating(5)" style="font-size:36px;cursor:pointer;filter:grayscale(1)">⭐</span>'
+    +'</div>'
+    +'<textarea id="avis-txt" placeholder="Laissez un commentaire... (optionnel)" style="width:100%;padding:11px 14px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:13px;font-family:inherit;outline:none;resize:none;height:80px"></textarea>'
+    +'</div>'
+    +'<button onclick="submitRating()" style="width:100%;padding:14px;border-radius:13px;border:none;background:linear-gradient(135deg,var(--gold),#FFB84D);color:#000;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit">✅ Soumettre avis</button>'
+    +'</div>';
+}
+
+
+// ── WIDGET RÉSERVATION IMMÉDIATE/PROGRAMMÉE ──
+function scheduleWidget(type, scheduled, scheduleDate){
+  return '<div style="display:flex;gap:8px;margin-bottom:14px">'
+    +'<button id="btn-now-'+type+'" onclick="'+type+'Scheduled=false;document.getElementById(\'btn-now-'+type+'\').style.cssText=\'flex:1;padding:10px;border-radius:11px;border:none;background:var(--gold);color:#000;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit\';document.getElementById(\'btn-later-'+type+'\').style.cssText=\'flex:1;padding:10px;border-radius:11px;border:none;background:var(--card2);color:var(--muted);font-size:12px;font-weight:800;cursor:pointer;font-family:inherit\';document.getElementById(\'sched-'+type+'\').style.display=\'none\'" style="flex:1;padding:10px;border-radius:11px;border:none;background:'+(scheduled?'var(--card2)':'var(--gold)')+';color:'+(scheduled?'var(--muted)':'#000')+';font-size:12px;font-weight:800;cursor:pointer;font-family:inherit">⚡ Maintenant</button>'
+    +'<button id="btn-later-'+type+'" onclick="'+type+'Scheduled=true;document.getElementById(\'btn-later-'+type+'\').style.cssText=\'flex:1;padding:10px;border-radius:11px;border:none;background:var(--gold);color:#000;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit\';document.getElementById(\'btn-now-'+type+'\').style.cssText=\'flex:1;padding:10px;border-radius:11px;border:none;background:var(--card2);color:var(--muted);font-size:12px;font-weight:800;cursor:pointer;font-family:inherit\';document.getElementById(\'sched-'+type+'\').style.display=\'block\'" style="flex:1;padding:10px;border-radius:11px;border:none;background:'+(scheduled?'var(--gold)':'var(--card2)')+';color:'+(scheduled?'#000':'var(--muted)')+';font-size:12px;font-weight:800;cursor:pointer;font-family:inherit">📅 Réserver à l\'avance</button>'
+    +'</div>'
+    +'<div id="sched-'+type+'" style="display:'+(scheduled?'block':'none')+';margin-bottom:12px">'
+    +'<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 15px">'
+    +'<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px">📅 CHOISIR LA DATE ET L\'HEURE</div>'
+    +'<input type="datetime-local" id="sched-date-'+type+'" value="'+scheduleDate+'" onchange="'+type+'ScheduleDate=this.value" style="width:100%;padding:10px 13px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-family:inherit;outline:none"/>'
+    +'<div style="font-size:11px;color:var(--muted);margin-top:7px">⚠️ Réservation possible jusqu\'à 24h à l\'avance</div>'
+    +'</div></div>';
+}
+// ── BUS ──
+function renderBus(){
+  if(busStep===0){
+    const pop=["Ségou","Sikasso","Mopti","Kayes","Bougouni","Abidjan","Ouagadougou","Dakar"];
+    let regHTML=Object.entries(REGIONS).map(([reg,villes])=>{
+      const label=reg.includes("🇨🇮")||reg.includes("🇸🇳")||reg.includes("🇧🇫")||reg.includes("🇳🇪")||reg.includes("🇬🇳")||reg.includes("🇲🇷")||reg.includes("🇹🇬")||reg.includes("🇧🇯")||reg.includes("🇳🇬")||reg.includes("🇬🇭")?reg:"Région de "+reg;
+      return `<button class="region-btn${openReg===reg?" open":""}" onclick="toggleReg('${CSS.escape(reg)}')">${label} <span>${openReg===reg?"▲":"▼"}</span></button>
+        ${openReg===reg?`<div class="dest-grid">${villes.map(v=>`<button class="dest-chip" onclick="selBusDest('${v}')">📍 ${v}</button>`).join("")}</div>`:""}`
+    }).join("");
+    return `<div style="animation:fadeUp .3s ease">
+      <div class="promo-banner" style="background:linear-gradient(135deg,#8B3A00,#C45C26,#F5A623)">
+        <div class="deco"></div><div style="font-size:11px;color:rgba(255,255,255,.7);font-weight:700;letter-spacing:1px;margin-bottom:4px">🎟️ BILLETS DE BUS EN LIGNE</div>
+        <div style="font-size:17px;font-weight:800;color:#fff;margin-bottom:5px">Réservez sans aller à la gare !</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.75)">Bamako → Mali & Afrique de l'Ouest 🇲🇱</div>
+      </div>
+      <div class="section-lbl">⚡ DESTINATIONS POPULAIRES</div>
+      <div class="dest-grid" style="margin-bottom:14px">${pop.map(v=>`<button class="dest-chip" onclick="selBusDest('${v}')">📍 ${v}</button>`).join("")}</div>
+      <div class="section-lbl">TOUTES LES DESTINATIONS</div>${regHTML}</div>`;
+  }
+  const lg=getLigne(busDest);
+  const multiCies = LIGNES_MULTI[busDest]?.companies || [{cie:lg.cie,prix:lg.prix,deps:lg.deps}];
+  const selCie = multiCies[busCieIdx] || multiCies[0];
+
+  if(busStep===1){
+    const ciesHTML = multiCies.map((c,i)=>`
+      <div onclick="busCieIdx=${i};renderContent()" style="display:flex;align-items:center;gap:12px;padding:13px 15px;border-radius:13px;border:2px solid ${busCieIdx===i?"var(--gold)":"var(--border)"};background:${busCieIdx===i?"rgba(245,166,35,.1)":"var(--card)"};cursor:pointer;margin-bottom:9px;transition:all .2s">
+        <div style="font-size:26px">🚍</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:800">${c.cie}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${c.deps.filter(d=>d.p>0).length} départ(s) disponible(s)</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:17px;font-weight:800;color:${busCieIdx===i?"var(--gold)":"var(--text)"}">${fmt(c.prix)}</div>
+          <div style="font-size:10px;color:var(--muted)">FCFA</div>
+        </div>
+        <div style="width:18px;height:18px;border-radius:50%;border:2px solid ${busCieIdx===i?"var(--gold)":"var(--border)"};background:${busCieIdx===i?"var(--gold)":"transparent"};flex-shrink:0;display:flex;align-items:center;justify-content:center">
+          ${busCieIdx===i?`<div style="width:7px;height:7px;border-radius:50%;background:var(--bg)"></div>`:""}
+        </div>
+      </div>`).join("");
+
+    return `<div style="animation:fadeUp .3s ease">
+      <button class="back-btn" onclick="busStep--;renderContent()">← Retour</button>
+
+      <!-- Info route -->
+      <div class="info-card" style="margin-bottom:14px">
+        <div style="font-size:17px;font-weight:800;margin-bottom:4px">🚍 Bamako → ${busDest}</div>
+        <div style="font-size:12px;color:var(--muted)">${lg.dist} · ${lg.duree}</div>
+      </div>
+
+      <!-- Aller simple / Aller-retour -->
+      <div class="section-lbl">TYPE DE VOYAGE</div>
+      <div style="display:flex;gap:9px;margin-bottom:16px">
+        <button onclick="busTypeVoyage='simple';renderContent()" style="flex:1;padding:12px;border-radius:12px;border:2px solid ${busTypeVoyage==="simple"?"var(--gold)":"var(--border)"};background:${busTypeVoyage==="simple"?"rgba(245,166,35,.12)":"var(--card)"};color:${busTypeVoyage==="simple"?"var(--gold)":"var(--muted)"};font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:all .2s">
+          ➡️ Aller simple
+        </button>
+        <button onclick="busTypeVoyage='retour';renderContent()" style="flex:1;padding:12px;border-radius:12px;border:2px solid ${busTypeVoyage==="retour"?"var(--gold)":"var(--border)"};background:${busTypeVoyage==="retour"?"rgba(245,166,35,.12)":"var(--card)"};color:${busTypeVoyage==="retour"?"var(--gold)":"var(--muted)"};font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:all .2s">
+          🔄 Aller-retour
+        </button>
+      </div>
+      ${busTypeVoyage==="retour"?`
+      <div style="background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.3);border-radius:11px;padding:11px 14px;margin-bottom:14px;font-size:12px;color:var(--gold);font-weight:600">
+        💡 Aller-retour : prix x2 · Réservation retour incluse
+      </div>`:""}
+
+      <!-- Choix compagnie -->
+      <div class="section-lbl">CHOISIR LA COMPAGNIE</div>
+      ${ciesHTML}
+
+      <button class="cmd-btn" onclick="busStep=2;renderContent()">Continuer avec ${selCie.cie} →</button>
+    </div>`;
+  }
+
+  if(busStep===2){
+    const deps=selCie.deps.map((d,i)=>`
+      <button class="sched-btn" ${d.p===0?"disabled":""} onclick="selBusDep(${i})"
+        style="border-color:${d.p>0?"var(--green)":"var(--border)"};background:${d.p>0?"rgba(46,204,113,.1)":"var(--card2)"};color:${d.p>0?"var(--text)":"var(--muted)"};cursor:${d.p>0?"pointer":"not-allowed"}">
+        <div style="font-size:20px;font-weight:800">${d.h}</div>
+        <div style="font-size:11px;margin-top:4px;font-weight:600;color:${d.p===0?"var(--red)":"var(--green)"}">${d.p===0?"Complet":d.p+" places"}</div>
+      </button>`).join("");
+    return `<div style="animation:fadeUp .3s ease">
+      <button class="back-btn" onclick="busStep--;renderContent()">← Retour</button>
+      <div class="info-card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-size:17px;font-weight:800">Bamako → ${busDest}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">${selCie.cie} · ${lg.dist} · ${lg.duree}</div>
+            <div style="font-size:11px;margin-top:3px;color:var(--gold);font-weight:700">${busTypeVoyage==="retour"?"🔄 Aller-retour":"➡️ Aller simple"}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:21px;font-weight:800;color:var(--gold)">${fmt(busTypeVoyage==="retour"?selCie.prix*2:selCie.prix)}</div>
+            <div style="font-size:10px;color:var(--muted)">FCFA</div>
+          </div>
+        </div>
+      </div>
+      \${scheduleWidget('bus', busScheduled, busScheduleDate)}
+      ${scheduleWidget('bus', busScheduled, busScheduleDate)}
+      <div class="section-lbl">CHOISIR UN HORAIRE</div>
+      <div class="schedule-grid">${deps}</div></div>`;
+  }
+  if(busStep===3){
+    const seats=Array.from({length:32},(_,i)=>i+1).map(n=>`
+      <button class="seat ${SIEGES_PRIS.includes(n)?"pris":busSiege===n?"choisi":"libre"}" ${SIEGES_PRIS.includes(n)?"disabled":""} onclick="selSiege(${n})">${n}</button>`).join("");
+    const prixFinal = busTypeVoyage==="retour"?selCie.prix*2:selCie.prix;
+    return `<div style="animation:fadeUp .3s ease">
+      <button class="back-btn" onclick="busStep--;renderContent()">← Retour</button>
+      <div style="font-size:15px;font-weight:700;margin-bottom:4px">💺 Choisir votre siège</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">${busDest} · ${busDep?.h} · ${fmt(prixFinal)} FCFA · ${busTypeVoyage==="retour"?"🔄 A/R":"➡️ Simple"}</div>
+      <div style="display:flex;gap:13px;margin-bottom:13px">
+        <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)"><div style="width:9px;height:9px;border-radius:2px;background:var(--green)"></div>Libre</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)"><div style="width:9px;height:9px;border-radius:2px;background:var(--muted)"></div>Pris</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)"><div style="width:9px;height:9px;border-radius:2px;background:var(--gold)"></div>Choisi</span>
+      </div>
+      <div class="info-card" style="text-align:center">
+        <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:11px">🚍 AVANT DU BUS</div>
+        <div class="seat-grid">${seats}</div>
+      </div>
+      ${busSiege?`<div class="seat-recap"><div><div style="font-size:11px;color:var(--muted)">Siège sélectionné</div><div style="font-size:19px;font-weight:800;color:var(--gold)">N° ${busSiege}</div></div><div style="text-align:right"><div style="font-size:11px;color:var(--muted)">Prix</div><div style="font-size:17px;font-weight:800">${fmt(prixFinal)} FCFA</div></div></div>`:""}
+      <button class="cmd-btn" ${!busSiege?"disabled":""} onclick="busStep=4;renderContent()">Confirmer siège N°${busSiege||"?"} →</button></div>`;
+  }
+  if(busStep===4){
+    const prixFinal = busTypeVoyage==="retour"?selCie.prix*2:selCie.prix;
+    return `<div style="animation:fadeUp .3s ease">
+      <button class="back-btn" onclick="busStep--;renderContent()">← Retour</button>
+      <div style="font-size:15px;font-weight:700;margin-bottom:14px">💳 Paiement</div>
+      ${payWidget()}
+      <div class="info-card" style="margin-top:6px">
+        ${[["Trajet",`Bamako → ${busDest}`],["Type",busTypeVoyage==="retour"?"🔄 Aller-retour":"➡️ Aller simple"],["Compagnie",selCie.cie],["Départ",busDep?.h||""],["Siège",`N° ${busSiege}`],["Total",`${fmt(prixFinal)} FCFA`]].map(([k,v],i)=>`<div class="recap-row"><span class="k">${k}</span><span class="v${i===5?" gold":""}">${v}</span></div>`).join("")}
+      </div>
+      <button class="cmd-btn" onclick="busStep=5;renderContent()">💳 Payer ${fmt(prixFinal)} FCFA</button></div>`;
+  }
+  if(busStep===5){
+    const prixFinal = busTypeVoyage==="retour"?selCie.prix*2:selCie.prix;
+    const code=randCode();
+    return `<div style="animation:slideUp .4s ease;text-align:center">
+      <div style="width:76px;height:76px;border-radius:50%;background:var(--green);margin:18px auto 14px;display:flex;align-items:center;justify-content:center;font-size:36px;box-shadow:0 8px 26px rgba(46,204,113,.4)">✓</div>
+      <div style="font-size:21px;font-weight:800;margin-bottom:5px">Billet confirmé !</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:18px">Votre billet électronique est prêt</div>
+      <div class="ticket-card">
+        <div style="background:linear-gradient(135deg,#3D1F00,var(--gold));padding:15px 18px;display:flex;justify-content:space-between;align-items:center">
+          <div><div style="font-size:10px;color:rgba(255,255,255,.6);letter-spacing:1.4px">BILLET ÉLECTRONIQUE</div><div style="font-size:17px;font-weight:800;color:#fff">MaliTaxi VIP Bus 🚍</div></div>
+          <div style="font-family:monospace;font-size:11px;padding:3px 7px;border-radius:5px;background:rgba(0,0,0,.3);color:var(--gold)">${code}</div>
+        </div>
+        <div style="padding:15px 18px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
+            <div style="text-align:center"><div style="font-size:21px;font-weight:800">Bamako</div><div style="font-size:11px;color:var(--muted)">Départ</div></div>
+            <div style="flex:1;text-align:center">
+              <div style="font-size:11px;font-weight:700;color:var(--gold)">${lg.duree}</div>
+              <div style="height:2px;background:linear-gradient(90deg,var(--gold),var(--green));margin:4px 12px;border-radius:2px"></div>
+            </div>
+            <div style="text-align:center"><div style="font-size:21px;font-weight:800;color:var(--gold)">${busDest}</div><div style="font-size:11px;color:var(--muted)">Arrivée</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:13px">
+            ${[["DÉPART",busDep?.h||""],["SIÈGE","N° "+busSiege],["PRIX",fmt(lg.prix)+" F"]].map(([l,v],i)=>`
+            <div style="background:var(--card2);border-radius:7px;padding:7px;text-align:center">
+              <div style="font-size:9px;color:var(--muted);letter-spacing:.5px;margin-bottom:2px">${l}</div>
+              <div style="font-size:12px;font-weight:800;color:${i===2?"var(--gold)":"var(--text)"}">${v}</div>
+            </div>`).join("")}
+          </div>
+          <div style="border-top:1px dashed var(--border);padding-top:13px">${qrHTML()}</div>
+        </div>
+      </div>
+      <div class="ticket-actions">
+        <button class="btn-ghost" onclick="busStep=0;busDest='';busSiege=null;busDep=null;renderContent()">🏠 Accueil</button>
+        <button class="btn-solid" style="background:var(--gold);color:#1A1000">📲 Envoyer SMS</button>
+      </div></div>`;
+  }
+  return "";
+}
+
+// ── AVION ──
+function renderAvion(){
+  if(avStep===0){
+    const pop=["Abidjan","Dakar","Ouagadougou","Conakry","Paris","Dubaï","La Mecque","Istanbul"];
+    const regHTML=Object.entries(DESTINATIONS_VOL).map(([pays,villes])=>`
+      <button class="region-btn${openReg===pays?" open":""}" onclick="toggleVolReg('${CSS.escape(pays)}')">${pays} <span>${openReg===pays?"▲":"▼"}</span></button>
+      ${openReg===pays?`<div class="dest-grid">${villes.map(v=>`<button class="dest-chip" onclick="selAvDest('${v}')">✈️ ${v}</button>`).join("")}</div>`:""}`).join("");
+    return `<div style="animation:fadeUp .3s ease">
+      <div class="promo-banner" style="background:linear-gradient(135deg,#0A1A4A,#1A3A8A,#2A5FD0)">
+        <div class="deco"></div><div style="font-size:11px;color:rgba(255,255,255,.7);font-weight:700;letter-spacing:1px;margin-bottom:4px">🛫 BILLETS D'AVION EN LIGNE</div>
+        <div style="font-size:17px;font-weight:800;color:#fff;margin-bottom:5px">Voyagez vite, réservez ici !</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.75)">Bamako → Mali, Afrique & Monde entier 🌍</div>
+      </div>
+      <div class="section-lbl">⚡ VOLS POPULAIRES</div>
+      <div class="dest-grid" style="margin-bottom:14px">${pop.map(v=>`<button class="dest-chip" onclick="selAvDest('${v}')">✈️ ${v}</button>`).join("")}</div>
+      <div class="section-lbl">TOUTES LES DESTINATIONS</div>${regHTML}</div>`;
+  }
+  const multiCiesAv = VOLS_MULTI[avDest]?.companies || [getVol(avDest)];
+  const selCieAv = multiCiesAv[avCieIdx] || multiCiesAv[0];
+  const vol=getVol(avDest);
+
+  if(avStep===1){
+    // Aller/retour + choix compagnie
+    const ciesHTML = multiCiesAv.map((c,i)=>`
+      <div onclick="avCieIdx=${i};renderContent()" style="display:flex;align-items:center;gap:12px;padding:13px 15px;border-radius:13px;border:2px solid ${avCieIdx===i?"var(--gold)":"var(--border)"};background:${avCieIdx===i?"rgba(245,166,35,.1)":"var(--card)"};cursor:pointer;margin-bottom:9px;transition:all .2s">
+        <div style="font-size:24px">✈️</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:800">${c.cie}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:1px">${c.code||""} · ${c.vols?.filter(v=>v.p>0).length||0} vol(s) dispo</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:14px;font-weight:800;color:${avCieIdx===i?"var(--gold)":"var(--text)"}">dès ${fmt(c.eco)}</div>
+          <div style="font-size:10px;color:var(--muted)">FCFA</div>
+        </div>
+        <div style="width:18px;height:18px;border-radius:50%;border:2px solid ${avCieIdx===i?"var(--gold)":"var(--border)"};background:${avCieIdx===i?"var(--gold)":"transparent"};flex-shrink:0;display:flex;align-items:center;justify-content:center">
+          ${avCieIdx===i?`<div style="width:7px;height:7px;border-radius:50%;background:var(--bg)"></div>`:""}
+        </div>
+      </div>`).join("");
+
+    return `<div style="animation:fadeUp .3s ease">
+      <button class="back-btn" onclick="avStep=0;openReg=null;renderContent()">← Retour</button>
+      <div class="info-card" style="margin-bottom:14px">
+        <div style="font-size:17px;font-weight:800;margin-bottom:4px">✈️ Bamako → ${avDest}</div>
+        <div style="font-size:12px;color:var(--muted)">${VOLS_MULTI[avDest]?.dist||"~km"} · ${VOLS_MULTI[avDest]?.duree||"~h"}</div>
+      </div>
+
+      <!-- Aller simple / Aller-retour -->
+      <div class="section-lbl">TYPE DE VOYAGE</div>
+      <div style="display:flex;gap:9px;margin-bottom:16px">
+        <button onclick="avTypeVoyage='simple';renderContent()" style="flex:1;padding:12px;border-radius:12px;border:2px solid ${avTypeVoyage==="simple"?"var(--gold)":"var(--border)"};background:${avTypeVoyage==="simple"?"rgba(245,166,35,.12)":"var(--card)"};color:${avTypeVoyage==="simple"?"var(--gold)":"var(--muted)"};font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:all .2s">
+          ➡️ Aller simple
+        </button>
+        <button onclick="avTypeVoyage='retour';renderContent()" style="flex:1;padding:12px;border-radius:12px;border:2px solid ${avTypeVoyage==="retour"?"var(--gold)":"var(--border)"};background:${avTypeVoyage==="retour"?"rgba(245,166,35,.12)":"var(--card)"};color:${avTypeVoyage==="retour"?"var(--gold)":"var(--muted)"};font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:all .2s">
+          🔄 Aller-retour
+        </button>
+      </div>
+
+      <!-- Choix compagnie -->
+      <div class="section-lbl">CHOISIR LA COMPAGNIE</div>
+      ${ciesHTML}
+
+      <!-- Classe -->
+      <div class="section-lbl">CLASSE</div>
+      <div class="classe-grid">
+        ${["eco","biz"].map(c=>`
+          <button class="classe-btn${avClasse===c?" sel":""}" onclick="avClasse='${c}';renderContent()">
+            <div style="font-size:22px;margin-bottom:5px">${c==="eco"?"💺":"🛋️"}</div>
+            <div style="font-size:13px;font-weight:800">${c==="eco"?"Économique":"Business"}</div>
+            <div style="font-size:12px;margin-top:2px;color:${avClasse===c?"var(--gold)":"var(--muted)"}">${fmt(avTypeVoyage==="retour"?(c==="eco"?selCieAv.eco*2:selCieAv.biz*2):(c==="eco"?selCieAv.eco:selCieAv.biz))} FCFA</div>
+          </button>`).join("")}
+      </div>
+
+      <!-- Réservation type -->
+      ${scheduleWidget('av', avScheduled, avScheduleDate)}
+      <!-- Horaires -->
+      <div class="section-lbl">CHOISIR UN VOL</div>
+      <div class="schedule-grid">
+        ${(selCieAv.vols||[]).map((v,i)=>`
+          <button class="sched-btn" ${v.p===0?"disabled":""} onclick="selAvVol(${i})"
+            style="border-color:${v.p>0?"var(--blue)":"var(--border)"};background:${v.p>0?"rgba(52,152,219,.1)":"var(--card2)"};color:${v.p>0?"var(--text)":"var(--muted)"};cursor:${v.p>0?"pointer":"not-allowed"}">
+            <div style="font-size:20px;font-weight:800">${v.h}</div>
+            <div style="font-size:11px;margin-top:4px;font-weight:600;color:${v.p===0?"var(--red)":"var(--blue)"}">${v.p===0?"Complet":v.p+" places"}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px">${VOLS_MULTI[avDest]?.duree||vol.duree}</div>
+          </button>`).join("")}
+      </div>
+    </div>`;
+  }
+  const prixAv = avTypeVoyage==="retour" ? (avClasse==="eco"?selCieAv.eco*2:selCieAv.biz*2) : (avClasse==="eco"?selCieAv.eco:selCieAv.biz);
+  if(avStep===2){
+    return `<div style="animation:fadeUp .3s ease">
+      <button class="back-btn" onclick="avStep=1;renderContent()">← Retour</button>
+      <div style="font-size:15px;font-weight:700;margin-bottom:14px">💳 Paiement</div>
+      <div class="info-card" style="margin-bottom:14px">
+        ${[["Vol",`Bamako → ${avDest}`],["Type",avTypeVoyage==="retour"?"🔄 Aller-retour":"➡️ Aller simple"],["Compagnie",selCieAv.cie||vol.cie],["Départ",avVol?.h||""],["Classe",avClasse==="eco"?"Économique":"Business"],["Total",`${fmt(prixAv)} FCFA`]].map(([k,v],i)=>`<div class="recap-row"><span class="k">${k}</span><span class="v${i===5?" gold":""}">${v}</span></div>`).join("")}
+      </div>
+      ${payWidget()}
+      <button class="cmd-btn" style="margin-top:8px" onclick="avStep=3;renderContent()">🛫 Payer ${fmt(prixAv)} FCFA</button></div>`;
+  }
+  if(avStep===3){
+    const code=randCode();
+    return `<div style="animation:slideUp .4s ease;text-align:center">
+      <div style="width:76px;height:76px;border-radius:50%;background:var(--blue);margin:18px auto 14px;display:flex;align-items:center;justify-content:center;font-size:36px;box-shadow:0 8px 26px rgba(52,152,219,.4)">✓</div>
+      <div style="font-size:21px;font-weight:800;margin-bottom:5px">Billet confirmé ! 🛫</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:18px">${avTypeVoyage==="retour"?"🔄 Aller-retour · ":"➡️ Aller simple · "}Votre e-ticket est prêt</div>
+      <div class="ticket-card">
+        <div style="background:linear-gradient(135deg,#0A1A4A,#2A5FD0);padding:15px 18px;display:flex;justify-content:space-between;align-items:center">
+          <div><div style="font-size:10px;color:rgba(255,255,255,.6);letter-spacing:1.4px">E-TICKET AVION</div><div style="font-size:17px;font-weight:800;color:#fff">MaliTaxi VIP Air ✈️</div></div>
+          <div style="font-family:monospace;font-size:11px;padding:3px 7px;border-radius:5px;background:rgba(0,0,0,.3);color:#7EB3FF">${code}</div>
+        </div>
+        <div style="padding:15px 18px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
+            <div style="text-align:center"><div style="font-size:20px;font-weight:800">BKO</div><div style="font-size:11px;color:var(--muted)">Bamako</div></div>
+            <div style="flex:1;text-align:center"><div style="font-size:18px">✈️</div><div style="font-size:11px;font-weight:700;color:var(--blue)">${selCieAv.code||vol.code} · ${VOLS_MULTI[avDest]?.duree||vol.duree}</div><div style="height:2px;background:linear-gradient(90deg,var(--blue),#7EB3FF);margin:4px 12px;border-radius:2px"></div></div>
+            <div style="text-align:center"><div style="font-size:20px;font-weight:800;color:var(--blue)">${avDest.slice(0,3).toUpperCase()}</div><div style="font-size:11px;color:var(--muted)">${avDest}</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:13px">
+            ${[["DÉPART",avVol?.h||""],["CLASSE",avClasse==="eco"?"Éco":"Biz"],["PRIX",fmt(prixAv)+" F"]].map(([l,v],i)=>`
+            <div style="background:var(--card2);border-radius:7px;padding:7px;text-align:center">
+              <div style="font-size:9px;color:var(--muted);letter-spacing:.5px;margin-bottom:2px">${l}</div>
+              <div style="font-size:12px;font-weight:800;color:${i===2?"var(--gold)":"var(--text)"}">${v}</div>
+            </div>`).join("")}
+          </div>
+          <div style="border-top:1px dashed var(--border);padding-top:13px">${qrHTML()}</div>
+        </div>
+      </div>
+      <div class="ticket-actions">
+        <button class="btn-ghost" onclick="avStep=0;avDest='';avVol=null;openReg=null;renderContent()">🏠 Accueil</button>
+        <button class="btn-solid" style="background:var(--blue)">📲 Envoyer SMS</button>
+      </div></div>`;
+  }
+  return "";
+}
+
+// ── ACTIONS BUS ──
+function selBusDest(d){busDest=d;busStep=1;busCieIdx=0;busTypeVoyage="simple";openReg=null;renderContent()}
+function selBusDep(i){const cies=LIGNES_MULTI[busDest]?.companies||[getLigne(busDest)];const c=cies[busCieIdx]||cies[0];busDep=c.deps[i];busStep=3;renderContent()}
+function selSiege(n){busSiege=(busSiege===n?null:n);renderContent()}
+function toggleReg(r){openReg=(openReg===r?null:r);renderContent()}
+
+// ── ACTIONS AVION ──
+function selAvDest(d){avDest=d;avStep=1;avCieIdx=0;avTypeVoyage="simple";openReg=null;renderContent()}
+function selAvVol(i){
+  const cies=VOLS_MULTI[avDest]?.companies||[getVol(avDest)];
+  const c=cies[avCieIdx]||cies[0];
+  avVol=c.vols[i];
+  avStep=3;
+  renderContent();
+}
+function toggleVolReg(r){openReg=(openReg===r?null:r);renderContent()}
+
+// ── RATING ──
+function openRating(){
+  ratingNote=0; ratingTags=[];
+  document.getElementById("rating-overlay").style.display="flex";
+  renderRatingSheet();
+}
+function closeRating(){document.getElementById("rating-overlay").style.display="none"}
+function renderRatingSheet(){
+  const sheet=document.getElementById("rating-sheet");
+  const labels=["","😞 Très mauvais","😕 Mauvais","😐 Correct","😊 Bien","🤩 Excellent !"];
+  const tags=["Ponctuel ✓","Poli ✓","Propre ✓","Conduite safe ✓","Rapide ✓"];
+  sheet.innerHTML=`
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.5px;margin-bottom:14px">NOTER VOTRE CHAUFFEUR</div>
+      <div style="width:68px;height:68px;border-radius:50%;background:var(--card2);font-size:36px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;border:2px solid var(--gold)">${CHAUFFEUR.photo}</div>
+      <div style="font-size:16px;font-weight:800">${CHAUFFEUR.nom}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px">Note actuelle : ⭐ ${CHAUFFEUR.note}</div>
+    </div>
+    <div class="star-row">
+      ${[1,2,3,4,5].map(n=>`<button class="star-btn" onclick="setRating(${n})">${n<=ratingNote?"⭐":"☆"}</button>`).join("")}
+    </div>
+    <div style="text-align:center;font-size:13px;color:var(--muted);margin-bottom:16px">${ratingNote===0?"Appuyez sur une étoile":labels[ratingNote]}</div>
+    <div class="tag-row">${tags.map(t=>`<button class="rtag${ratingTags.includes(t)?" sel":""}" onclick="toggleTag('${t}')">${t}</button>`).join("")}</div>
+    <textarea placeholder="Commentaire (optionnel)..." style="width:100%;padding:12px 14px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:13px;font-family:inherit;outline:none;resize:none;height:70px;margin-bottom:16px"></textarea>
+    <button class="cmd-btn" ${ratingNote===0?"disabled":""} onclick="submitRating()">⭐ Envoyer ma note</button>
+    <button onclick="closeRating()" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:none;color:var(--muted);font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;margin-top:8px">Passer</button>`;
+}
+function setRating(n){ratingNote=n;renderRatingSheet()}
+function toggleTag(t){ratingTags.includes(t)?ratingTags.splice(ratingTags.indexOf(t),1):ratingTags.push(t);renderRatingSheet()}
+function submitRating(){
+  points+=10; updateFideliteDisplay();
+  document.getElementById("rating-sheet").innerHTML=`
+    <div style="text-align:center;padding:20px 0">
+      <div style="font-size:60px;margin-bottom:14px">🎉</div>
+      <div style="font-size:20px;font-weight:800;margin-bottom:8px">Merci pour votre note !</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Vous avez noté ${CHAUFFEUR.nom} : ${"⭐".repeat(ratingNote)}</div>
+      <div style="font-size:13px;color:var(--green);font-weight:700;margin-bottom:20px">+10 points de fidélité ajoutés 🎁</div>
+      <button class="cmd-btn" onclick="closeRating()">🏠 Retour à l'accueil</button>
+    </div>`;
+}
+
+// ── NOTIFICATIONS ──
+function updateBellBadge(){
+  const n=notifs.filter(x=>!x.lu).length;
+  const el=document.getElementById("bell-count");
+  el.textContent=n; el.style.display=n>0?"":"none";
+}
+function openPanel(type){
+  closePanel();
+  if(type==="notifs"){ renderNotifs(); show("panel-notifs"); }
+}
+function closePanel(){
+  ["panel-notifs","panel-fidelite","panel-historique","panel-chat","panel-profil","panel-paiement"].forEach(id=>{
+    document.getElementById(id).style.display="none";
+  });
+  document.getElementById("partenaires-section").style.display="none";
+  document.querySelectorAll(".nav-item").forEach(el=>el.classList.remove("active"));
+  document.getElementById("nav-home").classList.add("active");
+}
+function renderNotifs(){
+  const n=notifs.filter(x=>!x.lu).length;
+  document.getElementById("notif-count-lbl").textContent=n+" non lue"+(n>1?"s":"");
+  document.getElementById("notifs-list").innerHTML=notifs.map(n=>`
+    <div class="notif-item${!n.lu?" unread":""}" onclick="readNotif(${n.id})">
+      <div class="notif-ico">${n.ico}</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:700;margin-bottom:3px">${n.title}</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">${n.msg}</div>
+        <div style="font-size:11px;color:var(--muted);opacity:.7">⏰ ${n.time}</div>
+      </div>
+      ${!n.lu?`<div class="unread-dot"></div>`:""}
+    </div>`).join("");
+}
+function readNotif(id){notifs=notifs.map(n=>n.id===id?{...n,lu:true}:n);renderNotifs();updateBellBadge()}
+function markAllRead(){notifs=notifs.map(n=>({...n,lu:true}));renderNotifs();updateBellBadge()}
+
+// ── FIDÉLITÉ ──
+function updateFideliteDisplay(){if(document.getElementById("panel-fidelite").style.display!=="none")renderFidelite()}
+function renderFidelite(){
+  const niveaux=[
+    {nom:"Bronze 🥉",min:0,   max:500, next:"Argent",c:"#CD7F32"},
+    {nom:"Argent 🥈",min:500, max:1500,next:"Or",    c:"#C0C0C0"},
+    {nom:"Or 🥇",    min:1500,max:3000,next:"VIP",   c:"var(--gold)"},
+    {nom:"VIP 👑",   min:3000,max:3000,next:"",      c:"#9B59B6"},
+  ];
+  const nv=niveaux.find(n=>points<n.max&&points>=n.min)||niveaux[3];
+  const pct=nv.max>nv.min?Math.min(100,((points-nv.min)/(nv.max-nv.min))*100):100;
+  const rewards=[
+    {ico:"🚕",titre:"Course gratuite",       pts:500, dispo:points>=500},
+    {ico:"🚍",titre:"Billet bus -50%",        pts:800, dispo:points>=800},
+    {ico:"✈️",titre:"Billet avion -20%",      pts:1200,dispo:points>=1200},
+    {ico:"💳",titre:"800 FCFA cashback",    pts:1500,dispo:points>=1500},
+    {ico:"👑",titre:"Statut VIP 1 mois",      pts:2000,dispo:points>=2000},
+    {ico:"🎁",titre:"Course aéroport gratuite",pts:3000,dispo:points>=3000},
+  ];
+  const hist=[
+    {ico:"🚕",desc:"Course Bamako Centre",pts:"+25", date:"Aujourd'hui"},
+    {ico:"🚍",desc:"Billet bus Ségou",    pts:"+50", date:"Hier"},
+    {ico:"✈️",desc:"Vol Bamako → Abidjan",pts:"+200",date:"Il y a 3j"},
+    {ico:"🎁",desc:"Bonus inscription",   pts:"+100",date:"Il y a 5j"},
+    {ico:"🚕",desc:"Course ACI 2000",     pts:"+20", date:"Il y a 1 sem"},
+  ];
+  document.getElementById("fidelite-body").innerHTML=`<div style="padding:18px 20px 90px">
+    <div class="niveau-card" style="background:linear-gradient(135deg,#1A1A2E,#2A1A00,rgba(245,166,35,.2))">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+        <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">Niveau actuel</div><div style="font-size:22px;font-weight:800;color:${nv.c}">${nv.nom}</div></div>
+        <div style="text-align:right"><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Vos points</div><div style="font-size:32px;font-weight:800;color:var(--gold)">${fmt(points)}</div><div style="font-size:11px;color:var(--muted)">pts</div></div>
+      </div>
+      ${nv.next?`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px"><span>${fmt(points)} pts</span><span>→ ${nv.next} : ${fmt(nv.max)} pts</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">encore ${fmt(nv.max-points)} pts pour ${nv.next}</div>`:""}
+    </div>
+    <div class="section-lbl">🎯 RÉCOMPENSES</div>
+    ${rewards.map(r=>`<div class="reward-card${r.dispo?" dispo":""}">
+      <div class="reward-ico${r.dispo?" dispo":""}">${r.ico}</div>
+      <div style="flex:1"><div style="font-size:14px;font-weight:700;margin-bottom:3px">${r.titre}</div>
+        <span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:800;background:${r.dispo?"rgba(245,166,35,.2)":"var(--card2)"};color:${r.dispo?"var(--gold)":"var(--muted)"}">${fmt(r.pts)} pts</span>
+      </div>
+      <button class="use-btn" style="background:${r.dispo?"var(--gold)":"var(--card2)"};color:${r.dispo?"#1A1000":"var(--muted)"};cursor:${r.dispo?"pointer":"not-allowed"}">${r.dispo?"Utiliser":"🔒"}</button>
+    </div>`).join("")}
+    <div class="section-lbl" style="margin-top:18px">📊 HISTORIQUE DES POINTS</div>
+    ${hist.map(h=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="width:38px;height:38px;border-radius:10px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${h.ico}</div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:700">${h.desc}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${h.date}</div></div>
+      <div style="font-size:15px;font-weight:800;color:var(--green)">${h.pts}</div>
+    </div>`).join("")}
+  </div>`;
+}
+
+// ── HISTORIQUE ──
+function switchHistoTab(tab){
+  histTab=tab;
+  document.getElementById("htab-courses").style.background=tab==="courses"?"var(--gold)":"transparent";
+  document.getElementById("htab-courses").style.color=tab==="courses"?"#1A1000":"var(--muted)";
+  document.getElementById("htab-billets").style.background=tab==="billets"?"var(--gold)":"transparent";
+  document.getElementById("htab-billets").style.color=tab==="billets"?"#1A1000":"var(--muted)";
+  renderHistorique();
+}
+function renderHistorique(){
+  const stats=histTab==="courses"?
+    [{val:"6",label:"Courses"},{val:"71 000 F",label:"Dépenses"},{val:"4.3 ⭐",label:"Note moy."}]:
+    [{val:"3",label:"Billets achetés"},{val:"2",label:"À venir"},{val:"330 500 F",label:"Dépensé"}];
+  document.getElementById("histo-stats").innerHTML=stats.map(s=>`
+    <div class="stat-cell"><div style="font-size:14px;font-weight:800;color:var(--gold)">${s.val}</div><div style="font-size:10px;color:var(--muted);margin-top:2px">${s.label}</div></div>`).join("");
+  if(histTab==="courses"){
+    document.getElementById("histo-list").innerHTML=HIST_COURSES.map(h=>`
+      <div class="histo-item">
+        <div class="histo-ico">${h.ico}</div>
+        <div style="flex:1">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+            <div style="font-size:14px;font-weight:700">${h.de} → ${h.de2}</div>
+            <div style="font-size:14px;font-weight:800;color:var(--gold)">${h.prix} F</div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">${h.type} · ${h.cha} · ${h.date}</div>
+          <div style="font-size:12px;color:var(--gold)">${"⭐".repeat(h.note)}${"☆".repeat(5-h.note)}</div>
+        </div>
+      </div>`).join("");
+  } else {
+    document.getElementById("histo-list").innerHTML=HIST_BILLETS.map(h=>`
+      <div class="histo-item">
+        <div class="histo-ico">${h.ico}</div>
+        <div style="flex:1">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+            <div style="font-size:14px;font-weight:700">${h.de} → ${h.vers}</div>
+            <div style="font-size:14px;font-weight:800;color:var(--gold)">${h.prix} F</div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px">${h.type} · ${h.date}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:11px;font-family:monospace;color:var(--muted)">${h.code}</span>
+            <span style="padding:3px 8px;border-radius:10px;font-size:10px;font-weight:800;background:${h.statut==="À venir"?"rgba(46,204,113,.2)":"var(--card2)"};color:${h.statut==="À venir"?"var(--green)":"var(--muted)"}">${h.statut}</span>
+          </div>
+        </div>
+      </div>`).join("");
+  }
+}
+
+// ── NAVIGATION ──
+function navTo(page){
+  closePanel();
+  document.querySelectorAll(".nav-item").forEach(el=>el.classList.remove("active"));
+  document.getElementById("nav-"+page)?.classList.add("active");
+  document.getElementById("partenaires-section").style.display="none";
+  if(page==="fidelite"){ show("panel-fidelite"); renderFidelite(); }
+  else if(page==="courses"){ show("panel-historique"); renderHistorique(); }
+  else if(page==="chat"){ openChat(); }
+  else if(page==="profil"){ show("panel-profil"); renderProfil(); }
+  else if(page==="partenaires"){
+    document.getElementById("content").innerHTML="";
+    document.getElementById("partenaires-section").style.display="block";
+    showPartenaires();
+  }
+}
+
+// ── PAIEMENT ──
+let defaultPay = "orange";
+const MOYENS_PAY = [
+  {id:"orange", ico:"🟠", nom:"Orange Money",  num:"+223 76 00 00 00", solde:"12 500", color:"#FF7900", actif:true },
+  {id:"moov",   ico:"🔵", nom:"Moov Money",    num:"+223 65 00 00 00", solde:"8 200",  color:"#0066CC", actif:true },
+  {id:"wave",   ico:"🌊", nom:"Wave",           num:"+223 70 00 00 00", solde:"25 000", color:"#1DC5E7", actif:false},
+  {id:"cash",   ico:"💵", nom:"Cash",           num:"Paiement en espèces", solde:"—", color:"#2ECC71", actif:false},
+];
+
+function openPaiement(){
+  show("panel-paiement");
+  renderPaiement();
+}
+
+function renderPaiement(){
+  document.getElementById("paiement-body").innerHTML=`
+  <div style="padding:18px 20px 90px">
+
+    <!-- Solde total -->
+    <div style="background:linear-gradient(135deg,#1A1A2E,#2A1A00,rgba(245,166,35,.25));border-radius:18px;padding:20px;margin-bottom:20px;border:1px solid rgba(245,166,35,.3)">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px">💰 Solde total disponible</div>
+      <div style="font-size:32px;font-weight:800;color:var(--gold)">45 700 <span style="font-size:16px">FCFA</span></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Sur tous vos comptes</div>
+    </div>
+
+    <!-- Mode par défaut -->
+    <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.5px;margin-bottom:12px">MOYEN PAR DÉFAUT</div>
+    ${MOYENS_PAY.map(p=>`
+    <div class="pay-panel-item${defaultPay===p.id?" active":""}" onclick="setDefaultPay('${p.id}')">
+      <div class="pay-panel-logo" style="background:${p.color}20">${p.ico}</div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:800">${p.nom}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">${p.num}</div>
+        ${p.solde!=="—"?`<div style="font-size:12px;color:var(--green);font-weight:700;margin-top:3px">Solde : ${p.solde} FCFA</div>`:""}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        ${defaultPay===p.id?`<span style="background:rgba(245,166,35,.2);color:var(--gold);font-size:10px;font-weight:800;padding:3px 8px;border-radius:8px">✓ Défaut</span>`:""}
+        <div style="width:20px;height:20px;border-radius:50%;border:2px solid ${defaultPay===p.id?"var(--gold)":"var(--border)"};background:${defaultPay===p.id?"var(--gold)":"transparent"};display:flex;align-items:center;justify-content:center">
+          ${defaultPay===p.id?`<div style="width:8px;height:8px;border-radius:50%;background:var(--bg)"></div>`:""}
+        </div>
+      </div>
+    </div>`).join("")}
+
+    <!-- Historique transactions -->
+    <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.5px;margin:18px 0 12px">📊 DERNIÈRES TRANSACTIONS</div>
+    ${[
+      {ico:"🚕",desc:"Course Bamako Centre",   mont:"-1 500",date:"Aujourd'hui",  color:"var(--red)"},
+      {ico:"🚍",desc:"Billet bus Ségou",        mont:"-3 500", date:"Hier",          color:"var(--red)"},
+      {ico:"💰",desc:"Rechargement Orange",     mont:"+20 000",date:"Il y a 2j",     color:"var(--green)"},
+      {ico:"✈️",desc:"Vol Bamako → Abidjan",    mont:"-150 000",date:"Il y a 1 sem", color:"var(--red)"},
+      {ico:"🎁",desc:"Cashback fidélité",       mont:"+500",   date:"Il y a 1 sem", color:"var(--green)"},
+    ].map(t=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)">
+      <div style="width:40px;height:40px;border-radius:11px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${t.ico}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700">${t.desc}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${t.date}</div>
+      </div>
+      <div style="font-size:14px;font-weight:800;color:${t.color}">${t.mont} F</div>
+    </div>`).join("")}
+
+    <!-- Bouton recharger -->
+    <button style="width:100%;padding:14px;border-radius:13px;border:none;background:var(--gold);color:#1A1000;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;margin-top:18px">
+      💰 Recharger mon portefeuille
+    </button>
+  </div>`;
+}
+
+function setDefaultPay(id){
+  defaultPay=id;
+  payMeth=id;
+  renderPaiement();
+}
+
+// ── LANGUES ──
+const LANGS = {
+  fr: {
+    flag:"🇫🇷", name:"Français", dir:"ltr",
+    splash_brand:"MaliTaxi VIP",
+    splash_tagline:"Transport & Voyage au Mali 🇲🇱",
+    splash_login:"🔐 Se connecter",
+    splash_register:"✨ Créer un compte",
+    splash_foot:"Bamako · Mali · Afrique de l'Ouest",
+    login_title:"Bon retour ! 👋",
+    login_tel:"📱 Numéro de téléphone",
+    login_mdp:"🔒 Mot de passe",
+    login_btn:"Se connecter →",
+    login_noacc:"Pas de compte ?",
+    login_link:"S'inscrire",
+    reg_title:"Créer votre compte 🎉",
+    reg_nom:"👤 Nom complet",
+    reg_tel:"📱 Numéro de téléphone",
+    reg_mdp:"🔒 Mot de passe",
+    reg_mdp2:"🔒 Confirmer mot de passe",
+    reg_btn:"Créer mon compte →",
+    reg_acc:"Déjà un compte ?",
+    reg_link:"Se connecter",
+    tab_login:"🔐 Connexion",
+    tab_reg:"✨ Inscription",
+    svc_title:"CHOISIR UN SERVICE",
+    greet:"Bonjour 👋",
+    loc_lbl:"Votre position",
+    where:"📍 Où allez-vous ?",
+    from_ph:"Votre position actuelle",
+    to_ph:"Destination",
+    cmd:"Commander maintenant",
+    nav_home:"Accueil", nav_courses:"Courses",
+    nav_chat:"Messages", nav_fidelite:"Fidélité", nav_profil:"Profil",
+    lang_title:"🌍 Langue de l'app",
+    lang_lbl:"CHOISIR LA LANGUE",
+    annuler:"Annuler",
+  },
+  bm: {
+    flag:"🇲🇱", name:"Bamanankan (Bambara)", dir:"ltr",
+    splash_brand:"MaliTaxi VIP",
+    splash_tagline:"Malidenw lafilaw ye 🇲🇱",
+    splash_login:"🔐 Sigi don",
+    splash_register:"✨ Tɔgɔ don",
+    splash_foot:"Bamako · Mali · Afrika Yɛrɛ",
+    login_title:"Aw ni ce ! 👋",
+    login_tel:"📱 Telefɔn nimɔrɔ",
+    login_mdp:"🔒 Gundo",
+    login_btn:"Sigi don →",
+    login_noacc:"Jateminɛ tɛ i fɛ ?",
+    login_link:"Tɔgɔ don",
+    reg_title:"Jateminɛ kura kɛ 🎉",
+    reg_nom:"👤 Tɔgɔ",
+    reg_tel:"📱 Telefɔn nimɔrɔ",
+    reg_mdp:"🔒 Gundo",
+    reg_mdp2:"🔒 Gundo sɛbɛn fɔlɔ",
+    reg_btn:"Jateminɛ kɛ →",
+    reg_acc:"Jateminɛ b'i fɛ ?",
+    reg_link:"Sigi don",
+    tab_login:"🔐 Sigi don",
+    tab_reg:"✨ Tɔgɔ don",
+    svc_title:"BAARAKƐCOGO SƆRƆ",
+    greet:"I ni sogoma 👋",
+    loc_lbl:"I yɔrɔ",
+    where:"📍 Min b'a fɛ ka taa min ?",
+    from_ph:"I yɔrɔ sisan",
+    to_ph:"Taamasiyɔrɔ",
+    cmd:"Dɔn sisan",
+    nav_home:"Gwa", nav_courses:"Taaw",
+    nav_chat:"Kuman", nav_fidelite:"Saraka", nav_profil:"Jateminɛ",
+    lang_title:"🌍 Kan sɔrɔ",
+    lang_lbl:"KAN SƆRƆ",
+    annuler:"A dabila",
+  },
+  en: {
+    flag:"🇬🇧", name:"English", dir:"ltr",
+    splash_brand:"MaliTaxi VIP",
+    splash_tagline:"Transport & Travel in Mali 🇲🇱",
+    splash_login:"🔐 Sign In",
+    splash_register:"✨ Create Account",
+    splash_foot:"Bamako · Mali · West Africa",
+    login_title:"Welcome back! 👋",
+    login_tel:"📱 Phone number",
+    login_mdp:"🔒 Password",
+    login_btn:"Sign In →",
+    login_noacc:"No account?",
+    login_link:"Sign Up",
+    reg_title:"Create your account 🎉",
+    reg_nom:"👤 Full name",
+    reg_tel:"📱 Phone number",
+    reg_mdp:"🔒 Password",
+    reg_mdp2:"🔒 Confirm password",
+    reg_btn:"Create Account →",
+    reg_acc:"Already have an account?",
+    reg_link:"Sign In",
+    tab_login:"🔐 Sign In",
+    tab_reg:"✨ Sign Up",
+    svc_title:"CHOOSE A SERVICE",
+    greet:"Hello 👋",
+    loc_lbl:"Your location",
+    where:"📍 Where are you going?",
+    from_ph:"Your current location",
+    to_ph:"Destination",
+    cmd:"Book Now",
+    nav_home:"Home", nav_courses:"Rides",
+    nav_chat:"Messages", nav_fidelite:"Rewards", nav_profil:"Profile",
+    lang_title:"🌍 App Language",
+    lang_lbl:"CHOOSE LANGUAGE",
+    annuler:"Cancel",
+  },
+  ar: {
+    flag:"🇸🇦", name:"العربية", dir:"rtl",
+    splash_brand:"MaliTaxi VIP",
+    splash_tagline:"النقل والسفر في مالي 🇲🇱",
+    splash_login:"🔐 تسجيل الدخول",
+    splash_register:"✨ إنشاء حساب",
+    splash_foot:"باماكو · مالي · غرب أفريقيا",
+    login_title:"مرحباً بعودتك ! 👋",
+    login_tel:"📱 رقم الهاتف",
+    login_mdp:"🔒 كلمة المرور",
+    login_btn:"تسجيل الدخول ←",
+    login_noacc:"ليس لديك حساب؟",
+    login_link:"إنشاء حساب",
+    reg_title:"إنشاء حسابك 🎉",
+    reg_nom:"👤 الاسم الكامل",
+    reg_tel:"📱 رقم الهاتف",
+    reg_mdp:"🔒 كلمة المرور",
+    reg_mdp2:"🔒 تأكيد كلمة المرور",
+    reg_btn:"إنشاء الحساب ←",
+    reg_acc:"لديك حساب بالفعل؟",
+    reg_link:"تسجيل الدخول",
+    tab_login:"🔐 دخول",
+    tab_reg:"✨ تسجيل",
+    svc_title:"اختر خدمة",
+    greet:"مرحباً 👋",
+    loc_lbl:"موقعك",
+    where:"📍 إلى أين تريد الذهاب؟",
+    from_ph:"موقعك الحالي",
+    to_ph:"الوجهة",
+    cmd:"احجز الآن",
+    nav_home:"الرئيسية", nav_courses:"رحلاتي",
+    nav_chat:"رسائل", nav_fidelite:"مكافآت", nav_profil:"ملفي",
+    lang_title:"🌍 لغة التطبيق",
+    lang_lbl:"اختر اللغة",
+    annuler:"إلغاء",
+  },
+};
+
+let currentLang = "fr";
+
+function openLang(){
+  document.getElementById("lang-options").innerHTML = Object.entries(LANGS).map(([code,l])=>`
+    <div class="lang-opt${currentLang===code?" active":""}" onclick="setLang('${code}')">
+      <div class="lang-flag">${l.flag}</div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:800">${l.name}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">${l.flag} ${code==="fr"?"Langue officielle":code==="bm"?"Langue nationale":code==="en"?"International":"اللغة العربية"}</div>
+      </div>
+      <div class="lang-check${currentLang===code?" active":""}">
+        ${currentLang===code?`<div style="width:10px;height:10px;border-radius:50%;background:var(--bg)"></div>`:""}
+      </div>
+    </div>`).join("");
+  show("lang-overlay");
+}
+
+function closeLang(){ hide("lang-overlay"); }
+
+function setLang(code){
+  currentLang = code;
+  const l = LANGS[code];
+  document.documentElement.dir = l.dir;
+  // Splash
+  try{
+    document.querySelector(".splash .brand").textContent = l.splash_brand;
+    document.querySelector(".splash .tagline").innerHTML = l.splash_tagline;
+    document.querySelector(".splash .foot").textContent = l.splash_foot;
+    document.querySelectorAll(".splash button")[0].textContent = l.splash_login;
+    document.querySelectorAll(".splash button")[1].textContent = l.splash_register;
+  }catch(e){}
+  // Auth
+  try{
+    document.getElementById("tab-login").textContent = l.tab_login;
+    document.getElementById("tab-register").textContent = l.tab_reg;
+    document.getElementById("login-tel").placeholder = l.login_tel;
+    document.getElementById("login-mdp").placeholder = l.login_mdp;
+    document.getElementById("reg-nom").placeholder = l.reg_nom;
+    document.getElementById("reg-tel").placeholder = l.reg_tel;
+    document.getElementById("reg-mdp").placeholder = l.reg_mdp;
+    document.getElementById("reg-mdp2").placeholder = l.reg_mdp2;
+  }catch(e){}
+  // App header
+  try{
+    document.querySelector(".app-header .greet").textContent = l.greet;
+    document.querySelector(".loc-lbl").textContent = l.loc_lbl;
+    document.querySelector(".svc-title").textContent = l.svc_title;
+  }catch(e){}
+  // Nav labels
+  try{
+    document.getElementById("nav-home").querySelector(".lbl").textContent = l.nav_home;
+    document.getElementById("nav-courses").querySelector(".lbl").textContent = l.nav_courses;
+    document.getElementById("nav-chat").querySelector(".lbl").textContent = l.nav_chat;
+    document.getElementById("nav-fidelite").querySelector(".lbl").textContent = l.nav_fidelite;
+    document.getElementById("nav-profil").querySelector(".lbl").textContent = l.nav_profil;
+  }catch(e){}
+  // Lang overlay
+  try{ document.getElementById("btn-annuler-lang").textContent = l.annuler; }catch(e){}
+
+  closeLang();
+  renderContent();
+  // Re-render profil si ouvert
+  if(document.getElementById("panel-profil").style.display!=="none") renderProfil();
+}
+
+// ── PROFIL ──
+let profilNotifs = true, profilGPS = true;
+
+function renderProfil(){
+  const niveau = points < 500?"Bronze 🥉":points < 1500?"Argent 🥈":points < 3000?"Or 🥇":"VIP 👑";
+  const couleur = points < 500?"#CD7F32":points < 1500?"#C0C0C0":points < 3000?"var(--gold)":"#9B59B6";
+  document.getElementById("profil-body").innerHTML=`
+  <div style="padding:24px 20px 90px">
+
+    <!-- Avatar & Nom -->
+    <div style="text-align:center;margin-bottom:20px">
+      <div class="profil-avatar">
+        😊
+        <div class="profil-edit">✏️</div>
+      </div>
+      <div style="font-size:20px;font-weight:800;margin-bottom:4px">${userName}</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Client MaliTaxi VIP</div>
+      <span style="padding:5px 14px;border-radius:20px;font-size:12px;font-weight:800;background:${couleur}20;color:${couleur};border:1px solid ${couleur}40">${niveau}</span>
+    </div>
+
+    <!-- Stats -->
+    <div style="display:flex;gap:10px;margin-bottom:20px">
+      <div class="profil-stat">
+        <div style="font-size:22px;font-weight:800;color:var(--gold)">${fmt(points)}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">Points fidélité</div>
+      </div>
+      <div class="profil-stat">
+        <div style="font-size:22px;font-weight:800;color:var(--green)">11</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">Courses totales</div>
+      </div>
+      <div class="profil-stat">
+        <div style="font-size:22px;font-weight:800;color:var(--blue)">4.7⭐</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">Note moyenne</div>
+      </div>
+    </div>
+
+    <!-- Infos personnelles -->
+    <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.5px;margin-bottom:10px">INFORMATIONS PERSONNELLES</div>
+    <div style="background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:16px">
+      ${[
+        {ico:"📱",label:"Téléphone",val:"+223 76 00 00 00"},
+        {ico:"📧",label:"Email",val:"client@malitaxi.ml"},
+        {ico:"📍",label:"Ville",val:"Bamako, Mali"},
+        {ico:"🎂",label:"Membre depuis",val:"Mai 2026"},
+      ].map((item,i,arr)=>`
+        <div style="display:flex;align-items:center;gap:13px;padding:13px 16px;border-bottom:${i<arr.length-1?"1px solid var(--border)":"none"}">
+          <div style="font-size:20px">${item.ico}</div>
+          <div style="flex:1">
+            <div style="font-size:11px;color:var(--muted)">${item.label}</div>
+            <div style="font-size:14px;font-weight:700;margin-top:2px">${item.val}</div>
+          </div>
+          <div style="font-size:14px;color:var(--muted)">›</div>
+        </div>`).join("")}
+    </div>
+
+    <!-- Paramètres -->
+    <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.5px;margin-bottom:10px">PARAMÈTRES</div>
+    <div style="background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:16px">
+      <div class="profil-menu-item" onclick="toggleNotifsProfil()">
+        <div class="profil-menu-ico" style="background:rgba(245,166,35,.15)">🔔</div>
+        <div style="flex:1"><div style="font-size:14px;font-weight:700">Notifications</div><div style="font-size:12px;color:var(--muted)">Alertes courses & billets</div></div>
+        <button class="toggle-sw" id="toggle-notifs" style="background:${profilNotifs?"var(--gold)":"var(--border)"}">
+          <div class="knob" style="left:${profilNotifs?"23px":"3px"}"></div>
+        </button>
+      </div>
+      <div class="profil-menu-item" onclick="toggleGPSProfil()">
+        <div class="profil-menu-ico" style="background:rgba(52,152,219,.15)">📍</div>
+        <div style="flex:1"><div style="font-size:14px;font-weight:700">GPS & Localisation</div><div style="font-size:12px;color:var(--muted)">Partager ma position</div></div>
+        <button class="toggle-sw" id="toggle-gps" style="background:${profilGPS?"var(--gold)":"var(--border)"}">
+          <div class="knob" style="left:${profilGPS?"23px":"3px"}"></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Menu options -->
+    <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.5px;margin-bottom:10px">MON COMPTE</div>
+    <div style="background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:16px">
+      ${[
+        {ico:"🎁",bg:"rgba(245,166,35,.15)",label:"Programme fidélité",sub:`${fmt(points)} points · ${niveau}`,fn:"navTo('fidelite')"},
+        {ico:"📋",bg:"rgba(52,152,219,.15)",label:"Historique courses",sub:"11 courses · 5 billets",fn:"navTo('courses')"},
+        {ico:"🆘",bg:"rgba(231,76,60,.15)",label:"Contacts d'urgence",sub:"Famille, Police, SAMU",fn:"openSOS()"},
+        {ico:"💳",bg:"rgba(46,204,113,.15)",label:"Moyens de paiement",sub:"Orange Money, Moov, Wave, Cash",fn:"openPaiement()"},
+        {ico:"🌍",bg:"rgba(155,89,182,.15)",label:"Langue",sub:"Français · Bambara · English · عربي",fn:"openLang()"},
+      ].map((item,i,arr)=>`
+        <div class="profil-menu-item" onclick="${item.fn}">
+          <div class="profil-menu-ico" style="background:${item.bg}">${item.ico}</div>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:700">${item.label}</div>
+            <div style="font-size:12px;color:var(--muted)">${item.sub}</div>
+          </div>
+          <div style="font-size:16px;color:var(--muted)">›</div>
+        </div>`).join("")}
+    </div>
+
+    <!-- Déconnexion -->
+    <button onclick="deconnexion()" style="width:100%;padding:14px;border-radius:13px;border:1px solid var(--red);background:rgba(231,76,60,.1);color:var(--red);font-size:15px;font-weight:800;cursor:pointer;font-family:inherit">
+      🚪 Se déconnecter
+    </button>
+
+    <div style="text-align:center;margin-top:16px;font-size:12px;color:var(--muted)">
+      MaliTaxi VIP v1.0 · Bamako, Mali 🇲🇱
+    </div>
+  </div>`;
+}
+
+function toggleNotifsProfil(){
+  profilNotifs=!profilNotifs;
+  document.getElementById("toggle-notifs").style.background=profilNotifs?"var(--gold)":"var(--border)";
+  document.getElementById("toggle-notifs").querySelector(".knob").style.left=profilNotifs?"23px":"3px";
+}
+
+function toggleGPSProfil(){
+  profilGPS=!profilGPS;
+  document.getElementById("toggle-gps").style.background=profilGPS?"var(--gold)":"var(--border)";
+  document.getElementById("toggle-gps").querySelector(".knob").style.left=profilGPS?"23px":"3px";
+}
+
+function deconnexion(){
+  if(confirm("Voulez-vous vraiment vous déconnecter ?")){
+    closePanel();
+    hide("page-app");
+    document.getElementById("sos-btn").classList.remove("show");
+    showSplash();
+  }
+}
+
+// ── SOS ──
+let sosTriggered = false;
+
+function openSOS(){
+  sosTriggered = false;
+  document.getElementById("sos-status").textContent = "Appuyez pour envoyer une alerte";
+  document.getElementById("sos-big").style.background = "var(--red)";
+  show("sos-overlay");
+  // Géolocalisation
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(pos=>{
+      document.getElementById("sos-position").textContent =
+        `${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)} · Bamako, Mali`;
+    },()=>{
+      document.getElementById("sos-position").textContent = "Bamako, Mali · Position approximative";
+    });
+  }
+}
+
+function closeSOS(){
+  hide("sos-overlay");
+  sosTriggered = false;
+}
+
+function triggerSOS(){
+  if(sosTriggered) return;
+  sosTriggered = true;
+  const btn = document.getElementById("sos-big");
+  const status = document.getElementById("sos-status");
+  btn.style.background = "#8B0000";
+  btn.textContent = "✓";
+  status.innerHTML = `<span style="color:var(--red);font-weight:800">🚨 ALERTE ENVOYÉE !</span><br><span style="color:var(--muted)">Vos contacts ont été notifiés · Police alertée</span>`;
+  // Notification dans l'app
+  notifs.unshift({
+    id:Date.now(), ico:"🆘",
+    title:"Alerte SOS envoyée",
+    msg:"Votre position a été partagée avec vos contacts d'urgence",
+    time:"À l'instant", lu:false
+  });
+  updateBellBadge();
+  setTimeout(()=>{
+    alert("🚨 ALERTE SOS ACTIVÉE !\n\nVotre position a été partagée avec :\n• Votre famille\n• La Police (17)\n• Le SAMU (15)\n\nRestez calme, les secours arrivent.");
+  }, 500);
+}
+
+function callContact(name){
+  alert(`📞 Appel vers ${name}...\n\n(Fonctionnalité disponible dans la version finale)`);
+}
+
+// ── CHAT ──
+const CHAT_MSGS_INIT = [
+  {from:"driver", text:"Bonjour ! Je suis votre chauffeur. Je suis en route vers vous 🚕", time:"14:28"},
+  {from:"driver", text:"Je serai là dans environ 5 minutes ⏱️", time:"14:29"},
+];
+let chatMsgs = [...CHAT_MSGS_INIT];
+let chatTyping = false;
+
+const DRIVER_REPLIES = [
+  "D'accord, je comprends ! 👍",
+  "Très bien, je suis en route 🚕",
+  "Pas de problème, je patiente !",
+  "Je vois votre position sur la carte 📍",
+  "Parfait ! À tout de suite 😊",
+  "Je suis presque arrivé, encore 2 minutes !",
+  "Oui oui, je vous retrouve là-bas !",
+  "Compris ! Merci pour l'information 🙏",
+];
+
+function openChat(){
+  const d = selDriver || CHAUFFEUR;
+  document.getElementById("chat-avatar").textContent = d.photo || "🧑🏿";
+  document.getElementById("chat-driver-name").textContent = d.nom || "Moussa Coulibaly";
+  show("panel-chat");
+  renderChatMsgs();
+  setTimeout(()=>{ document.getElementById("chat-inp").focus(); },400);
+}
+
+function renderChatMsgs(){
+  const now = new Date();
+  const timeStr = now.getHours()+":"+(now.getMinutes()<10?"0":"")+now.getMinutes();
+  const box = document.getElementById("chat-messages");
+  box.innerHTML = chatMsgs.map(m=>`
+    <div style="display:flex;flex-direction:column;align-items:${m.from==="me"?"flex-end":"flex-start"}">
+      <div class="msg ${m.from==="me"?"sent":"recv"}">
+        ${m.text}
+        <div class="msg-time">${m.time} ${m.from==="me"?"✓✓":""}</div>
+      </div>
+    </div>`).join("");
+  if(chatTyping){
+    box.innerHTML += `<div style="align-self:flex-start">
+      <div class="msg recv" style="padding:8px 14px">
+        <div class="typing"><span></span><span></span><span></span></div>
+      </div>
+    </div>`;
+  }
+  box.scrollTop = box.scrollHeight;
+}
+
+function sendMsg(){
+  const inp = document.getElementById("chat-inp");
+  const txt = inp.value.trim();
+  if(!txt) return;
+  const now = new Date();
+  const time = now.getHours()+":"+(now.getMinutes()<10?"0":"")+now.getMinutes();
+  chatMsgs.push({from:"me", text:txt, time});
+  inp.value="";
+  chatTyping=true;
+  renderChatMsgs();
+  // Réponse automatique chauffeur
+  setTimeout(()=>{
+    chatTyping=false;
+    const reply = DRIVER_REPLIES[Math.floor(Math.random()*DRIVER_REPLIES.length)];
+    chatMsgs.push({from:"driver", text:reply, time});
+    renderChatMsgs();
+  }, 1500+Math.random()*1000);
+}
+
+function quickMsg(txt){
+  document.getElementById("chat-inp").value = txt;
+  sendMsg();
+}
+
+function makeCall(){
+  alert("📞 Appel en cours vers "+( selDriver?.nom || "Moussa Coulibaly")+"...\n\n(Fonctionnalité disponible dans la version finale)");
+}
+
+// ── GPS MAP ──
+let gpsMap=null, userMarker=null, destMarker=null, routeLine=null;
+let selDriver=null;
+
+const BAMAKO = [12.6392, -8.0029];
+const DRIVERS_NEARBY = [
+  {id:1,nom:"Moussa C.",  note:4.8,photo:"🧑🏿",svc:"taxi",dist:"1.2 km",eta:"4 min", lat:12.6410,lng:-8.0010},
+  {id:2,nom:"Ibrahim D.", note:4.6,photo:"👨🏿",svc:"taxi",dist:"2.1 km",eta:"7 min", lat:12.6375,lng:-8.0055},
+  {id:3,nom:"Aminata T.", note:4.9,photo:"👩🏿",svc:"moto",dist:"0.8 km",eta:"3 min", lat:12.6405,lng:-8.0045},
+  {id:4,nom:"Seydou K.",  note:4.5,photo:"🧔🏿",svc:"taxi",dist:"3.0 km",eta:"10 min",lat:12.6360,lng:-7.9990},
+];
+
+function initMap(){
+  if(gpsMap) return;
+  hide("map-fake");
+  show("map-gps");
+  show("map-controls");
+  show("map-dest-bar");
+  show("drivers-nearby");
+  document.getElementById("map-gps").style.display="block";
+
+  gpsMap = L.map("map-gps",{zoomControl:false,attributionControl:false}).setView(BAMAKO,14);
+
+  // Tuiles sombres
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{
+    maxZoom:19, subdomains:"abcd",
+  }).addTo(gpsMap);
+
+  // Marqueur utilisateur
+  const userIcon = L.divIcon({
+    html:`<div style="width:18px;height:18px;border-radius:50%;background:#E74C3C;border:3px solid #fff;box-shadow:0 0 10px rgba(231,76,60,.7)"></div>`,
+    iconSize:[18,18], className:""
+  });
+  userMarker = L.marker(BAMAKO,{icon:userIcon}).addTo(gpsMap);
+  userMarker.bindPopup("<b>📍 Vous êtes ici</b><br>Bamako, Mali").openPopup();
+
+  // Marqueurs chauffeurs
+  DRIVERS_NEARBY.forEach(d=>{
+    const ico=L.divIcon({
+      html:`<div style="font-size:22px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))">${d.svc==="moto"?"🏍️":"🚕"}</div>`,
+      iconSize:[28,28], className:""
+    });
+    const m = L.marker([d.lat,d.lng],{icon:ico}).addTo(gpsMap);
+    m.bindPopup(`<b>${d.photo} ${d.nom}</b><br>⭐ ${d.note} · ${d.dist}`);
+    m.on("click",()=>selectDriver(d.id));
+  });
+
+  // Click carte = poser destination
+  gpsMap.on("click",e=>{
+    placeDestMarker(e.latlng);
+  });
+
+  renderDriverList();
+}
+
+function centerMap(){
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(pos=>{
+      const latlng=[pos.coords.latitude,pos.coords.longitude];
+      gpsMap.setView(latlng,15);
+      userMarker.setLatLng(latlng);
+    },()=>{
+      gpsMap.setView(BAMAKO,14);
+    });
+  } else { gpsMap.setView(BAMAKO,14); }
+}
+
+function placeDestMarker(latlng){
+  if(destMarker) gpsMap.removeLayer(destMarker);
+  if(routeLine)  gpsMap.removeLayer(routeLine);
+  const destIco=L.divIcon({
+    html:`<div style="font-size:26px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))">📍</div>`,
+    iconSize:[26,32], className:""
+  });
+  destMarker=L.marker(latlng,{icon:destIco}).addTo(gpsMap);
+  destMarker.bindPopup("🎯 Destination choisie").openPopup();
+
+  // Ligne de route simulée
+  const uLatLng=userMarker.getLatLng();
+  routeLine=L.polyline([uLatLng,latlng],{
+    color:"#F5A623", weight:4, dashArray:"8,6", opacity:.85,
+  }).addTo(gpsMap);
+  gpsMap.fitBounds(routeLine.getBounds(),{padding:[30,30]});
+
+  // Calculer distance approx
+  const km=(gpsMap.distance(uLatLng,latlng)/1000).toFixed(1);
+  document.getElementById("map-dest-input").value=`Destination (${km} km)`;
+  showRouteInfo(km);
+}
+
+function showRouteInfo(km){
+  const d=selDriver||DRIVERS_NEARBY[0];
+  const eta=Math.round(km*2+2);
+  document.getElementById("route-driver-name").textContent=`${d.photo} ${d.nom} · ⭐ ${d.note}`;
+  document.getElementById("route-eta").textContent=`Arrive dans ${d.eta} · ${km} km`;
+  document.getElementById("route-info").className="route-info show";
+}
+
+function renderDriverList(){
+  document.getElementById("driver-list").innerHTML=DRIVERS_NEARBY.map(d=>`
+    <div class="driver-chip${selDriver?.id===d.id?" sel":""}" onclick="selectDriver(${d.id})">
+      <div style="font-size:22px">${d.photo}</div>
+      <div>
+        <div style="font-size:12px;font-weight:700">${d.nom}</div>
+        <div style="font-size:11px;color:var(--muted)">⭐${d.note} · ${d.svc==="moto"?"🏍️":"🚕"}</div>
+      </div>
+      <div class="dist-badge">${d.dist}</div>
+    </div>`).join("");
+}
+
+function selectDriver(id){
+  selDriver=DRIVERS_NEARBY.find(d=>d.id===id);
+  renderDriverList();
+  if(destMarker){
+    showRouteInfo((gpsMap.distance(userMarker.getLatLng(),destMarker.getLatLng())/1000).toFixed(1));
+  }
+}
+
+function filterDest(val){
+  if(!val) return;
+  // Simulation recherche dans Bamako
+  const lieux={
+    "aéroport":[12.5340,-7.9499],"hippodrome":[12.6600,-8.0100],
+    "sotrama":[12.6500,-8.0200],"aci":[12.6550,-8.0050],
+    "magnambougou":[12.6200,-7.9800],"badalabougou":[12.6300,-8.0100],
+    "hamdallaye":[12.6700,-8.0200],"lafiabougou":[12.6400,-8.0500],
+    "kalaban":[12.5800,-8.0000],"sogoniko":[12.6100,-7.9900],
+  };
+  const key=val.toLowerCase();
+  const found=Object.entries(lieux).find(([k])=>k.includes(key));
+  if(found){ placeDestMarker(L.latLng(found[1][0],found[1][1])); }
+}
+
+// ── PARTENAIRES ──
+// Catégories
+const CATEGORIES_PART = [
+  {id:"hotel",  ico:"🏨", nom:"Hôtels",            bg:"linear-gradient(135deg,#0A1A2A,#1A3A5A)"},
+  {id:"resto",  ico:"🍽️", nom:"Restauration",       bg:"linear-gradient(135deg,#1A0A00,#3A1A00)"},
+  {id:"alim",   ico:"🛒", nom:"Alimentation",       bg:"linear-gradient(135deg,#0A1A0A,#1A3A1A)"},
+  {id:"sucre",  ico:"🧃", nom:"Sucreries & Boissons",          bg:"linear-gradient(135deg,#2A0A2A,#3A1A3A)"},
+  {id:"boutiq", ico:"👗", nom:"Boutiques",          bg:"linear-gradient(135deg,#2A1A00,#4A2A00)"},
+  {id:"patiss", ico:"🥐", nom:"Pâtisserie",         bg:"linear-gradient(135deg,#1A1A00,#3A3A00)"},
+  {id:"salon",  ico:"💇", nom:"Salon de beauté",    bg:"linear-gradient(135deg,#1A002A,#3A005A)"},
+  {id:"spa",    ico:"💆", nom:"Spa & Bien-être",    bg:"linear-gradient(135deg,#002A2A,#005A5A)"},
+  {id:"immo",   ico:"🏠", nom:"Agence immobilière", bg:"linear-gradient(135deg,#0A0A1A,#1A1A3A)"},
+  {id:"photo",  ico:"📸", nom:"Photo/Shooting",     bg:"linear-gradient(135deg,#1A0A00,#2A1500)"},
+];
+
+// Partenaires par catégorie
+const PARTENAIRES_DB = {
+  hotel: [
+    {id:1, nom:"Hôtel Laïco Bamako",    note:4.8, adresse:"Avenue de l'Indépendance, Bamako Centre", tel:"+223 20 23 00 00", horaires:"24h/24 · 7j/7", promo:"10% sur présentation MaliTaxi", desc:"Hôtel 5 étoiles au cœur de Bamako. Piscine, restaurant gastronomique, spa, salle de conférence et connexion WiFi haut débit.", tags:["5 étoiles","Piscine","Restaurant","Spa","Wifi","Bar"]},
+    {id:2, nom:"Radisson Blu Bamako",   note:4.9, adresse:"Quartier ACI 2000, Bamako",               tel:"+223 20 70 14 00", horaires:"24h/24 · 7j/7", promo:null,                             desc:"Hôtel de luxe international. Chambres climatisées, petit-déjeuner inclus, business center et navette aéroport.", tags:["Luxe","Business","Navette","Bar","Fitness"]},
+    {id:3, nom:"Azalaï Hôtel Bamako",   note:4.6, adresse:"Hippodrome, Bamako",                       tel:"+223 20 21 60 00", horaires:"24h/24 · 7j/7", promo:"5% MaliTaxi",                    desc:"Hôtel dans un cadre malien authentique. Cuisine locale, terrasse panoramique et piscine.", tags:["Malien","Terrasse","Piscine","Restaurant"]},
+    {id:4, nom:"Hôtel Amitié",          note:4.3, adresse:"Boulevard du 22 Octobre, Bamako Centre",  tel:"+223 20 22 11 00", horaires:"24h/24 · 7j/7", promo:null,                             desc:"Hôtel central bien placé. Chambres confortables, restaurant et bar.", tags:["Central","Restaurant","Bar"]},
+  ],
+  resto: [
+    {id:10, nom:"Le Loft Restaurant",   note:4.7, adresse:"Badalabougou Est, Bamako",               tel:"+223 20 29 45 00", horaires:"12h-23h · 7j/7",    promo:"Apéritif offert",      desc:"Cuisine française et africaine fusion. Terrasse vue sur le Niger, carte des vins, ambiance chic.", tags:["Français","Africain","Terrasse","Vins","Romantique"]},
+    {id:11, nom:"Chez Boubacar",         note:4.5, adresse:"Hamdallaye ACI 2000, Bamako",            tel:"+223 76 12 34 56", horaires:"08h-22h · lun-sam",  promo:null,                   desc:"Cuisine malienne authentique. Tô, riz gras, brochettes et poissons du fleuve Niger.", tags:["Malien","Traditionnel","À emporter","Halal"]},
+    {id:12, nom:"Pizza Bamako",          note:4.3, adresse:"ACI 2000, Bamako",                       tel:"+223 20 21 00 00", horaires:"11h-23h · 7j/7",    promo:"-15% livraison",       desc:"Pizzas artisanales, burgers gourmets et salades. Livraison rapide dans tout Bamako.", tags:["Pizza","Burgers","Livraison","Halal"]},
+    {id:13, nom:"Café de la Paix",       note:4.6, adresse:"Quinzambougou, Bamako",                  tel:"+223 76 00 11 22", horaires:"07h-21h · lun-sam",  promo:null,                   desc:"Café-restaurant convivial. Petit-déjeuner, sandwichs, plats du jour et wifi gratuit.", tags:["Café","Wifi","Brunch","Pâtisserie"]},
+    {id:14, nom:"Restaurant du Fleuve",  note:4.4, adresse:"Bord du Niger, Bamako",                  tel:"+223 66 55 44 33", horaires:"12h-22h · mer-lun",  promo:"Verre offert",         desc:"Restaurant au bord du fleuve Niger. Poissons frais, fruits de mer et grillades.", tags:["Poissons","Terrasse","Vue fleuve","Romantique"]},
+  ],
+  alim: [
+    {id:20, nom:"Supermarché Score",     note:4.5, adresse:"Hamdallaye, Bamako",                     tel:"+223 20 29 00 00", horaires:"08h-20h · lun-sam",  promo:null,           desc:"Grande surface avec produits locaux et importés. Fruits, légumes, épicerie, boucherie halal.", tags:["Supermarché","Halal","Fruits","Bio"]},
+    {id:21, nom:"Marché de Médine",      note:4.2, adresse:"Médine, Bamako",                         tel:"+223 76 11 22 33", horaires:"06h-18h · 7j/7",    promo:null,           desc:"Marché traditionnel. Légumes frais, poissons, viandes, épices et condiments locaux.", tags:["Marché","Frais","Épices","Local"]},
+    {id:22, nom:"Grand Frais Bamako",    note:4.6, adresse:"ACI 2000, Bamako",                       tel:"+223 20 70 22 00", horaires:"08h-21h · 7j/7",    promo:"5% MaliTaxi",  desc:"Épicerie fine avec produits frais, vins, fromages et spécialités importées.", tags:["Épicerie fine","Importé","Livraison"]},
+  ],
+  sucre: [
+    {id:30, nom:"Sweet Bamako",          note:4.7, adresse:"Magnambougou, Bamako",                   tel:"+223 76 33 44 55", horaires:"09h-21h · lun-sam",  promo:null,           desc:"Bonbons artisanaux, chocolats belges, confiseries africaines et sucreries importées.", tags:["Bonbons","Chocolat","Artisanal","Cadeau"]},
+    {id:31, nom:"Candy Store Mali",      note:4.4, adresse:"Hippodrome, Bamako",                     tel:"+223 66 44 55 66", horaires:"10h-20h · lun-sam",  promo:"-10% MaliTaxi",desc:"Grande sélection de sucreries locales et internationales pour petits et grands.", tags:["Sucreries","Enfants","International"]},
+    {id:32, nom:"Délices Sucrés",        note:4.5, adresse:"Lafiabougou, Bamako",                    tel:"+223 76 99 88 77", horaires:"09h-20h · 7j/7",    promo:null,           desc:"Spécialités sucrées maliennes : dègué, flan, gâteaux traditionnels et jus naturels.", tags:["Malien","Traditionnel","Jus","Gâteaux"]},
+  ],
+  boutiq: [
+    {id:40, nom:"Mode Africaine",        note:4.6, adresse:"Magnambougou, Bamako",                   tel:"+223 76 55 66 77", horaires:"09h-19h · lun-sam",  promo:"20% MaliTaxi", desc:"Vêtements africains modernes et traditionnels. Bogolan, bazin, pagne et couture sur mesure.", tags:["Bogolan","Bazin","Sur mesure","Tissu"]},
+    {id:41, nom:"Bamako Fashion",        note:4.5, adresse:"ACI 2000, Bamako",                       tel:"+223 20 22 33 44", horaires:"10h-19h · lun-sam",  promo:null,           desc:"Boutique de mode contemporaine. Marques africaines et internationales.", tags:["Mode","Contemporain","Accessoires"]},
+    {id:42, nom:"Artisanat du Mali",     note:4.7, adresse:"Bamako Centre",                          tel:"+223 20 22 00 00", horaires:"08h-18h · lun-sam",  promo:null,           desc:"Artisanat malien authentique. Bijoux, masques, sculptures, tissus et souvenirs.", tags:["Artisanat","Bijoux","Souvenirs","Sculpture"]},
+    {id:43, nom:"Techno Bamako",         note:4.5, adresse:"Lafiabougou, Bamako",                    tel:"+223 66 77 88 99", horaires:"09h-19h · lun-sam",  promo:null,           desc:"Téléphones, accessoires, réparation et recharge Orange Money/Moov.", tags:["Téléphones","Réparation","Orange Money"]},
+  ],
+  patiss: [
+    {id:50, nom:"Pâtisserie Liberté",    note:4.8, adresse:"Badalabougou, Bamako",                   tel:"+223 20 29 11 22", horaires:"07h-20h · lun-sam",  promo:null,           desc:"Pâtisserie française et africaine. Croissants, gâteaux, tartes et viennoiseries fraîches.", tags:["Français","Gâteaux","Croissants","Livraison"]},
+    {id:51, nom:"Le Fournil de Bamako",  note:4.6, adresse:"Hippodrome, Bamako",                     tel:"+223 76 22 33 44", horaires:"06h30-19h · 7j/7",  promo:"Café offert",  desc:"Boulangerie-pâtisserie artisanale. Pain frais, viennoiseries et gâteaux de commande.", tags:["Boulangerie","Artisanal","Commande","Livraison"]},
+    {id:52, nom:"Sweet Corner",          note:4.5, adresse:"ACI 2000, Bamako",                       tel:"+223 66 11 22 33", horaires:"08h-21h · 7j/7",    promo:"-10% MaliTaxi",desc:"Pâtisseries modernes et traditionnelles, smoothies et cafés spéciaux.", tags:["Moderne","Café","Smoothies","Halal"]},
+  ],
+  salon: [
+    {id:60, nom:"Glamour Beauty Salon",  note:4.7, adresse:"Hamdallaye, Bamako",                     tel:"+223 76 66 77 88", horaires:"09h-19h · lun-sam",  promo:"10% MaliTaxi", desc:"Coiffure femme et homme, manucure, pédicure, soins du visage et épilation.", tags:["Coiffure","Manucure","Soins","Femme","Homme"]},
+    {id:61, nom:"African Hair Bamako",   note:4.5, adresse:"Magnambougou, Bamako",                   tel:"+223 66 55 44 33", horaires:"08h-18h · lun-sam",  promo:null,           desc:"Spécialiste en tresses africaines, extensions, tissage et coiffures naturelles.", tags:["Tresses","Extensions","Tissage","Naturel"]},
+    {id:62, nom:"Beauté Plus",           note:4.6, adresse:"Badalabougou, Bamako",                   tel:"+223 76 44 55 66", horaires:"09h-20h · lun-dim",  promo:null,           desc:"Salon de beauté complet. Coiffure, maquillage, soins de la peau et épilation.", tags:["Maquillage","Épilation","Soins peau","Complet"]},
+  ],
+  spa: [
+    {id:70, nom:"Zen Spa Bamako",        note:4.8, adresse:"Hippodrome, Bamako",                     tel:"+223 20 21 55 66", horaires:"10h-21h · 7j/7",    promo:"20% 1ère visite",desc:"Spa de luxe. Massages thaïlandais, hammam, sauna, soins du corps et relaxation.", tags:["Massages","Hammam","Sauna","Luxe","Relaxation"]},
+    {id:71, nom:"Wellness Center Mali",  note:4.6, adresse:"ACI 2000, Bamako",                       tel:"+223 76 77 88 99", horaires:"09h-20h · lun-sam",  promo:null,           desc:"Centre de bien-être. Yoga, méditation, massages et soins naturels africains.", tags:["Yoga","Méditation","Naturel","Bien-être"]},
+    {id:72, nom:"Oasis Spa",             note:4.5, adresse:"Lafiabougou, Bamako",                    tel:"+223 66 88 99 00", horaires:"10h-20h · lun-sam",  promo:"MaliTaxi -15%",desc:"Espace détente avec bain bouillonnant, massages relaxants et soins du visage.", tags:["Bain","Massages","Visage","Détente"]},
+  ],
+  immo: [
+    {id:80, nom:"Immo Mali Prestige",    note:4.7, adresse:"ACI 2000, Bamako",                       tel:"+223 20 29 77 88", horaires:"08h-17h · lun-ven",  promo:null,           desc:"Agence immobilière premium. Vente, location et gestion de biens à Bamako et environs.", tags:["Vente","Location","Premium","Gestion"]},
+    {id:81, nom:"Bamako Immobilier",     note:4.5, adresse:"Badalabougou, Bamako",                   tel:"+223 76 88 99 00", horaires:"08h-18h · lun-ven",  promo:null,           desc:"Achat, vente et location d'appartements, villas et terrains au Mali.", tags:["Appartements","Villas","Terrains","Mali"]},
+    {id:82, nom:"Habitat Plus Mali",     note:4.4, adresse:"Hamdallaye, Bamako",                     tel:"+223 66 99 00 11", horaires:"08h-17h · lun-ven",  promo:"Consultation gratuite",desc:"Conseil immobilier, estimation, investissement et projets de construction.", tags:["Conseil","Investissement","Construction","Estimation"]},
+  ],
+  photo: [
+    {id:90, nom:"Studio Photo Bamako",   note:4.8, adresse:"Hippodrome, Bamako",                     tel:"+223 76 11 00 99", horaires:"09h-18h · lun-sam",  promo:"Séance -20%",  desc:"Studio photo professionnel. Portraits, mariages, événements, shooting mode et identité.", tags:["Portrait","Mariage","Événement","Mode","Identité"]},
+    {id:91, nom:"Flash Mali Photography",note:4.7, adresse:"Magnambougou, Bamako",                   tel:"+223 66 00 11 22", horaires:"08h-19h · lun-sam",  promo:null,           desc:"Photographe professionnel. Shooting en studio ou extérieur, retouche photo et vidéo.", tags:["Studio","Extérieur","Vidéo","Retouche"]},
+    {id:92, nom:"Lumière d'Afrique",    note:4.6, adresse:"Badalabougou, Bamako",                   tel:"+223 76 22 11 00", horaires:"09h-17h · lun-ven",  promo:null,           desc:"Spécialiste en photographie artistique africaine, portrait famille et couverture d'événements.", tags:["Artistique","Famille","Événements","Africain"]},
+  ],
+};
+
+let partCatActive = null;
+
+function showPartenaires(){
+  const sec = document.getElementById("partenaires-section");
+  sec.innerHTML = "";
+  partCatActive = null;
+  renderCategoriesGrid();
+}
+
+function renderCategoriesGrid(){
+  const sec = document.getElementById("partenaires-section");
+  let html = "<div style='padding:16px 16px 8px;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.5px'>🤝 NOS PARTENAIRES À BAMAKO</div>";
+  html += "<div style='padding:0 16px 8px;font-size:13px;color:var(--muted)'>Choisissez une catégorie</div>";
+  html += "<div style='display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:8px 16px 90px'>";
+  for(const cat of CATEGORIES_PART){
+    const count = (PARTENAIRES_DB[cat.id]||[]).length;
+    html += "<div data-cat='" + cat.id + "' class='cat-card-btn' style='background:var(--card);border-radius:16px;border:1px solid var(--border);overflow:hidden;cursor:pointer'>"
+      + "<div style='height:80px;background:" + cat.bg + ";display:flex;align-items:center;justify-content:center;font-size:40px;pointer-events:none'>" + cat.ico + "</div>"
+      + "<div style='padding:11px 12px;pointer-events:none'>"
+      + "<div style='font-size:13px;font-weight:800;margin-bottom:3px'>" + cat.nom + "</div>"
+      + "<div style='font-size:11px;color:var(--muted)'>" + count + " partenaire" + (count>1?"s":"") + "</div>"
+      + "</div></div>";
+  }
+  html += "</div>";
+  sec.innerHTML = html;
+  // Add click events
+  sec.querySelectorAll(".cat-card-btn").forEach(el=>{
+    el.addEventListener("click", ()=>openCategorie(el.dataset.cat));
+  });
+}
+
+function openCategorie(catId){
+  partCatActive = catId;
+  const cat = CATEGORIES_PART.find(c=>c.id===catId);
+  const parts = PARTENAIRES_DB[catId]||[];
+  const sec = document.getElementById("partenaires-section");
+
+  let html = "<div style='position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--border);padding:13px 18px;display:flex;align-items:center;gap:12px;z-index:5'>"
+    + "<button id='btn-back-cat' style='background:none;border:none;color:var(--gold);font-size:20px;cursor:pointer;padding:0'>←</button>"
+    + "<div style='font-size:26px'>" + cat.ico + "</div>"
+    + "<div style='flex:1'><div style='font-size:15px;font-weight:800'>" + cat.nom + "</div>"
+    + "<div style='font-size:11px;color:var(--muted)'>" + parts.length + " partenaire" + (parts.length>1?"s":"") + "</div></div>"
+    + "</div>";
+
+  if(parts.length===0){
+    html += "<div style='text-align:center;padding:50px 20px'>"
+      + "<div style='font-size:48px;margin-bottom:12px;opacity:.4'>" + cat.ico + "</div>"
+      + "<div style='font-size:15px;font-weight:700;color:var(--muted)'>Aucun partenaire pour l&#39;instant</div>"
+      + "<div style='font-size:12px;color:var(--muted);margin-top:6px'>Revenez bientôt !</div></div>";
+  } else {
+    html += "<div style='padding:12px 16px 90px'>";
+    for(const p of parts){
+      html += "<div data-pid='" + p.id + "' data-cat='" + catId + "' class='part-detail-btn' style='background:var(--card);border-radius:16px;border:1px solid var(--border);margin-bottom:12px;overflow:hidden;cursor:pointer'>"
+        + "<div style='padding:14px'>"
+        + "<div style='display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px'>"
+        + "<div style='font-size:14px;font-weight:800;pointer-events:none'>" + p.nom + "</div>"
+        + "<div style='font-size:12px;color:var(--gold);font-weight:700;pointer-events:none'>⭐" + p.note + "</div></div>"
+        + "<div style='font-size:12px;color:var(--muted);margin-bottom:7px;pointer-events:none'>📍 " + p.adresse + "</div>"
+        + "<div style='font-size:12px;color:var(--muted);margin-bottom:8px;pointer-events:none'>" + p.desc + "</div>"
+        + "<div style='display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;pointer-events:none'>"
+        + p.tags.map(t=>"<span style='background:var(--card2);color:var(--muted);border-radius:8px;padding:3px 8px;font-size:10px;font-weight:700'>" + t + "</span>").join("")
+        + "</div>"
+        + (p.promo ? "<div style='background:rgba(245,166,35,.15);border:1px solid rgba(245,166,35,.3);border-radius:10px;padding:6px 12px;font-size:11px;font-weight:700;color:var(--gold);pointer-events:none'>🎁 " + p.promo + "</div>" : "")
+        + "</div></div>";
+    }
+    html += "</div>";
+  }
+  sec.innerHTML = html;
+  // Back button
+  const backBtn = sec.querySelector("#btn-back-cat");
+  if(backBtn) backBtn.addEventListener("click", showPartenaires);
+  // Part detail buttons
+  sec.querySelectorAll(".part-detail-btn").forEach(el=>{
+    el.addEventListener("click", ()=>openFichePartenaire(parseInt(el.dataset.pid), el.dataset.cat));
+  });
+}
+
+function openFichePartenaire(partId, catId){
+  const parts = PARTENAIRES_DB[catId]||[];
+  const p = parts.find(x=>x.id===partId);
+  if(!p) return;
+  const cat = CATEGORIES_PART.find(c=>c.id===catId);
+  const sec = document.getElementById("partenaires-section");
+  const tel = p.tel;
+  const nom = p.nom;
+
+  let html = "<div style='position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--border);padding:13px 18px;display:flex;align-items:center;gap:12px;z-index:5'>"
+    + "<button id='btn-back-part' style='background:none;border:none;color:var(--gold);font-size:20px;cursor:pointer;padding:0'>←</button>"
+    + "<div style='font-size:15px;font-weight:800;flex:1'>" + p.nom + "</div>"
+    + "</div>";
+
+  html += "<div style='height:120px;background:" + cat.bg + ";display:flex;align-items:center;justify-content:center;font-size:60px'>" + cat.ico + "</div>";
+  
+  html += "<div style='padding:16px 18px 90px'>"
+    + "<div style='font-size:18px;font-weight:800;margin-bottom:4px'>" + p.nom + "</div>"
+    + "<div style='font-size:13px;color:var(--gold);font-weight:700;margin-bottom:14px'>⭐ " + p.note + " · " + cat.nom + "</div>"
+    
+    + "<div style='background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:14px;border:1px solid var(--border)'>"
+    + "<div style='padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px'>"
+    + "<span style='font-size:18px'>📍</span><div><div style='font-size:11px;color:var(--muted)'>Adresse</div><div style='font-size:13px;font-weight:700;margin-top:1px'>" + p.adresse + "</div></div></div>"
+    + "<div style='padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px'>"
+    + "<span style='font-size:18px'>🕐</span><div><div style='font-size:11px;color:var(--muted)'>Horaires</div><div style='font-size:13px;font-weight:700;margin-top:1px'>" + p.horaires + "</div></div></div>"
+    + "<div style='padding:12px 16px;display:flex;align-items:center;gap:10px'>"
+    + "<span style='font-size:18px'>📞</span><div><div style='font-size:11px;color:var(--muted)'>Téléphone</div><div style='font-size:13px;font-weight:700;margin-top:1px'>" + p.tel + "</div></div></div>"
+    + "</div>"
+
+    + "<div style='background:var(--card);border-radius:14px;padding:14px;margin-bottom:14px;border:1px solid var(--border)'>"
+    + "<div style='font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px'>À PROPOS</div>"
+    + "<div style='font-size:13px;line-height:1.6'>" + p.desc + "</div></div>"
+
+    + "<div style='display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px'>"
+    + p.tags.map(t=>"<span style='background:var(--card);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700'>" + t + "</span>").join("")
+    + "</div>"
+
+    + (p.promo ? "<div style='background:rgba(245,166,35,.15);border:1px solid rgba(245,166,35,.3);border-radius:13px;padding:13px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px'>"
+    + "<span style='font-size:24px'>🎁</span><div><div style='font-size:13px;font-weight:800;color:var(--gold)'>Offre exclusive MaliTaxi</div>"
+    + "<div style='font-size:12px;color:var(--muted);margin-top:2px'>" + p.promo + "</div></div></div>" : "")
+
+    + "<button id='btn-call-part' style='width:100%;padding:14px;border-radius:13px;border:none;background:linear-gradient(135deg,var(--green),#27AE60);color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit'>"
+    + "📞 Appeler maintenant</button>"
+    + "</div>";
+
+  sec.innerHTML = html;
+  sec.querySelector("#btn-back-part").addEventListener("click", ()=>openCategorie(catId));
+  sec.querySelector("#btn-call-part").addEventListener("click", ()=>alert("📞 Appel vers " + nom + "\n" + tel));
+}
+
+// ── INIT ──
+showSplash();
+
+// ── SERVICE WORKER ──
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js')
+      .then(()=>console.log('SW enregistré'))
+      .catch(()=>console.log('SW non disponible'));
+  });
+}
+</script>
+</body>
+</html>

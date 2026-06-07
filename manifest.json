@@ -1,0 +1,44 @@
+{
+  "name": "Mali Nav VIP",
+  "short_name": "Mali Nav",
+  "description": "Navigation au Mali — 19 Régions + Bamako • Bus • MaliTaxi",
+  "start_url": "/mali-nav/",
+  "scope": "/mali-nav/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#f5c400",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "https://mikailou33-collab.github.io/malitaxi-vip/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://mikailou33-collab.github.io/malitaxi-vip/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["travel", "navigation", "transportation"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Bamako",
+      "short_name": "Bamako",
+      "description": "District de Bamako",
+      "url": "/mali-nav/district-bamako.html",
+      "icons": [{"src": "https://mikailou33-collab.github.io/malitaxi-vip/icons/icon-192.png", "sizes": "192x192"}]
+    },
+    {
+      "name": "MaliTaxi VIP",
+      "short_name": "MaliTaxi",
+      "description": "Ouvrir MaliTaxi VIP",
+      "url": "https://mikailou33-collab.github.io/malitaxi-vip/",
+      "icons": [{"src": "https://mikailou33-collab.github.io/malitaxi-vip/icons/icon-192.png", "sizes": "192x192"}]
+    }
+  ]
+}

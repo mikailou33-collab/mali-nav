@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Région de Koulikoro — Mali</title>
+<style>
+:root{--green:#14a34a;--yellow:#f5c400;--blue:#2563eb;--bg:#f2f4f7;--white:#fff;--text:#1a1f2e;--sub:#6b7280;--border:#e4e7ec;--shadow:0 2px 10px rgba(0,0,0,0.10)}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--text);max-width:420px;margin:0 auto;height:100vh;display:flex;flex-direction:column}
+.topbar{background:#7c3aed;padding:12px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,0.15)}
+.tb-back{width:34px;height:34px;background:rgba(255,255,255,0.18);border:none;border-radius:50%;color:white;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.tb-title{font-size:17px;font-weight:900;color:white;flex:1}
+.tb-title span{color:var(--yellow)}
+.tb-badge{background:var(--yellow);color:#1a1f2e;font-size:10px;font-weight:800;padding:3px 8px;border-radius:50px}
+.tabs{display:flex;background:white;border-bottom:2px solid var(--border);flex-shrink:0}
+.tab{flex:1;padding:10px 4px;border:none;background:transparent;font-family:inherit;font-size:11px;font-weight:700;color:var(--sub);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s}
+.tab.active{color:#7c3aed;border-bottom-color:#7c3aed}
+.content{flex:1;overflow:hidden;position:relative}
+.panel{display:none;height:100%;flex-direction:column}
+.panel.active{display:flex}
+.map-wrap{flex:1;position:relative;overflow:hidden;background:#f0e8d8}
+.legend{position:absolute;bottom:10px;left:10px;background:rgba(255,255,255,0.95);border-radius:10px;padding:8px 10px;box-shadow:var(--shadow)}
+.legend-title{font-size:10px;font-weight:800;color:#444;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px}
+.legend-item{display:flex;align-items:center;gap:5px;margin-bottom:3px}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.legend-label{font-size:9px;font-weight:700;color:#444}
+.traffic-info{position:absolute;top:10px;right:10px;background:rgba(255,255,255,0.95);border-radius:10px;padding:6px 10px;font-size:9px;font-weight:800;color:#444;box-shadow:var(--shadow)}
+.scroll-area{flex:1;overflow-y:auto;padding-bottom:10px}
+.section-header{background:#7c3aed;padding:8px 14px;font-size:11px;font-weight:800;color:white;text-transform:uppercase;letter-spacing:1px}
+.lieu-item{display:flex;align-items:center;padding:11px 14px;background:white;border-bottom:1px solid var(--border);cursor:pointer;gap:12px;transition:background 0.12s}
+.lieu-item:active{background:#f5f3ff}
+.lieu-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.lieu-info{flex:1}
+.lieu-name{font-size:14px;font-weight:700;color:var(--text)}
+.lieu-sub{font-size:11px;color:var(--sub);font-weight:600;margin-top:1px}
+.lieu-dist{font-size:11px;font-weight:700;color:#7c3aed}
+.cercle-card{background:white;margin:8px 14px 0;border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.c-header{padding:12px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,#5b21b6,#7c3aed)}
+.c-icon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;background:var(--yellow);flex-shrink:0}
+.c-name{font-size:15px;font-weight:800;color:white}
+.c-pop{font-size:11px;color:rgba(255,255,255,0.8);font-weight:600;margin-top:1px}
+.c-body{padding:10px 14px}
+.c-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)}
+.c-row:last-child{border-bottom:none}
+.c-row-icon{font-size:14px;width:20px;text-align:center}
+.c-row-text{font-size:12px;color:var(--sub);font-weight:600;flex:1}
+.c-row-val{font-size:12px;font-weight:700;color:var(--text)}
+.bottom-nav{background:white;border-top:1px solid var(--border);display:flex;flex-shrink:0}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;padding:9px 4px 11px;border:none;background:transparent;font-family:inherit;color:var(--sub);cursor:pointer;gap:3px}
+.nav-btn.active{color:#7c3aed}
+.nav-btn-icon{font-size:20px}
+.nav-btn-label{font-size:10px;font-weight:700}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(12px);background:#1a1f2e;color:white;padding:8px 16px;border-radius:50px;font-size:12px;font-weight:700;opacity:0;transition:all 0.28s;z-index:999;pointer-events:none;max-width:88%;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* MODAL RÉSERVATION */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;align-items:flex-end;justify-content:center}
+.modal-box{background:white;border-radius:20px 20px 0 0;width:100%;max-width:420px;max-height:90vh;overflow-y:auto}
+.modal-hdr{background:linear-gradient(135deg,#0d5c2e,#14a34a);padding:16px 20px;border-radius:20px 20px 0 0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0}
+.modal-title{font-size:17px;font-weight:900;color:white}
+.modal-close{background:rgba(255,255,255,0.2);border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;color:white}
+.modal-body{padding:16px 20px 24px}
+.m-label{font-size:11px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:block;margin-top:12px}
+.m-select{width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:12px;font-size:14px;font-family:inherit;font-weight:700;color:var(--text);background:white;outline:none;cursor:pointer}
+.m-select:focus{border-color:var(--green)}
+.m-grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
+.m-btn{padding:12px 8px;border:2px solid var(--border);border-radius:12px;background:white;cursor:pointer;font-family:inherit;transition:all 0.2s;text-align:center;font-size:12px;font-weight:800}
+.m-btn.sel{border-color:var(--green);background:#f0fdf4}
+.m-btn.sel2{border-color:var(--blue);background:#eff6ff}
+.m-input{width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:12px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box}
+.m-input:focus{border-color:var(--blue)}
+.m-recap{background:#eff6ff;border-radius:12px;padding:12px;border:1.5px solid #bfdbfe;margin-top:12px}
+.m-recap-t{font-size:11px;font-weight:800;color:var(--blue);margin-bottom:6px;text-transform:uppercase}
+.m-rrow{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #dbeafe;font-size:12px}
+.m-rrow:last-child{border-bottom:none;font-weight:900;font-size:14px;color:var(--green);margin-top:4px}
+.m-pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.m-pay-btn{padding:12px 8px;border:2px solid var(--border);border-radius:12px;background:white;cursor:pointer;font-family:inherit;transition:all 0.2s;text-align:center}
+.m-pay-btn.sel{border-color:#f97316;background:#fff7ed}
+.pol-box{background:#fef9c3;border-radius:12px;padding:10px;border:1px solid #fde047;margin-top:12px}
+.pol-t{font-size:11px;font-weight:800;color:#92400e;margin-bottom:4px}
+.pol-r{font-size:10px;color:#78350f;font-weight:600;margin-bottom:2px}
+.btn-confirm{width:100%;padding:14px;border:none;border-radius:14px;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;margin-top:12px}
+.btn-confirm.on{background:linear-gradient(135deg,#14a34a,#16a34a);color:white}
+
+.m-hbtn{padding:8px 4px;border:2px solid #e4e7ec;border-radius:10px;background:white;cursor:pointer;font-family:inherit;font-size:12px;font-weight:800;text-align:center;transition:all 0.2s;line-height:1.4}
+.m-hbtn.sel{border-color:#14a34a;background:#f0fdf4;color:#14532d}
+
+.siege-section{background:#f8fafc;border-radius:12px;padding:10px 14px;border:1px solid var(--border);margin-bottom:4px}
+.siege-legend{display:flex;gap:10px;justify-content:center;margin-bottom:8px;flex-wrap:wrap}
+.sleg{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--sub)}
+.sleg-dot{width:12px;height:12px;border-radius:3px}
+.plan-grid{display:grid;grid-template-columns:1fr 8px 1fr 1fr;gap:4px;max-width:260px;margin:0 auto}
+.siege-btn{padding:8px 4px;border:none;border-radius:7px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;transition:all 0.15s;color:white}
+.siege-btn.libre{background:#16a34a}
+.siege-btn.occupe{background:#ef4444;cursor:not-allowed;opacity:0.7}
+.siege-btn.choisi{background:#f5c400;color:#1a1f2e}
+.siege-couloir{background:transparent;pointer-events:none}
+.siege-info{text-align:center;font-size:12px;font-weight:700;color:#1d4ed8;margin-top:8px;padding:7px;background:#eff6ff;border-radius:8px;display:none}
+
+.btn-confirm.off{background:#f3f4f6;color:#9ca3af;cursor:not-allowed}
+
+.comp-btn{padding:10px 6px;border:2px solid var(--border);border-radius:12px;background:white;cursor:pointer;font-family:inherit;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
+.comp-btn.sel{border-color:#14a34a !important;background:#f0fdf4 !important;color:#14532d}
+.comp-name{font-size:11px;font-weight:800;color:var(--text)}
+.comp-info{font-size:9px;color:var(--sub);font-weight:600}
+
+.motif-btn{padding:10px 6px;border:2px solid var(--border);border-radius:12px;background:white;cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;text-align:center;line-height:1.6}
+.motif-btn.sel{border-color:#dc2626;background:#fef2f2;color:#dc2626}
+
+.nav-btn-mali{background:linear-gradient(135deg,#f5c400,#f59e0b) !important;border-radius:50% !important;width:56px !important;height:56px !important;margin-top:-18px;box-shadow:0 4px 16px rgba(245,196,0,0.5);flex-direction:column;align-items:center;justify-content:center;padding:0 !important;border:3px solid white !important;flex-shrink:0}
+.nav-btn-icon-mali{font-size:24px;display:block}
+.nav-btn-label-mali{font-size:8px;font-weight:900;color:#78350f;margin-top:1px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="tb-back" onclick="showToast('← Retour Mali Nav')">←</button>
+  <div class="tb-title">🌍 Région de <span>Koulikoro</span></div>
+  <div class="tb-badge">Région 2</div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('carte',this)">🗺️ Carte</button>
+  <button class="tab" onclick="switchTab('lieux',this)">📍 Lieux</button>
+  <button class="tab" onclick="switchTab('cercles',this)">🏛️ Cercles</button>
+  <button class="tab" onclick="switchTab('transport',this)">🚌 Transport</button>
+</div>
+
+<div class="content">
+
+  <!-- CARTE -->
+  <div class="panel active" id="panel-carte">
+    <div class="map-wrap">
+      <svg width="100%" height="100%" viewBox="0 0 420 480" xmlns="http://www.w3.org/2000/svg">
+        <rect width="420" height="480" fill="#f0e8d8"/>
+        <rect x="0" y="300" width="420" height="180" fill="#e8f0d8" opacity="0.6"/>
+
+        <!-- Fleuve Niger -->
+        <path d="M0,200 Q80,190 160,195 Q200,198 240,193 Q300,186 360,192 Q390,195 420,190 L420,210 Q390,207 360,205 Q300,200 240,205 Q200,210 160,208 Q80,205 0,215Z" fill="#a8d4f5" opacity="0.9"/>
+        <text x="100" y="207" font-size="9" fill="#075985" font-family="sans-serif" font-style="italic" font-weight="700">Fleuve Niger</text>
+
+        <!-- Bamako (enclave) -->
+        <ellipse cx="100" cy="330" rx="55" ry="40" fill="#f59e0b" opacity="0.15" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5,4"/>
+        <text x="100" y="328" font-size="10" fill="#92400e" font-family="sans-serif" font-weight="800" text-anchor="middle">BAMAKO</text>
+        <text x="100" y="340" font-size="8" fill="#92400e" font-family="sans-serif" text-anchor="middle">(District)</text>
+
+        <!-- Routes -->
+        <line x1="0" y1="195" x2="420" y2="195" stroke="#c8b86e" stroke-width="5"/>
+        <text x="5" y="188" font-size="8" fill="#7a6020" font-family="sans-serif" font-weight="700">Route Bamako-Ségou (RN6)</text>
+        <line x1="100" y1="0" x2="100" y2="480" stroke="#d4c88a" stroke-width="3"/>
+        <line x1="250" y1="0" x2="250" y2="480" stroke="#d4c88a" stroke-width="3"/>
+        <line x1="0" y1="100" x2="420" y2="100" stroke="#ddd" stroke-width="1.5"/>
+        <line x1="0" y1="320" x2="420" y2="320" stroke="#ddd" stroke-width="1.5"/>
+
+        <!-- Koulikoro Ville (chef-lieu) -->
+        <circle cx="250" cy="195" r="20" fill="#7c3aed" stroke="white" stroke-width="3"/>
+        <text x="250" y="190" font-size="9" fill="white" font-family="sans-serif" font-weight="900" text-anchor="middle">KOULIKORO</text>
+        <text x="250" y="201" font-size="7" fill="rgba(255,255,255,0.9)" font-family="sans-serif" text-anchor="middle">Chef-lieu</text>
+
+        <!-- Kati (grande ville) -->
+        <circle cx="100" cy="270" r="14" fill="#5b21b6" stroke="white" stroke-width="2"/>
+        <text x="100" y="274" font-size="8" fill="white" font-family="sans-serif" font-weight="800" text-anchor="middle">KATI</text>
+        <text x="100" y="291" font-size="8" fill="#5b21b6" font-family="sans-serif" font-weight="700" text-anchor="middle">Militaire</text>
+
+        <!-- Kolokani -->
+        <circle cx="130" cy="100" r="10" fill="#7c3aed" stroke="white" stroke-width="2"/>
+        <text x="130" y="104" font-size="7" fill="white" font-family="sans-serif" font-weight="700" text-anchor="middle">K</text>
+        <text x="130" y="120" font-size="8" fill="#5b21b6" font-family="sans-serif" font-weight="700" text-anchor="middle">Kolokani</text>
+
+        <!-- Banamba -->
+        <circle cx="300" cy="80" r="10" fill="#7c3aed" stroke="white" stroke-width="2"/>
+        <text x="300" y="84" font-size="7" fill="white" font-family="sans-serif" font-weight="700" text-anchor="middle">B</text>
+        <text x="300" y="100" font-size="8" fill="#5b21b6" font-family="sans-serif" font-weight="700" text-anchor="middle">Banamba</text>
+
+        <!-- Kangaba -->
+        <circle cx="60" cy="420" r="9" fill="#7c3aed" stroke="white" stroke-width="1.5"/>
+        <text x="60" y="424" font-size="7" fill="white" font-family="sans-serif" font-weight="700" text-anchor="middle">K</text>
+        <text x="60" y="440" font-size="8" fill="#5b21b6" font-family="sans-serif" font-weight="700" text-anchor="middle">Kangaba</text>
+
+        <!-- Kalabancoro -->
+        <circle cx="155" cy="310" r="9" fill="#0891b2" stroke="white" stroke-width="1.5"/>
+        <text x="155" y="314" font-size="7" fill="white" font-family="sans-serif" font-weight="700" text-anchor="middle">K</text>
+        <text x="155" y="330" font-size="8" fill="#0e7490" font-family="sans-serif" font-weight="700" text-anchor="middle">Kalabancoro</text>
+
+        <!-- Hôpital Koulikoro -->
+        <rect x="265" y="180" width="18" height="18" rx="4" fill="#ef4444" stroke="white" stroke-width="1.5"/>
+        <text x="274" y="192" font-size="13" text-anchor="middle" fill="white" font-weight="900">+</text>
+        <text x="274" y="210" font-size="7" fill="#b91c1c" font-family="sans-serif" font-weight="700" text-anchor="middle">Hôp. Koulikoro</text>
+
+        <!-- CS Kati -->
+        <rect x="112" y="256" width="16" height="16" rx="4" fill="#f97316" stroke="white" stroke-width="1.5"/>
+        <text x="120" y="267" font-size="11" text-anchor="middle" fill="white" font-weight="900">+</text>
+        <text x="120" y="283" font-size="7" fill="#c2410c" font-family="sans-serif" font-weight="700" text-anchor="middle">CS Kati</text>
+
+        <!-- Marchés -->
+        <rect x="218" y="208" width="55" height="18" rx="5" fill="#16a34a" stroke="white" stroke-width="1.5"/>
+        <text x="246" y="220" font-size="9" fill="white" font-family="sans-serif" font-weight="800" text-anchor="middle">🛒 Marché</text>
+        <text x="246" y="237" font-size="7" fill="#15803d" font-family="sans-serif" font-weight="700" text-anchor="middle">Koulikoro</text>
+
+        <rect x="65" y="255" width="40" height="16" rx="5" fill="#16a34a" stroke="white" stroke-width="1.5"/>
+        <text x="85" y="266" font-size="8" fill="white" font-family="sans-serif" font-weight="800" text-anchor="middle">🛒 Kati</text>
+
+        <!-- Mosquées -->
+        <polygon points="245,168 258,148 271,168" fill="#7c3aed" stroke="white" stroke-width="1.5"/>
+        <text x="258" y="182" font-size="8" fill="#5b21b6" font-family="sans-serif" font-weight="700" text-anchor="middle">Mosquée</text>
+
+        <!-- Camp militaire Kati -->
+        <rect x="50" y="270" width="45" height="18" rx="4" fill="#374151" stroke="white" stroke-width="1.5"/>
+        <text x="73" y="282" font-size="8" fill="white" font-family="sans-serif" font-weight="800" text-anchor="middle">🪖 Camp Mil.</text>
+
+        <!-- OMATHO / Office tourisme -->
+        <rect x="268" y="208" width="40" height="16" rx="4" fill="#1d4ed8" stroke="white" stroke-width="1.5"/>
+        <text x="288" y="219" font-size="7" fill="white" font-family="sans-serif" font-weight="800" text-anchor="middle">🏛️ Mairie</text>
+
+        <!-- Gare Koulikoro -->
+        <rect x="218" y="228" width="50" height="16" rx="4" fill="#374151" stroke="white" stroke-width="1.5"/>
+        <text x="243" y="239" font-size="8" fill="white" font-family="sans-serif" font-weight="800" text-anchor="middle">🚢 Port Niger</text>
+
+        <!-- Frontière nord Mauritanie -->
+        <line x1="0" y1="20" x2="420" y2="20" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6,4"/>
+        <text x="5" y="17" font-size="8" fill="#6b7280" font-family="sans-serif">↑ Région Nioro/Nara</text>
+
+        <!-- Régions limitrophes -->
+        <text x="360" y="200" font-size="8" fill="#6b7280" font-family="sans-serif">→ Ségou</text>
+        <text x="5" y="450" font-size="8" fill="#6b7280" font-family="sans-serif">↓ Sikasso/Bougouni</text>
+
+        <!-- Salif Keïta origin -->
+        <text x="250" y="250" font-size="8" fill="#7c3aed" font-family="sans-serif" font-weight="700" text-anchor="middle">🎵 Terre de Salif Keïta</text>
+
+        <!-- Position -->
+        <circle cx="250" cy="195" r="8" fill="#1a73e8" stroke="white" stroke-width="2" opacity="0.85"/>
+        <circle cx="250" cy="195" r="15" fill="#1a73e8" opacity="0.15"/>
+      </svg>
+
+      <div class="legend">
+        <div class="legend-title">Légende</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div><div class="legend-label">Villes principales</div></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div><div class="legend-label">Hôpital</div></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#16a34a"></div><div class="legend-label">Marché</div></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div><div class="legend-label">Bamako (enclave)</div></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#374151"></div><div class="legend-label">Camp militaire</div></div>
+      </div>
+      <div class="traffic-info">🌍 58km de Bamako</div>
+    </div>
+  </div>
+
+  <!-- LIEUX -->
+  <div class="panel" id="panel-lieux">
+    <div class="scroll-area">
+      <div style="background:linear-gradient(135deg,#5b21b6,#7c3aed);padding:14px 16px;color:white">
+        <div style="font-size:16px;font-weight:900;margin-bottom:4px">🌍 Koulikoro — Terre de Grands Musiciens</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.8)">2 224 418 hab. • 95 000 km² • Fleuve Niger • Salif Keïta, Rokia Traoré</div>
+      </div>
+
+      <div class="section-header">🏥 Hôpitaux et Centres de Santé</div>
+      <div class="lieu-item" onclick="showToast('Hôpital Régional de Koulikoro')">
+        <div class="lieu-icon" style="background:#fde8e8">🏥</div>
+        <div class="lieu-info"><div class="lieu-name">Hôpital Régional de Koulikoro</div><div class="lieu-sub">Koulikoro ville — Principal hôpital</div></div>
+        <div class="lieu-dist">Centre</div>
+      </div>
+      <div class="lieu-item" onclick="showToast('CS Réf de Kati')">
+        <div class="lieu-icon" style="background:#fff3e0">🏥</div>
+        <div class="lieu-info"><div class="lieu-name">CS Réf de Kati</div><div class="lieu-sub">Kati — Centre de santé référence</div></div>
+        <div class="lieu-dist">Kati</div>
+      </div>
+      <div class="lieu-item" onclick="showToast('CESCOM Kolokani')">
+        <div class="lieu-icon" style="background:#fff3e0">🏥</div>
+        <div class="lieu-info"><div class="lieu-name">CESCOM Kolokani</div><div class="lieu-sub">Kolokani — Centre communautaire</div></div>
+        <div class="lieu-dist">Kolokani</div>
+      </div>
+
+      <div class="section-header">🛒 Marchés</div>
+      <div class="lieu-item" onclick="showToast('Grand Marché de Koulikoro')">
+        <div class="lieu-icon" style="background:#e8f5ee">🛒</div>
+        <div class="lieu-info"><div class="lieu-name">Grand Marché de Koulikoro</div><div class="lieu-sub">Koulikoro — Bord du Niger</div></div>
+        <div class="lieu-dist">Centre</div>
+      </div>
+      <div class="lieu-item" onclick="showToast('Marché de Kati')">
+        <div class="lieu-icon" style="background:#e8f5ee">🛒</div>
+        <div class="lieu-info"><div class="lieu-name">Marché de Kati</div><div class="lieu-sub">Kati — Grand marché animé</div></div>
+        <div class="lieu-dist">Kati</div>
+      </div>
+      <div class="lieu-item" onclick="showToast('Marché de Kolokani')">
+        <div class="lieu-icon" style="background:#e8f5ee">🛒</div>
+        <div class="lieu-info"><div class="lieu-name">Marché de Kolokani</div><div class="lieu-sub">Kolokani — Marché hebdomadaire</div></div>
+        <div class="lieu-dist">Kolokani</div>
+      </div>
+
+      <div class="section-header">🎭 Culture et Sites</div>
+      <div class="lieu-item" onclick="showToast('Port de Koulikoro — Fleuve Niger')">
+        <div class="lieu-icon" style="background:#dbeafe">🚢</div>
+        <div class="lieu-info"><div class="lieu-name">Port de Koulikoro</div><div class="lieu-sub">Fleuve Niger — Port fluvial historique</div></div>
+        <div class="lieu-dist">Centre</div>
+      </div>
+      <div class="lieu-item" onclick="showToast('Camp Militaire de Kati — Base armée')">
+        <div class="lieu-icon" style="background:#f3f4f6">🪖</div>
+        <div class="lieu-info"><div class="lieu-name">Camp Militaire de Kati</div><div class="lieu-sub">Kati — Base des Forces Armées Mali</div></div>
+        <div class="lieu-dist">Kati</div>
+      </div>
+      <div class="lieu-item" onclick="showToast('Kangaba — Capitale historique Mandé')">
+        <div class="lieu-icon" style="background:#fef3c7">🏛️</div>
+        <div class="lieu-info"><div class="lieu-name">Kangaba</div><div class="lieu-sub">Ancienne capitale de l\'Empire Mandé</div></div>
+        <div class="lieu-dist">Sud</div>
+      </div>
+      <div class="lieu-item" onclick="showToast('Terre natale de Salif Keïta et Rokia Traoré !')">
+        <div class="lieu-icon" style="background:#ede9fe">🎵</div>
+        <div class="lieu-info"><div class="lieu-name">Terre de Salif Keïta</div><div class="lieu-sub">Région natale du grand musicien</div></div>
+        <div class="lieu-dist">Région</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CERCLES -->
+  <div class="panel" id="panel-cercles">
+    <div class="scroll-area">
+      <div class="cercle-card">
+        <div class="c-header">
+          <div class="c-icon">🏙️</div>
+          <div><div class="c-name">Cercle de Koulikoro</div><div class="c-pop">Chef-lieu • 211 000 hab. • 7 260 km²</div></div>
+        </div>
+        <div class="c-body">
+          <div class="c-row"><span class="c-row-icon">🌊</span><span class="c-row-text">Fleuve</span><span class="c-row-val">Niger — Port fluvial</span></div>
+          <div class="c-row"><span class="c-row-icon">🥭</span><span class="c-row-text">Agriculture</span><span class="c-row-val">Mangues, arachides, coton</span></div>
+          <div class="c-row"><span class="c-row-icon">🏛️</span><span class="c-row-text">Admin</span><span class="c-row-val">Gouvernorat de la région</span></div>
+        </div>
+      </div>
+
+      <div class="cercle-card">
+        <div class="c-header">
+          <div class="c-icon">🪖</div>
+          <div><div class="c-name">Cercle de Kati</div><div class="c-pop">Plus grand cercle • 948 000 hab.</div></div>
+        </div>
+        <div class="c-body">
+          <div class="c-row"><span class="c-row-icon">🪖</span><span class="c-row-text">Militaire</span><span class="c-row-val">Camp militaire principal</span></div>
+          <div class="c-row"><span class="c-row-icon">🏘️</span><span class="c-row-text">Banlieue</span><span class="c-row-val">Kalabancoro, Dialakorodji</span></div>
+          <div class="c-row"><span class="c-row-icon">🌿</span><span class="c-row-text">Forêt</span><span class="c-row-val">12 forêts classées</span></div>
+        </div>
+      </div>
+
+      <div class="cercle-card">
+        <div class="c-header">
+          <div class="c-icon">🌾</div>
+          <div><div class="c-name">Cercle de Kolokani</div><div class="c-pop">Beledougou • 233 000 hab. • 12 000 km²</div></div>
+        </div>
+        <div class="c-body">
+          <div class="c-row"><span class="c-row-icon">📜</span><span class="c-row-text">Histoire</span><span class="c-row-val">Révolte 1915 vs France</span></div>
+          <div class="c-row"><span class="c-row-icon">🐄</span><span class="c-row-text">Élevage</span><span class="c-row-val">Zone sahélienne au nord</span></div>
+        </div>
+      </div>
+
+      <div class="cercle-card">
+        <div class="c-header">
+          <div class="c-icon">🏛️</div>
+          <div><div class="c-name">Cercle de Kangaba</div><div class="c-pop">Empire Mandé • Sud de la région</div></div>
+        </div>
+        <div class="c-body">
+          <div class="c-row"><span class="c-row-icon">🏛️</span><span class="c-row-text">Histoire</span><span class="c-row-val">Ancienne capitale Mandé</span></div>
+          <div class="c-row"><span class="c-row-icon">🎵</span><span class="c-row-text">Culture</span><span class="c-row-val">Griots, Djéli, Kora</span></div>
+        </div>
+      </div>
+
+      <div class="cercle-card">
+        <div class="c-header">
+          <div class="c-icon">🌾</div>
+          <div><div class="c-name">Cercle de Banamba</div><div class="c-pop">Nord-est • Zone agricole</div></div>
+        </div>
+        <div class="c-body">
+          <div class="c-row"><span class="c-row-icon">🌾</span><span class="c-row-text">Culture</span><span class="c-row-val">Mil, sorgho, coton</span></div>
+          <div class="c-row"><span class="c-row-icon">🐄</span><span class="c-row-text">Élevage</span><span class="c-row-val">Bovins, ovins</span></div>
+        </div>
+      </div>
+
+      <div style="height:10px"></div>
+    </div>
+  </div>
+
+  <!-- TRANSPORT -->
+  <div class="panel" id="panel-transport">
+    <div class="scroll-area">
+      <div class="section-header">🎫 Réserver un Billet</div>
+      <div class="lieu-item" onclick="ouvrirReservation()">
+        <div class="lieu-icon" style="background:#e8f5ee">🎫</div>
+        <div class="lieu-info">
+          <div class="lieu-name">Réserver Bus / Avion</div>
+          <div class="lieu-sub">Vers Koulikoro et toutes destinations</div>
+        </div>
+        <div class="lieu-dist" style="color:var(--green)">→</div>
+      </div>
+
+      <div class="section-header">🚌 Bus depuis Bamako</div>
+      <div class="lieu-item" onclick="showToast('Bamako → Koulikoro — 1h — 1 500 FCFA')">
+        <div class="lieu-icon" style="background:#fef3c7">🚌</div>
+        <div class="lieu-info"><div class="lieu-name">Bamako → Koulikoro</div><div class="lieu-sub">Gare Sogoniko → Koulikoro ville</div></div>
+        <div class="lieu-dist">1 500 F</div>
+      </div>
+      <div class="lieu-item" onclick="showToast('Bamako → Kati — 30min — 800 FCFA')">
+        <div class="lieu-icon" style="background:#fef3c7">🚌</div>
+        <div class="lieu-info"><div class="lieu-name">Bamako → Kati</div><div class="lieu-sub">Sotrama direct — ~30 min</div></div>
+        <div class="lieu-dist">800 F</div>
+      </div>
+      <div class="lieu-item" onclick="showToast('Bamako → Kolokani — 3h — 3 000 FCFA')">
+        <div class="lieu-icon" style="background:#fef3c7">🚌</div>
+        <div class="lieu-info"><div class="lieu-name">Bamako → Kolokani</div><div class="lieu-sub">Via Kati — ~3h</div></div>
+        <div class="lieu-dist">3 000 F</div>
+      </div>
+      <div class="lieu-item" onclick="showToast('Bamako → Kangaba — 2h — 2 500 FCFA')">
+        <div class="lieu-icon" style="background:#fef3c7">🚌</div>
+        <div class="lieu-info"><div class="lieu-name">Bamako → Kangaba</div><div class="lieu-sub">Route sud — ~2h</div></div>
+        <div class="lieu-dist">2 500 F</div>
+      </div>
+      <div style="height:10px"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL RÉSERVATION -->
+<div class="modal" id="modal-resa">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="modal-title">🎫 Réserver — Koulikoro</div>
+      <button class="modal-close" onclick="fermerModal()">×</button>
+    </div>
+        <div class="modal-body">
+      <label class="m-label" style="margin-top:0">🎫 Type de billet</label>
+      <div class="m-grid2">
+        <button class="m-btn sel" id="mb-simple" onclick="setMBillet('simple')">🎫 Aller simple</button>
+        <button class="m-btn" id="mb-retour" onclick="setMBillet('retour')">🔄 Aller-Retour</button>
+      </div>
+      
+      <label class="m-label">🚌 Compagnie de transport</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
+        <button class="comp-btn" id="cp-sonef" onclick="setComp('SONEF','cp-sonef')"><span style="font-size:20px">🚌</span><span class="comp-name">SONEF</span><span class="comp-info">Bamako-Ségou-Mopti</span></button>
+        <button class="comp-btn" id="cp-rimbo" onclick="setComp('Rimbo Transport','cp-rimbo')"><span style="font-size:20px">🚌</span><span class="comp-name">Rimbo</span><span class="comp-info">Toutes destinations</span></button>
+        <button class="comp-btn" id="cp-bani" onclick="setComp('Bani Transport','cp-bani')"><span style="font-size:20px">🚌</span><span class="comp-name">Bani Transport</span><span class="comp-info">Nord Mali</span></button>
+        <button class="comp-btn" id="cp-bittar" onclick="setComp('Bittar Transport','cp-bittar')"><span style="font-size:20px">🚌</span><span class="comp-name">Bittar</span><span class="comp-info">Kayes-Dakar</span></button>
+        <button class="comp-btn" id="cp-diarra" onclick="setComp('Diarra Bus','cp-diarra')"><span style="font-size:20px">🚌</span><span class="comp-name">Diarra Bus</span><span class="comp-info">Sikasso-Bougouni</span></button>
+        <button class="comp-btn" id="cp-autre" onclick="setComp('Autre compagnie','cp-autre')"><span style="font-size:20px">🚌</span><span class="comp-name">Autre</span><span class="comp-info">Autre compagnie</span></button>
+      </div>
+      <div id="comp-choisie" style="display:none;text-align:center;font-size:12px;font-weight:700;color:#1d4ed8;margin-bottom:4px;padding:7px;background:#eff6ff;border-radius:8px">✅ Compagnie: <span id="comp-val"></span></div>
+<label class="m-label">📍 Ville de départ</label>
+      <select id="m-depart" onchange="majModal()" class="m-select"><option value="">-- Choisir --</option></select>
+      <label class="m-label">🏁 Ville d'arrivée</label>
+      <select id="m-arrivee" onchange="majModal()" class="m-select"><option value="">-- Choisir --</option></select>
+      <label class="m-label">📅 Date de voyage (aller)</label>
+      <input type="date" id="m-date" class="m-input" onchange="majModal()">
+      <div id="m-retour-box" style="display:none;margin-top:8px">
+        <label class="m-label" style="margin-top:0">🔄 Date de retour</label>
+        <input type="date" id="m-date-retour" class="m-input">
+      </div>
+      <label class="m-label">⏰ Horaire de départ</label>
+      <div style="background:#f0fdf4;border-radius:12px;padding:10px 14px;border:1px solid #bbf7d0;margin-bottom:4px">
+        <div style="font-size:11px;color:#166534;font-weight:700;margin-bottom:8px">🏢 Horaires fixés par la compagnie</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+          <button class="m-hbtn" id="h1" onclick="selHeure('05h30','h1')">05h30<br><small>12 places</small></button>
+          <button class="m-hbtn" id="h2" onclick="selHeure('09h00','h2')">09h00<br><small>8 places</small></button>
+          <button class="m-hbtn" id="h3" onclick="selHeure('14h00','h3')">14h00<br><small>15 places</small></button>
+          <button class="m-hbtn" id="h4" onclick="selHeure('17h30','h4')">17h30<br><small>6 places</small></button>
+          <button class="m-hbtn" id="h5" onclick="selHeure('20h00','h5')">20h00<br><small>10 places</small></button>
+          <div style="background:#fde8e8;border-radius:8px;padding:8px;text-align:center;font-size:10px;font-weight:700;color:#dc2626">11h00<br>Complet</div>
+        </div>
+        <div id="m-heure-choisie" style="display:none;text-align:center;font-size:12px;font-weight:700;color:#1d4ed8;margin-top:8px">
+          ✅ Départ: <span id="m-heure-val"></span>
+        </div>
+      </div>
+      <label class="m-label">🪑 Choisir votre place</label>
+      <div style="background:#f8fafc;border-radius:12px;padding:10px 14px;border:1px solid #e4e7ec;margin-bottom:4px">
+        <div style="text-align:center;margin-bottom:8px">
+          <span style="background:#374151;color:white;padding:4px 16px;border-radius:8px;font-size:11px;font-weight:700">👨‍✈️ CHAUFFEUR</span>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#6b7280"><div style="width:12px;height:12px;border-radius:3px;background:#16a34a"></div>Libre</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#6b7280"><div style="width:12px;height:12px;border-radius:3px;background:#ef4444"></div>Occupé</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#6b7280"><div style="width:12px;height:12px;border-radius:3px;background:#f5c400"></div>Votre choix</div>
+        </div>
+        <div id="plan-grid" style="display:grid;grid-template-columns:1fr 8px 1fr 1fr;gap:4px;max-width:260px;margin:0 auto"></div>
+        <div id="siege-info" style="display:none;text-align:center;font-size:12px;font-weight:700;color:#1d4ed8;margin-top:8px;padding:7px;background:#eff6ff;border-radius:8px"></div>
+      </div>
+      <label class="m-label">👤 Nom complet</label>
+      <input type="text" id="m-nom" class="m-input" placeholder="Ex: Mamadou Coulibaly" oninput="majModal()">
+      <label class="m-label">📞 Téléphone</label>
+      <input type="tel" id="m-tel" class="m-input" placeholder="+223 76 XX XX XX">
+      <label class="m-label">👥 Passagers</label>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
+        <button onclick="chgMPass(-1)" style="width:36px;height:36px;background:#f3f4f6;border:none;border-radius:50%;font-size:18px;font-weight:700;cursor:pointer">−</button>
+        <span id="m-nb-pass" style="font-size:20px;font-weight:900;min-width:28px;text-align:center">1</span>
+        <button onclick="chgMPass(1)" style="width:36px;height:36px;background:#f3f4f6;border:none;border-radius:50%;font-size:18px;font-weight:700;cursor:pointer">+</button>
+        <span id="m-prix-lbl" style="margin-left:auto;font-size:14px;font-weight:900;color:#2563eb"></span>
+      </div>
+      <label class="m-label">💳 Mode de paiement</label>
+      <div class="m-pay-grid">
+        <button class="m-pay-btn" id="mp-orange" onclick="setMPay('orange')"><div style="font-size:20px">🟠</div><div style="font-size:11px;font-weight:800">Orange Money</div></button>
+        <button class="m-pay-btn" id="mp-wave" onclick="setMPay('wave')"><div style="font-size:20px">🔵</div><div style="font-size:11px;font-weight:800">Wave</div></button>
+        <button class="m-pay-btn" id="mp-moov" onclick="setMPay('moov')"><div style="font-size:20px">🟡</div><div style="font-size:11px;font-weight:800">Moov Money</div></button>
+        <button class="m-pay-btn" id="mp-card" onclick="setMPay('card')"><div style="font-size:20px">💳</div><div style="font-size:11px;font-weight:800">Carte bancaire</div></button>
+      </div>
+      <div class="m-recap" id="m-recap" style="display:none">
+        <div class="m-recap-t">📋 Récapitulatif</div>
+        <div class="m-rrow"><span style="color:var(--sub);font-weight:600">🚌 Compagnie</span><span style="font-weight:700" id="mr-comp">—</span></div>
+        <div class="m-rrow"><span style="color:var(--sub);font-weight:600">Trajet</span><span style="font-weight:700" id="mr-trajet">—</span></div>
+        <div class="m-rrow"><span style="color:var(--sub);font-weight:600">🪑 Place</span><span style="font-weight:700" id="mr-siege">—</span></div>
+        <div class="m-rrow"><span style="color:var(--sub);font-weight:600">⏰ Départ</span><span style="font-weight:700" id="mr-heure">—</span></div>
+        <div class="m-rrow"><span style="color:var(--sub);font-weight:600">Billet</span><span style="font-weight:700" id="mr-billet">—</span></div>
+        <div class="m-rrow"><span style="color:var(--sub);font-weight:600">Date</span><span style="font-weight:700" id="mr-date">—</span></div>
+        <div class="m-rrow"><span style="color:var(--sub);font-weight:600">Frais service</span><span style="font-weight:700" id="mr-frais">—</span></div>
+        <div class="m-rrow"><span style="color:var(--sub);font-weight:600">💰 TOTAL</span><span style="font-weight:700;color:#14a34a;font-size:14px" id="mr-total">—</span></div>
+      </div>
+      <div class="pol-box">
+        <div class="pol-t">📋 Politique d'annulation</div>
+        <div class="pol-r">✅ Avant 24h → 20% retenu / 80% remboursé</div>
+        <div class="pol-r">⚠️ Après 24h → 40% retenu / 60% remboursé</div>
+        <div class="pol-r">❌ No-show → 0% + pénalité 10% prochaine résa</div>
+        <div class="pol-r" style="font-weight:700;color:#92400e">💳 Paiement en ligne OBLIGATOIRE — Pas de cash</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+        <button id="btn-wa" class="btn-confirm off" onclick="confirmerWA()">📱 WhatsApp</button>
+        <button id="btn-sms" class="btn-confirm off" onclick="confirmerSMS()">💬 SMS</button>
+      </div>
+      <!-- ANNULATION SIMPLE -->
+      <div style="text-align:center;margin-top:14px;padding-top:12px;border-top:2px dashed #fde047">
+        <div style="font-size:11px;color:var(--sub);margin-bottom:8px">Vous avez déjà réservé ?</div>
+        <button onclick="annulerReservation()" style="background:#fef2f2;color:#dc2626;border:2px solid #fecaca;border-radius:12px;padding:10px 20px;font-size:13px;font-weight:800;font-family:inherit;cursor:pointer;width:100%">❌ Annuler ma réservation</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-btn" onclick="ouvrirReservation()"><span class="nav-btn-icon">🎫</span><span class="nav-btn-label">Billet</span></button>
+  <button class="nav-btn" onclick="openNav()"><span class="nav-btn-icon">🧭</span><span class="nav-btn-label">Naviguer</span></button>
+  <button class="nav-btn nav-btn-mali" onclick="ouvrirMaliTaxi()"><span class="nav-btn-icon-mali">🚖</span><span class="nav-btn-label-mali">MaliTaxi</span></button>
+  <button class="nav-btn" onclick="callSOS()"><span class="nav-btn-icon">🆘</span><span class="nav-btn-label">SOS</span></button>
+  <button class="nav-btn" onclick="partager()"><span class="nav-btn-icon">↗️</span><span class="nav-btn-label">Partager</span></button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+
+function ouvrirMaliTaxi(){
+  window.open('https://mikailou33-collab.github.io/malitaxi-vip/','_blank');
+}
+
+var VM=[
+  {n:'Bamako',f:'🏙️',p:'Mali'},{n:'Koulikoro',f:'🌍',p:'Mali'},{n:'Kati',f:'🏘️',p:'Mali'},
+  {n:'Ségou',f:'🏺',p:'Mali'},{n:'Sikasso',f:'🌿',p:'Mali'},{n:'Mopti',f:'🐊',p:'Mali'},
+  {n:'Kayes',f:'🚂',p:'Mali'},{n:'Tombouctou',f:'🕌',p:'Mali'},{n:'Gao',f:'🏜️',p:'Mali'},
+  {n:'Kidal',f:'⭐',p:'Mali'},{n:'Nioro du Sahel',f:'🐪',p:'Mali'},{n:'Kita',f:'🌄',p:'Mali'},
+  {n:'Nara',f:'🐫',p:'Mali'},{n:'Bougouni',f:'🌳',p:'Mali'},{n:'Koutiala',f:'🏭',p:'Mali'},
+  {n:'San',f:'🌾',p:'Mali'},{n:'Bandiagara',f:'🏔️',p:'Mali'},{n:'Douentza',f:'🏜️',p:'Mali'},
+  {n:'Kolokani',f:'🌾',p:'Mali'},{n:'Banamba',f:'🌾',p:'Mali'},{n:'Kangaba',f:'🏛️',p:'Mali'},
+  {n:'Kalabancoro',f:'🏘️',p:'Mali'},{n:'Dioïla',f:'🌳',p:'Mali'},
+];
+var VAO=[
+  {n:'Dakar',f:'🇸🇳',p:'Sénégal'},{n:'Abidjan',f:'🇨🇮',p:"Côte d'Ivoire"},
+  {n:'Ouagadougou',f:'🇧🇫',p:'Burkina Faso'},{n:'Conakry',f:'🇬🇳',p:'Guinée'},
+  {n:'Niamey',f:'🇳🇪',p:'Niger'},{n:'Lomé',f:'🇹🇬',p:'Togo'},
+  {n:'Accra',f:'🇬🇭',p:'Ghana'},{n:'Nouakchott',f:'🇲🇷',p:'Mauritanie'},
+];
+var DIST={Bamako:58,Kayes:579,Ségou:177,Sikasso:433,Mopti:542,Tombouctou:832,Gao:1142,Kati:72,Kolokani:130,Banamba:110,Kangaba:180,Dakar:1358,Abidjan:1158,Ouagadougou:1008};
+var FMALI=150,FHORS=250;
+
+function setComp(nom,btnId){
+  mComp=nom;
+  ['cp-sonef','cp-rimbo','cp-bani','cp-bittar','cp-diarra','cp-autre'].forEach(function(x){var b=document.getElementById(x);if(b)b.className='comp-btn';});
+  var sel=document.getElementById(btnId);if(sel)sel.className='comp-btn sel';
+  var cd=document.getElementById('comp-choisie');if(cd)cd.style.display='block';
+  var cv=document.getElementById('comp-val');if(cv)cv.textContent=nom;
+  majModal();
+}
+var mComp='';
+var mBillet='simple',mPass=1,mPay='',mHeure='',mSiege=0;
+
+function remplirSelects(){
+  var optsM=VM.map(function(v){return '<option value="'+v.n+'|'+v.f+'|'+v.p+'">'+v.f+' '+v.n+'</option>';}).join('');
+  var optsAO=VAO.map(function(v){return '<option value="'+v.n+'|'+v.f+'|'+v.p+'">'+v.f+' '+v.n+' ('+v.p+')</option>';}).join('');
+  ['m-depart','m-arrivee'].forEach(function(id){
+    var sel=document.getElementById(id);
+    if(!sel) return;
+    var old=sel.value;
+    sel.innerHTML='<option value="">-- Choisir --</option><optgroup label="🇲🇱 Mali">'+optsM+'</optgroup><optgroup label="🌍 Afrique Ouest">'+optsAO+'</optgroup>';
+    if(old) sel.value=old;
+  });
+}
+
+function genererPlan(){
+  var grid=document.getElementById('plan-grid');
+  if(!grid) return;
+  grid.innerHTML='';
+  var occ=[];
+  for(var i=1;i<=44;i++){if(Math.random()<0.28&&i!==mSiege) occ.push(i);}
+  var col=0;
+  for(var s=1;s<=44;s++){
+    if(col===2){
+      var sp=document.createElement('div');
+      sp.style.background='transparent';
+      grid.appendChild(sp);
+    }
+    var isOcc=occ.indexOf(s)>=0;
+    var btn=document.createElement('button');
+    btn.textContent=s;
+    if(isOcc){
+      btn.style.cssText='padding:8px 4px;border:none;border-radius:7px;font-size:11px;font-weight:800;cursor:not-allowed;font-family:inherit;color:white;background:#ef4444;opacity:0.7';
+      btn.disabled=true;
+    } else if(s===mSiege){
+      btn.style.cssText='padding:8px 4px;border:none;border-radius:7px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;color:#1a1f2e;background:#f5c400';
+    } else {
+      btn.style.cssText='padding:8px 4px;border:none;border-radius:7px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;color:white;background:#16a34a';
+    }
+    if(!isOcc){
+      (function(num,b){
+        b.onclick=function(){
+          mSiege=num;
+          // Mettre à jour couleurs sans régénérer
+          document.querySelectorAll('#plan-grid button').forEach(function(btn){
+            if(!btn.disabled){
+              var n=parseInt(btn.textContent);
+              btn.style.background=(n===mSiege)?'#f5c400':'#16a34a';
+              btn.style.color=(n===mSiege)?'#1a1f2e':'white';
+            }
+          });
+          var si=document.getElementById('siege-info');
+          if(si){si.style.display='block';si.textContent='✅ Place N°'+num+(num<=15?' — Avant':num<=30?' — Milieu':' — Arrière');}
+          majModal();
+        };
+      })(s,btn);
+    }
+    grid.appendChild(btn);
+    col=(col+1)%4;
+  }
+}
+
+function ouvrirReservation(){
+  var t=new Date().toISOString().split('T')[0];
+  document.getElementById('m-date').min=t;
+  document.getElementById('m-date').value=t;
+  document.getElementById('m-date-retour').min=t;
+  mBillet='simple';mPass=1;mPay='';mHeure='';mSiege=0;mComp='';
+  document.getElementById('mb-simple').className='m-btn sel';
+  document.getElementById('mb-retour').className='m-btn';
+  document.getElementById('m-retour-box').style.display='none';
+  document.getElementById('m-nb-pass').textContent='1';
+  document.querySelectorAll('.m-hbtn').forEach(function(b){b.classList.remove('sel');});
+  document.querySelectorAll('.m-pay-btn').forEach(function(b){b.className='m-pay-btn';});
+  document.querySelectorAll('.comp-btn').forEach(function(b){b.className='comp-btn';});
+  var cd=document.getElementById('comp-choisie');if(cd)cd.style.display='none';
+  var si=document.getElementById('siege-info');if(si) si.style.display='none';
+  document.getElementById('m-recap').style.display='none';
+  remplirSelects();
+  genererPlan();
+  majModal();
+  document.getElementById('modal-resa').style.display='flex';
+}
+function fermerModal(){document.getElementById('modal-resa').style.display='none';}
+
+function setMBillet(b){
+  mBillet=b;
+  document.getElementById('mb-simple').className='m-btn'+(b==='simple'?' sel':'');
+  document.getElementById('mb-retour').className='m-btn'+(b==='retour'?' sel':'');
+  document.getElementById('m-retour-box').style.display=b==='retour'?'block':'none';
+  majModal();
+}
+function chgMPass(n){mPass=Math.max(1,Math.min(10,mPass+n));document.getElementById('m-nb-pass').textContent=mPass;majModal();}
+function setMPay(p){
+  mPay=p;
+  ['orange','wave','moov','card'].forEach(function(x){document.getElementById('mp-'+x).className='m-pay-btn'+(p===x?' sel':'');});
+  majModal();
+}
+function setMTransport(t){}
+function selHeure(h, id){
+  mHeure=h;
+  ['h1','h2','h3','h4','h5'].forEach(function(x){
+    var b=document.getElementById(x);
+    if(b) b.className='m-hbtn';
+  });
+  var sel=document.getElementById(id);
+  if(sel) sel.className='m-hbtn sel';
+  document.getElementById('m-heure-choisie').style.display='block';
+  document.getElementById('m-heure-val').textContent=h;
+  majModal();
+}
+function getFrais(d,a){return(VM.some(function(v){return v.n===d;})&&VM.some(function(v){return v.n===a;})) ? FMALI : FHORS;}
+function getPrix(d,a){
+  var dist=DIST[a]||DIST[d]||300;
+  var base=Math.round(dist*13/10)*10*mPass;
+  return base*(mBillet==='retour'?2:1);
+}
+function majModal(){
+  var dep=(document.getElementById('m-depart').value||'').split('|')[0];
+  var arr=(document.getElementById('m-arrivee').value||'').split('|')[0];
+  var date=document.getElementById('m-date').value;
+  var nom=document.getElementById('m-nom').value.trim();
+  var ok=dep&&arr&&dep!==arr&&date&&nom&&mPay&&mHeure&&mSiege>0;
+  if(dep&&arr&&dep!==arr){
+    var prix=getPrix(dep,arr);var frais=getFrais(dep,arr);
+    document.getElementById('m-prix-lbl').textContent=(prix+frais).toLocaleString()+' FCFA';
+    if(date){
+      document.getElementById('m-recap').style.display='block';
+      var mc=document.getElementById('mr-comp');if(mc)mc.textContent=mComp?mComp:'À choisir';
+      document.getElementById('mr-trajet').textContent=dep+' → '+arr;
+      if(document.getElementById('mr-siege')) document.getElementById('mr-siege').textContent=mSiege?'N°'+mSiege:'À choisir';
+      document.getElementById('mr-heure').textContent=mHeure?'⏰ '+mHeure:' À choisir';
+      document.getElementById('mr-billet').textContent=mBillet==='retour'?'🔄 Aller-Retour':'🎫 Aller simple';
+      var dr=document.getElementById('m-date-retour');
+      document.getElementById('mr-date').textContent=date+(mBillet==='retour'&&dr&&dr.value?' | Retour: '+dr.value:'');
+      document.getElementById('mr-frais').textContent=frais+' FCFA '+(frais===FMALI?'🇲🇱':'🌍');
+      document.getElementById('mr-total').textContent=(prix+frais).toLocaleString()+' FCFA';
+    }
+  } else {
+    document.getElementById('m-recap').style.display='none';
+    document.getElementById('m-prix-lbl').textContent='';
+  }
+  document.getElementById('btn-wa').className=ok?'btn-confirm on':'btn-confirm off';
+  document.getElementById('btn-sms').className=ok?'btn-confirm on':'btn-confirm off';
+}
+function getMsg(){
+  var dep=(document.getElementById('m-depart').value||'').split('|')[0];
+  var arr=(document.getElementById('m-arrivee').value||'').split('|')[0];
+  var date=document.getElementById('m-date').value;
+  var nom=document.getElementById('m-nom').value;
+  var tel=document.getElementById('m-tel').value;
+  var prix=getPrix(dep,arr);var frais=getFrais(dep,arr);
+  var ref='MT-'+Math.random().toString(36).substr(2,6).toUpperCase();
+  var dr=document.getElementById('m-date-retour');
+  var ret=mBillet==='retour'&&dr&&dr.value?'\n📅 Retour: '+dr.value:'';
+  return '🎫 BILLET MALITAXI\n━━━━━━━━━━━━━━\n🔖 Réf: '+ref+'\n🚌 '+mComp+'\n🗺️ '+dep+' → '+arr+'\n⏰ Départ: '+mHeure+' (fixé par compagnie)\n🪑 Place N°'+mSiege+'\n🎫 '+(mBillet==='retour'?'Aller-Retour':'Aller Simple')+'\n📅 Aller: '+date+ret+'\n👤 '+nom+(tel?' • '+tel:'')+' | 👥 '+mPass+' passager(s)\n💳 Paiement: '+mPay+'\n💰 Frais service: '+frais+' FCFA\n💰 TOTAL: '+(prix+frais).toLocaleString()+' FCFA\n━━━━━━━━━━━━━━\n✅ Avant 24h = 20% retenu / 80% remboursé\n⚠️ Après 24h = 40% retenu / 60% remboursé\n❌ No-show = 0% + pénalité 10%\n\n🇲🇱 Bon voyage ! MaliTaxi';
+}
+function confirmerWA(){
+  var dep=(document.getElementById('m-depart').value||'').split('|')[0];
+  var arr=(document.getElementById('m-arrivee').value||'').split('|')[0];
+  if(!mComp){showToast('⚠️ Choisissez une compagnie !');return;}
+  if(!dep||!arr||dep===arr||!document.getElementById('m-date').value||!document.getElementById('m-nom').value.trim()||!mPay||!mHeure||!mSiege){showToast('⚠️ Complétez tous les champs !');return;}
+  window.open('https://wa.me/?text='+encodeURIComponent(getMsg()),'_blank');
+  fermerModal();showToast('✅ Réservation envoyée sur WhatsApp !');
+}
+function confirmerSMS(){
+  var dep=(document.getElementById('m-depart').value||'').split('|')[0];
+  var arr=(document.getElementById('m-arrivee').value||'').split('|')[0];
+  if(!mComp){showToast('⚠️ Choisissez une compagnie !');return;}
+  if(!dep||!arr||dep===arr||!document.getElementById('m-date').value||!document.getElementById('m-nom').value.trim()||!mPay||!mHeure||!mSiege){showToast('⚠️ Complétez tous les champs !');return;}
+  window.location.href='sms:?body='+encodeURIComponent(getMsg());
+  fermerModal();showToast('✅ Réservation envoyée par SMS !');
+}
+
+
+function annulerReservation(){
+  var msg = '❌ DEMANDE ANNULATION\n━━━━━━━━━━━━━━\n';
+  var ref = prompt('Entrez votre numéro de référence (ex: MT-ABC123):');
+  if(!ref || ref.trim().length < 4){showToast('⚠️ Réf invalide !'); return;}
+  var motifs = ['📅 Changement de programme','👨‍👩‍👧 Urgence familiale','🏥 Problème de santé','💼 Raisons professionnelles','🎫 Billet en double','✏️ Autre motif'];
+  var motif = motifs[0];
+  msg += '🔖 Réf: ' + ref.trim().toUpperCase() + '\n';
+  msg += '❌ Motif: ' + motif + '\n';
+  msg += '📅 Le: ' + new Date().toLocaleDateString('fr-FR') + '\n';
+  msg += '━━━━━━━━━━━━━━\n✅ Avant 24h = 80% remboursé\n⚠️ Après 24h = 60% remboursé\n🇲🇱 MaliTaxi — Service client';
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
+function switchTab(name,el){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  el.classList.add('active');document.getElementById('panel-'+name).classList.add('active');
+}
+
+
+
+
+
+
+
+
+
+
+var tt;
+
+
+
+
+
+
+
+
+
+
+
+
+function callSOS(){document.getElementById('sos-modal').style.display='flex';}
+function sosClose(){document.getElementById('sos-modal').style.display='none';}
+function sosSendWA(){
+  var m='🆘 SOS URGENCE!\n📍 Région de Koulikoro, Mali\nhttps://maps.google.com/?q=12.86,-7.56\nJ ai besoin d aide!';
+  window.open('https://wa.me/?text='+encodeURIComponent(m),'_blank');sosClose();
+}
+function openNav(){window.open('https://maps.google.com/maps?daddr=12.86,-7.56&dirflg=d','_blank');}
+function partager(){document.getElementById('share-modal').style.display='flex';}
+function closeShare(){document.getElementById('share-modal').style.display='none';}
+function shareWhatsApp(){
+  var msg='📍 Région de Koulikoro, Mali\nhttps://maps.google.com/?q=12.86,-7.56\n🗺️ Via Mali Nav';
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');closeShare();
+}
+function shareSMS(){
+  window.location.href='sms:?body='+encodeURIComponent('📍 Région de Koulikoro: https://maps.google.com/?q=12.86,-7.56');closeShare();
+}
+function copyPosition(){
+  if(navigator.clipboard){navigator.clipboard.writeText('https://maps.google.com/?q=12.86,-7.56');}
+  showToast('✅ Lien copié !');closeShare();
+}
+function openGoogleMaps(){
+  window.open('https://maps.google.com/?q=12.86,-7.56','_blank');closeShare();
+}
+function showToast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(function(){t.classList.remove('show');},2500);}
+</script>
+
+<!-- SOS MODAL -->
+<div id="sos-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:700;align-items:flex-end;justify-content:center">
+  <div style="background:white;border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:420px">
+    <div style="font-size:32px;text-align:center;margin-bottom:8px">🆘</div>
+    <div style="font-size:18px;font-weight:900;text-align:center;color:#dc2626;margin-bottom:16px">URGENCE — SOS</div>
+    <button onclick="window.location.href='tel:15'" style="width:100%;padding:14px;background:#dc2626;color:white;border:none;border-radius:12px;font-size:15px;font-weight:800;margin-bottom:10px;font-family:inherit;cursor:pointer">📞 SAMU — 15</button>
+    <button onclick="window.location.href='tel:17'" style="width:100%;padding:14px;background:#1d4ed8;color:white;border:none;border-radius:12px;font-size:15px;font-weight:800;margin-bottom:10px;font-family:inherit;cursor:pointer">🚔 Police — 17</button>
+    <button onclick="window.location.href='tel:18'" style="width:100%;padding:14px;background:#f59e0b;color:#1a1f2e;border:none;border-radius:12px;font-size:15px;font-weight:800;margin-bottom:10px;font-family:inherit;cursor:pointer">🚒 Pompiers — 18</button>
+    <button onclick="sosSendWA()" style="width:100%;padding:14px;background:#25d366;color:white;border:none;border-radius:12px;font-size:15px;font-weight:800;margin-bottom:10px;font-family:inherit;cursor:pointer">📱 SOS WhatsApp + Position</button>
+    <button onclick="sosClose()" style="width:100%;padding:12px;background:#f3f4f6;color:#374151;border:none;border-radius:12px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer">Annuler</button>
+  </div>
+</div>
+
+<!-- MODAL PARTAGER -->
+<div id="share-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:700;align-items:flex-end;justify-content:center">
+  <div style="background:white;border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:420px">
+    <div style="font-size:28px;text-align:center;margin-bottom:8px">↗️</div>
+    <div style="font-size:17px;font-weight:900;text-align:center;color:#1a1f2e;margin-bottom:16px">Partager la position</div>
+    <button onclick="shareWhatsApp()" style="width:100%;padding:14px;background:#25d366;color:white;border:none;border-radius:12px;font-size:15px;font-weight:800;margin-bottom:10px;font-family:inherit;cursor:pointer">📱 Partager sur WhatsApp</button>
+    <button onclick="shareSMS()" style="width:100%;padding:14px;background:#2563eb;color:white;border:none;border-radius:12px;font-size:15px;font-weight:800;margin-bottom:10px;font-family:inherit;cursor:pointer">💬 Partager par SMS</button>
+    <button onclick="copyPosition()" style="width:100%;padding:14px;background:#f3f4f6;color:#374151;border:none;border-radius:12px;font-size:15px;font-weight:800;margin-bottom:10px;font-family:inherit;cursor:pointer">📋 Copier le lien</button>
+    <button onclick="openGoogleMaps()" style="width:100%;padding:14px;background:#ea4335;color:white;border:none;border-radius:12px;font-size:15px;font-weight:800;margin-bottom:10px;font-family:inherit;cursor:pointer">🗺️ Ouvrir Google Maps</button>
+    <button onclick="closeShare()" style="width:100%;padding:12px;background:#f3f4f6;color:#374151;border:none;border-radius:12px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer">Annuler</button>
+  </div>
+</div>
+
+</body>
+</html>
