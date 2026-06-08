@@ -363,17 +363,17 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
 
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
-  <button class="nav-btn active" onclick="showToast('🗺️ Accueil Mali Nav')">
+  <button class="nav-btn active" onclick="window.location.href='index.html'">
     <span style="font-size:20px">🗺️</span>Accueil
   </button>
-  <button class="nav-btn" onclick="showToast('🔍 Recherche en cours...')">
+  <button class="nav-btn" onclick="document.getElementById('search').focus()">
     <span style="font-size:20px">🔍</span>Recherche
   </button>
   <button class="nav-btn nav-btn-mali" onclick="ouvrirMaliTaxi()">
     <span class="nav-btn-icon-mali">🚖</span>
     <span class="nav-btn-label-mali">MaliTaxi</span>
   </button>
-  <button class="nav-btn" onclick="showToast('🆘 Urgence: appelez le 15')">
+  <button class="nav-btn" onclick="callSOS()">
     <span style="font-size:20px">🆘</span>SOS
   </button>
   <button class="nav-btn" onclick="partager()">
