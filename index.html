@@ -112,7 +112,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
   </div>
   <div class="search-wrap">
     <span class="search-icon">🔍</span>
-    <input class="search-input" id="search" placeholder="Rechercher une région..." oninput="filtrer(this.value)">
+    <input class="search-input" id="search" placeholder="Info Malir une région..." oninput="filtrer(this.value)">
   </div>
 </div>
 
@@ -367,7 +367,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
     <span style="font-size:20px">🗺️</span>Accueil
   </button>
   <button class="nav-btn" onclick="ouvrirInfoMali()">
-    <span style="font-size:20px">🔍</span>Recherche
+    <span style="font-size:20px">🔍</span>Info Mali
   </button>
   <button class="nav-btn nav-btn-mali" onclick="ouvrirMaliTaxi()">
     <span class="nav-btn-icon-mali">🚖</span>
@@ -394,7 +394,7 @@ function ouvrirMaliTaxi(){
   window.open('https://mikailou33-collab.github.io/malitaxi-vip/','_blank');
 }
 
-// Recherche/filtre
+// Info Mali/filtre
 function filtrer(val){
   var v = val.toLowerCase().trim();
   var cards = document.querySelectorAll('.region-card');
