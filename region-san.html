@@ -508,7 +508,7 @@ function getMsg(){
   var ref='MT-'+Math.random().toString(36).substr(2,6).toUpperCase();
   var dr=document.getElementById('m-date-retour');
   var ret=mBillet==='retour'&&dr&&dr.value?'\n📅 Retour: '+dr.value:'';
-  return '🎫 BILLET MALITAXI\n━━━━━━━━━━━━━━\n🔖 Réf: '+ref+'\n🚌 '+dep+' → '+arr+'\n⏰ '+mHeure+'\n🪑 Place N°'+mSiege+'\n🎫 '+(mBillet==='retour'?'Aller-Retour':'Aller Simple')+'\n📅 '+date+ret+'\n👤 '+nom+(tel?' • '+tel:'')+' | 👥 '+mPass+'p\n💳 '+mPay+'\n💰 Frais: '+frais+' FCFA\n💰 TOTAL: '+(prix+frais).toLocaleString()+' FCFA\n━━━━━━━━━━━━━━\n🇲🇱 Bon voyage ! MaliTaxi';
+  return '🎫 BILLET MALITAXI\n━━━━━━━━━━━━━━\n🔖 Réf: '+ref+'\n🚌 '+dep+' → '+arr+'\n⏰ '+mHeure+'\n🪑 Place N°'+mSiege+'\n🎫 '+(mBillet==='retour'?'Aller-Retour':'Aller Simple')+'\n📅 '+date+ret+'\n👤 '+nom+(tel?' • '+tel:'')+' | 👥 '+mPass+'p\n💳 '+mPay+'\n💰 Billet: '+prix.toLocaleString()+' FCFA\n💰 Frais service: '+frais+' FCFA\n💰 TOTAL: '+(prix+frais).toLocaleString()+' FCFA\n━━━━━━━━━━━━━━\n🇲🇱 Bon voyage ! Malinav';
 }
 function confirmerWA(){
   if(!mComp){showToast('⚠️ Choisissez une compagnie !');return;}var dep=(document.getElementById('m-depart').value||'').split('|')[0];var arr=(document.getElementById('m-arrivee').value||'').split('|')[0];if(!dep||!arr||dep===arr||!document.getElementById('m-date').value||!document.getElementById('m-nom').value.trim()||!mPay||!mHeure||!mSiege){showToast('⚠️ Complétez tous les champs !');return;}window.open('https://wa.me/?text='+encodeURIComponent(getMsg()),'_blank');fermerModal();showToast('✅ Envoyé sur WhatsApp !');}

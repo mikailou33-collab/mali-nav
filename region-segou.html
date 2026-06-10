@@ -714,7 +714,7 @@ function getMsg(){
   var ref='MT-'+Math.random().toString(36).substr(2,6).toUpperCase();
   var dr=document.getElementById('m-date-retour');
   var ret=mBillet==='retour'&&dr&&dr.value?'\n📅 Retour: '+dr.value:'';
-  return '🎫 BILLET MALITAXI\n━━━━━━━━━━━━━━\n🔖 Réf: '+ref+'\n🚌 '+mComp+'\n🗺️ '+dep+' → '+arr+'\n⏰ Départ: '+mHeure+' (fixé par compagnie)\n🪑 Place N°'+mSiege+'\n🎫 '+(mBillet==='retour'?'Aller-Retour':'Aller Simple')+'\n📅 Aller: '+date+ret+'\n👤 '+nom+(tel?' • '+tel:'')+' | 👥 '+mPass+' passager(s)\n💳 Paiement: '+mPay+'\n💰 Frais service: '+frais+' FCFA\n💰 TOTAL: '+(prix+frais).toLocaleString()+' FCFA\n━━━━━━━━━━━━━━\n✅ Avant 24h = 20% retenu / 80% remboursé\n⚠️ Après 24h = 40% retenu / 60% remboursé\n❌ No-show = 0% + pénalité 10%\n\n🇲🇱 Bon voyage ! MaliTaxi';
+  return '🎫 BILLET MALITAXI\n━━━━━━━━━━━━━━\n🔖 Réf: '+ref+'\n🚌 '+mComp+'\n🗺️ '+dep+' → '+arr+'\n⏰ Départ: '+mHeure+' (fixé par compagnie)\n🪑 Place N°'+mSiege+'\n🎫 '+(mBillet==='retour'?'Aller-Retour':'Aller Simple')+'\n📅 Aller: '+date+ret+'\n👤 '+nom+(tel?' • '+tel:'')+' | 👥 '+mPass+' passager(s)\n💳 Paiement: '+mPay+'\n💰 Frais service: '+frais+' FCFA\n💰 TOTAL: '+(prix+frais).toLocaleString()+' FCFA\n━━━━━━━━━━━━━━\n✅ Avant 24h = 20% retenu / 80% remboursé\n⚠️ Après 24h = 40% retenu / 60% remboursé\n❌ No-show = 0% + pénalité 10%\n\n🇲🇱 Bon voyage ! Malinav';
 }
 function confirmerWA(){
   var dep=(document.getElementById('m-depart').value||'').split('|')[0];
