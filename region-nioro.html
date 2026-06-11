@@ -106,71 +106,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
   <!-- CARTE -->
   <div class="panel active" id="panel-carte">
     <div class="map-wrap">
-      <svg width="100%" height="100%" viewBox="0 0 420 480" xmlns="http://www.w3.org/2000/svg">
-        <rect width="420" height="480" fill="#e8d8b0"/>
-        <!-- Sahel semi-aride nord -->
-        <rect x="0" y="0" width="420" height="180" fill="#e0c888" opacity="0.6"/>
-        <!-- Savane sud -->
-        <rect x="0" y="300" width="420" height="180" fill="#d4e8a8" opacity="0.5"/>
-        <!-- Frontière Mauritanie -->
-        <line x1="0" y1="20" x2="420" y2="20" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6,4"/>
-        <text x="5" y="16" font-size="7" fill="#6b7280" font-family="sans-serif">↑ Mauritanie</text>
-        <!-- Routes -->
-        <line x1="0" y1="260" x2="420" y2="260" stroke="#c8b86e" stroke-width="5"/>
-        <text x="5" y="254" font-size="7" fill="#7a6020" font-family="sans-serif" font-weight="700">Route Kayes → Nioro → Nara → Bamako</text>
-        <line x1="210" y1="0" x2="210" y2="480" stroke="#d4c88a" stroke-width="3"/>
-        <!-- NIORO DU SAHEL chef-lieu -->
-        <circle cx="210" cy="200" r="26" fill="#b45309" stroke="white" stroke-width="3"/>
-        <text x="210" y="192" font-size="8" fill="white" font-family="sans-serif" font-weight="900" text-anchor="middle">NIORO</text>
-        <text x="210" y="203" font-size="7" fill="rgba(255,255,255,0.9)" font-family="sans-serif" text-anchor="middle">du Sahel</text>
-        <text x="210" y="213" font-size="7" fill="rgba(255,255,255,0.8)" font-family="sans-serif" text-anchor="middle">443km Bamako</text>
-        <!-- Gogui -->
-        <circle cx="100" cy="120" r="11" fill="#78350f" stroke="white" stroke-width="2"/>
-        <text x="100" y="124" font-size="7" fill="white" font-family="sans-serif" font-weight="700" text-anchor="middle">GOG</text>
-        <text x="100" y="142" font-size="8" fill="#78350f" font-family="sans-serif" font-weight="700" text-anchor="middle">Gogui</text>
-        <text x="100" y="153" font-size="7" fill="#78350f" font-family="sans-serif" text-anchor="middle">→ Mauritanie</text>
-        <!-- Sandaré -->
-        <circle cx="320" cy="320" r="11" fill="#78350f" stroke="white" stroke-width="2"/>
-        <text x="320" y="324" font-size="7" fill="white" font-family="sans-serif" font-weight="700" text-anchor="middle">SAN</text>
-        <text x="320" y="342" font-size="8" fill="#78350f" font-family="sans-serif" font-weight="700" text-anchor="middle">Sandaré</text>
-        <!-- Diabigué -->
-        <circle cx="80" cy="320" r="10" fill="#78350f" stroke="white" stroke-width="1.5"/>
-        <text x="80" y="324" font-size="7" fill="white" font-family="sans-serif" font-weight="700" text-anchor="middle">DIA</text>
-        <text x="80" y="342" font-size="8" fill="#78350f" font-family="sans-serif" font-weight="700" text-anchor="middle">Diabigué</text>
-        <!-- Trougoumbé -->
-        <circle cx="360" cy="180" r="10" fill="#78350f" stroke="white" stroke-width="1.5"/>
-        <text x="360" y="184" font-size="7" fill="white" font-family="sans-serif" font-weight="700" text-anchor="middle">TRG</text>
-        <text x="360" y="200" font-size="8" fill="#78350f" font-family="sans-serif" font-weight="700" text-anchor="middle">Trougoumbé</text>
-        <!-- Hôpital -->
-        <rect x="228" y="182" width="18" height="18" rx="4" fill="#ef4444" stroke="white" stroke-width="1.5"/>
-        <text x="237" y="194" font-size="13" text-anchor="middle" fill="white" font-weight="900">+</text>
-        <text x="237" y="212" font-size="7" fill="#b91c1c" font-family="sans-serif" font-weight="700" text-anchor="middle">Hôp. Nioro</text>
-        <!-- Marché -->
-        <rect x="160" y="220" width="68" height="18" rx="5" fill="#16a34a" stroke="white" stroke-width="1.5"/>
-        <text x="194" y="232" font-size="9" fill="white" font-family="sans-serif" font-weight="800" text-anchor="middle">🛒 Marché</text>
-        <!-- Mosquée Hamalliste -->
-        <polygon points="205,165 218,145 231,165" fill="#7c3aed" stroke="white" stroke-width="1.5"/>
-        <text x="218" y="178" font-size="7" fill="#5b21b6" font-family="sans-serif" font-weight="700" text-anchor="middle">🕌 Hamawiyya</text>
-        <!-- Caravanes -->
-        <text x="80" y="70" font-size="13" fill="#b45309" font-family="sans-serif" text-anchor="middle">🐪🐫</text>
-        <text x="80" y="86" font-size="7" fill="#78350f" font-family="sans-serif" font-weight="700" text-anchor="middle">Commerce Sahel</text>
-        <!-- Fleuve Kolimbine -->
-        <path d="M60,380 Q150,360 210,370 Q280,380 360,360" stroke="#60a5fa" stroke-width="3" fill="none" opacity="0.7"/>
-        <text x="210" y="395" font-size="7" fill="#1e40af" font-family="sans-serif" font-weight="600" text-anchor="middle">Fleuve Kolimbine</text>
-        <!-- Frontières -->
-        <text x="5" y="475" font-size="7" fill="#6b7280" font-family="sans-serif">↓ Kayes (241km) / Bamako (443km)</text>
-        <text x="380" y="260" font-size="7" fill="#6b7280" font-family="sans-serif">→ Nara</text>
-        <!-- Légende -->
-        <rect x="5" y="390" width="130" height="80" rx="8" fill="rgba(255,255,255,0.95)"/>
-        <text x="12" y="406" font-size="10" fill="#444" font-family="sans-serif" font-weight="800">LÉGENDE</text>
-        <circle cx="18" cy="420" r="5" fill="#b45309"/><text x="28" y="424" font-size="8" fill="#444" font-family="sans-serif" font-weight="700">Nioro — Chef-lieu</text>
-        <circle cx="18" cy="434" r="5" fill="#78350f"/><text x="28" y="438" font-size="8" fill="#444" font-family="sans-serif" font-weight="700">Villes principales</text>
-        <circle cx="18" cy="448" r="5" fill="#60a5fa"/><text x="28" y="452" font-size="8" fill="#444" font-family="sans-serif" font-weight="700">Fleuve Kolimbine</text>
-        <circle cx="18" cy="462" r="5" fill="#ef4444"/><text x="28" y="466" font-size="8" fill="#444" font-family="sans-serif" font-weight="700">Hôpital</text>
-        <!-- Position -->
-        <circle cx="210" cy="200" r="8" fill="#1a73e8" stroke="white" stroke-width="2" opacity="0.85"/>
-        <circle cx="210" cy="200" r="15" fill="#1a73e8" opacity="0.15"/>
-      </svg>
+      <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=-10.0,13.5,-7.5,16.0&layer=mapnik" style="width:100%;height:100%;border:none;min-height:400px;" allowfullscreen loading="lazy"></iframe>
       <div style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,0.95);border-radius:10px;padding:6px 10px;font-size:9px;font-weight:800;color:#444;box-shadow:var(--shadow)">🏔️ 443km de Bamako</div>
     </div>
   </div>

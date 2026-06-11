@@ -106,59 +106,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
   <!-- CARTE -->
   <div class="panel active" id="panel-carte">
     <div class="map-wrap">
-      <svg width="100%" height="100%" viewBox="0 0 420 480" xmlns="http://www.w3.org/2000/svg">
-        <rect width="420" height="480" fill="#c8e8a0"/>
-        <ellipse cx="210" cy="240" rx="170" ry="130" fill="#b8d890" opacity="0.5"/>
-        <!-- Fleuve Bani -->
-        <path d="M0,280 Q80,265 160,270 Q220,274 290,268 Q360,262 420,266 L420,286 Q360,282 290,288 Q220,292 160,288 Q80,283 0,298Z" fill="#60a5fa" opacity="0.8"/>
-        <text x="200" y="280" font-size="8" fill="#1e40af" font-family="sans-serif" font-style="italic" font-weight="700" text-anchor="middle">Fleuve Bani</text>
-        <!-- Routes -->
-        <line x1="0" y1="300" x2="420" y2="300" stroke="#c8b86e" stroke-width="5"/>
-        <text x="5" y="294" font-size="7" fill="#7a6020" font-family="sans-serif" font-weight="700">RN12 — Ségou → San → Mopti</text>
-        <line x1="210" y1="0" x2="210" y2="480" stroke="#d4c88a" stroke-width="3"/>
-        <!-- SAN chef-lieu -->
-        <circle cx="210" cy="290" r="26" fill="#16a34a" stroke="white" stroke-width="3"/>
-        <text x="210" y="284" font-size="9" fill="white" font-family="sans-serif" font-weight="900" text-anchor="middle">SAN</text>
-        <text x="210" y="295" font-size="7" fill="rgba(255,255,255,0.9)" font-family="sans-serif" text-anchor="middle">Chef-lieu</text>
-        <text x="210" y="305" font-size="7" fill="rgba(255,255,255,0.8)" font-family="sans-serif" text-anchor="middle">430km Bamako</text>
-        <!-- Tominian -->
-        <circle cx="120" cy="380" r="12" fill="#14532d" stroke="white" stroke-width="2"/>
-        <text x="120" y="384" font-size="7" fill="white" font-family="sans-serif" font-weight="800" text-anchor="middle">TOM</text>
-        <text x="120" y="402" font-size="8" fill="#14532d" font-family="sans-serif" font-weight="700" text-anchor="middle">Tominian</text>
-        <!-- Bla -->
-        <circle cx="100" cy="220" r="11" fill="#14532d" stroke="white" stroke-width="2"/>
-        <text x="100" y="224" font-size="7" fill="white" font-family="sans-serif" font-weight="700" text-anchor="middle">BLA</text>
-        <text x="100" y="242" font-size="8" fill="#14532d" font-family="sans-serif" font-weight="700" text-anchor="middle">Bla</text>
-        <!-- Kimparana -->
-        <circle cx="330" cy="380" r="10" fill="#14532d" stroke="white" stroke-width="1.5"/>
-        <text x="330" y="384" font-size="7" fill="white" font-family="sans-serif" font-weight="700" text-anchor="middle">KIM</text>
-        <text x="330" y="400" font-size="8" fill="#14532d" font-family="sans-serif" font-weight="700" text-anchor="middle">Kimparana</text>
-        <!-- Hôpital -->
-        <rect x="228" y="272" width="18" height="18" rx="4" fill="#ef4444" stroke="white" stroke-width="1.5"/>
-        <text x="237" y="284" font-size="13" text-anchor="middle" fill="white" font-weight="900">+</text>
-        <text x="237" y="302" font-size="7" fill="#b91c1c" font-family="sans-serif" font-weight="700" text-anchor="middle">Hôp. San</text>
-        <!-- Marché -->
-        <rect x="160" y="312" width="68" height="18" rx="5" fill="#14532d" stroke="white" stroke-width="1.5"/>
-        <text x="194" y="324" font-size="9" fill="white" font-family="sans-serif" font-weight="800" text-anchor="middle">🛒 Grand Marché</text>
-        <!-- Agriculture -->
-        <text x="80" y="80" font-size="14" fill="#14532d" font-family="sans-serif" text-anchor="middle">🌾🧅</text>
-        <text x="80" y="98" font-size="7" fill="#14532d" font-family="sans-serif" font-weight="700" text-anchor="middle">Coton / Oignons</text>
-        <!-- Frontières -->
-        <text x="5" y="15" font-size="7" fill="#6b7280" font-family="sans-serif">↑ Ségou / Mopti</text>
-        <text x="5" y="470" font-size="7" fill="#6b7280" font-family="sans-serif">↓ Burkina Faso</text>
-        <text x="370" y="300" font-size="7" fill="#6b7280" font-family="sans-serif">→ Mopti</text>
-        <text x="5" y="300" font-size="7" fill="#6b7280" font-family="sans-serif">← Ségou</text>
-        <!-- Légende -->
-        <rect x="265" y="120" width="148" height="85" rx="8" fill="rgba(255,255,255,0.95)"/>
-        <text x="272" y="136" font-size="10" fill="#444" font-family="sans-serif" font-weight="800">LÉGENDE</text>
-        <circle cx="278" cy="150" r="5" fill="#16a34a"/><text x="288" y="154" font-size="8" fill="#444" font-family="sans-serif" font-weight="700">San — Chef-lieu</text>
-        <circle cx="278" cy="164" r="5" fill="#14532d"/><text x="288" y="168" font-size="8" fill="#444" font-family="sans-serif" font-weight="700">Villes principales</text>
-        <circle cx="278" cy="178" r="5" fill="#60a5fa"/><text x="288" y="182" font-size="8" fill="#444" font-family="sans-serif" font-weight="700">Fleuve Bani</text>
-        <circle cx="278" cy="192" r="5" fill="#ef4444"/><text x="288" y="196" font-size="8" fill="#444" font-family="sans-serif" font-weight="700">Hôpital</text>
-        <!-- Position -->
-        <circle cx="210" cy="290" r="8" fill="#1a73e8" stroke="white" stroke-width="2" opacity="0.85"/>
-        <circle cx="210" cy="290" r="15" fill="#1a73e8" opacity="0.15"/>
-      </svg>
+      <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=-5.5,12.5,-3.5,14.5&layer=mapnik" style="width:100%;height:100%;border:none;min-height:400px;" allowfullscreen loading="lazy"></iframe>
       <div style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,0.95);border-radius:10px;padding:6px 10px;font-size:9px;font-weight:800;color:#444;box-shadow:var(--shadow)">🌾 430km de Bamako</div>
     </div>
   </div>
