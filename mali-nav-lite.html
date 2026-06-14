@@ -438,7 +438,7 @@ function selHeure(h,id){
 
 function setMPay(p){
   mPay=p;
-  ['orange','wave','moov','cash'].forEach(function(x){document.getElementById('mp-'+x).className='m-pay-btn';});
+  ['orange','wave','moov'].forEach(function(x){var el=document.getElementById('mp-'+x);if(el)el.className='m-pay-btn';});
   document.getElementById('mp-'+p).className='m-pay-btn sel';
   majRecap();
 }
