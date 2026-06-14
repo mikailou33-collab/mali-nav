@@ -515,5 +515,14 @@ function openGoogleMaps(){window.open('https://maps.google.com/?q=14.35,-3.611',
 var tt;
 function showToast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(function(){t.classList.remove('show');},2500);}
 </script>
+
+<script>
+function annulerBilletReg(){
+  var c=document.getElementById('code-annul-reg');
+  if(!c||!c.value.trim()){alert('Entrez votre code de réservation');return;}
+  var msg=encodeURIComponent('❌ Annulation Mali Nav\n\nCode: '+c.value.trim()+'\n\nJe souhaite annuler ma réservation.\nMerci de traiter selon la politique d\'annulation.');
+  window.open('https://wa.me/+22396551630019?text='+msg,'_blank');
+}
+</script>
 </body>
 </html>

@@ -396,7 +396,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
       <!-- ANNULATION SIMPLE -->
       <div style="text-align:center;margin-top:14px;padding-top:12px;border-top:2px dashed #fde047">
         <div style="font-size:11px;color:var(--sub);margin-bottom:8px">Vous avez déjà réservé ?</div>
-        <button onclick="annulerReservation()" style="background:#fef2f2;color:#dc2626;border:2px solid #fecaca;border-radius:12px;padding:10px 20px;font-size:13px;font-weight:800;font-family:inherit;cursor:pointer;width:100%">❌ Annuler ma réservation</button>
+        <button onclick="annulerReservation()" style="background:#fef2f2;color:#dc2626;border:2px solid #fecaca;border-radius:12px;padding:10px 20px;font-size:13px;font-weight:800;font-family:inherit;cursor:pointer;width:100%"><input id="code-annul-reg" placeholder="Ex: BUS-ABC123" style="width:100%;padding:10px;border:2px solid #e4e7ec;border-radius:8px;font-family:inherit;font-size:13px;outline:none;margin-bottom:8px"/><button onclick="annulerBilletReg()" style="background:#dc2626;color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:800;font-family:inherit;cursor:pointer;width:100%">❌ Annuler mon billet</button>
       </div>
     </div>
   </div>
@@ -693,5 +693,14 @@ function showToast(m){var t=document.getElementById('toast');t.textContent=m;t.c
     <button onclick="closeShare()" style="width:100%;padding:12px;background:#f3f4f6;color:#374151;border:none;border-radius:12px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer">Annuler</button>
   </div>
 </div>
+
+<script>
+function annulerBilletReg(){
+  var c=document.getElementById('code-annul-reg');
+  if(!c||!c.value.trim()){alert('Entrez votre code de réservation');return;}
+  var msg=encodeURIComponent('❌ Annulation Mali Nav\n\nCode: '+c.value.trim()+'\n\nJe souhaite annuler ma réservation.\nMerci de traiter selon la politique d\'annulation.');
+  window.open('https://wa.me/+22396551630019?text='+msg,'_blank');
+}
+</script>
 </body>
 </html>
