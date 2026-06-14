@@ -152,19 +152,43 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
       </div>
 
       <div class="section-header">🏥 Hôpitaux et Centres de Santé</div>
-      
+      <div class="lieu-item" onclick="showToast('Hôpital Régional de Sikasso')">
+        <div class="lieu-icon" style="background:#fde8e8">🏥</div>
+        <div class="lieu-info"><div class="lieu-name">Hôpital Régional de Sikasso</div><div class="lieu-sub">Sikasso — Principal hôpital régional</div></div>
+        <div class="lieu-dist">Centre</div>
+      </div>
+      </div>
+        <div class="lieu-dist">Koutiala</div>
+      </div>
+
+      <div class="section-header">🛒 Marchés et Agriculture</div>
+      <div class="lieu-item" onclick="showToast('Grand Marché de Sikasso — Tissus, fruits, légumes')">
+        <div class="lieu-icon" style="background:#e8f5ee">🛒</div>
+        <div class="lieu-info"><div class="lieu-name">Grand Marché de Sikasso</div><div class="lieu-sub">Tissus, mangues, légumes — Très animé</div></div>
+        <div class="lieu-dist">Centre</div>
+      </div>
+      </div>
         <div class="lieu-dist">Bougouni</div>
       </div>
-      
-        <div class="lieu-dist">Bougouni</div>
       </div>
-      <div class="lieu-item" onclick="showToast('<div class="lieu-icon" style="background:#e8f5ee">🌱</div>
-        <div class="lieu-info"><div class="lieu-name">Marché Koutiala — Coton</div><div class="lieu-sub">Koutiala — 1er producteur coton du Mali</div></div>
         <div class="lieu-dist">Koutiala</div>
       </div>
 
       <div class="section-header">🏛️ Sites Historiques et Culture</div>
-      
+      <div class="lieu-item" onclick="showToast('Tata de Sikasso — Rempart historique de la résistance')">
+        <div class="lieu-icon" style="background:#fef3c7">🏰</div>
+        <div class="lieu-info"><div class="lieu-name">Tata de Sikasso</div><div class="lieu-sub">Rempart historique — Résistance Almamy Samory</div></div>
+        <div class="lieu-dist">Centre</div>
+      </div>
+      <div class="lieu-item" onclick="showToast('Mamelon de Sikasso — Vue panoramique')">
+        <div class="lieu-icon" style="background:#e8f5ee">🏔️</div>
+        <div class="lieu-info"><div class="lieu-name">Mamelon de Sikasso</div><div class="lieu-sub">Colline — Vue panoramique sur la ville</div></div>
+        <div class="lieu-dist">Centre</div>
+      </div>
+      <div style="background:#eff6ff;border-radius:12px;padding:11px;margin:8px 14px;border:1.5px solid #bfdbfe">
+        <div style="font-size:11px;font-weight:800;color:#1d4ed8;margin-bottom:3px">ℹ️ Régions voisines</div>
+        <div style="font-size:11px;color:#1e40af;font-weight:600">Yanfolila et Kolondiéba font partie de la <b>Région de Bougouni</b> (Loi 2023). Consultez leur page dans Mali Nav.</div>
+      </div>
     </div>
   </div>
 
@@ -206,8 +230,74 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
   <div class="panel" id="panel-transport">
     <div class="scroll-area">
       <div class="section-header">🎫 Réserver un Billet Bus</div>
-      <div class="lieu-dist">5 500 F</div></div>
+      <div class="lieu-item" onclick="ouvrirReservation()">
+        <div class="lieu-icon" style="background:#e8f5ee">🎫</div>
+        <div class="lieu-info"><div class="lieu-name">Réserver Bus — Sikasso</div><div class="lieu-sub">Toutes destinations Mali + Afrique Ouest</div></div>
+        <div class="lieu-dist" style="color:var(--green)">→</div>
+      </div>
+      <div class="section-header">🚌 Prix Bus depuis Bamako</div>
+      <div class="lieu-item"><div class="lieu-icon" style="background:#fef3c7">🚌</div><div class="lieu-info"><div class="lieu-name">Bamako → Sikasso</div><div class="lieu-sub">~5h • Via Bougouni (région) • SONEF, Rimbo</div></div><div class="lieu-dist">5 500 F</div></div>
+      <div class="lieu-item"><div class="lieu-icon" style="background:#fef3c7">🚌</div><div class="lieu-info"><div class="lieu-name">Sikasso → Kadiolo</div><div class="lieu-sub">~1h30 • Route frontière CI</div></div><div class="lieu-dist">1 500 F</div></div>
+
+      <div class="lieu-item"><div class="lieu-icon" style="background:#fef3c7">🚌</div><div class="lieu-info"><div class="lieu-name">Sikasso → Abidjan 🇨🇮</div><div class="lieu-sub">~8h • Via Kadiolo</div></div><div class="lieu-dist">8 000 F</div></div>
+      <div class="lieu-item"><div class="lieu-icon" style="background:#fef3c7">🚌</div><div class="lieu-info"><div class="lieu-name">Sikasso → Ouagadougou 🇧🇫</div><div class="lieu-sub">~6h • Via Yorosso</div></div><div class="lieu-dist">7 000 F</div></div>
+      <div style="height:10px"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL RÉSERVATION -->
+<div class="modal" id="modal-resa">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="modal-title">🎫 Réserver Bus — Région Sikasso</div>
+      <button class="modal-close" onclick="fermerModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <label class="m-label" style="margin-top:0">🎫 Type de billet</label>
+      <div class="m-grid2">
+        <button class="m-btn sel" id="mb-simple" onclick="setMBillet('simple')">🎫 Aller simple</button>
+        <button class="m-btn" id="mb-retour" onclick="setMBillet('retour')">🔄 Aller-Retour</button>
+      </div>
       
+      
+      <label class="m-label">🚌 Compagnie de transport</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
+        <button class="comp-btn" id="cp-sonef" onclick="setComp('SONEF','cp-sonef')"><span style="font-size:20px">🚌</span><span class="comp-name">SONEF</span><span class="comp-info">Bamako-Ségou-Mopti</span></button>
+        <button class="comp-btn" id="cp-rimbo" onclick="setComp('Rimbo Transport','cp-rimbo')"><span style="font-size:20px">🚌</span><span class="comp-name">Rimbo</span><span class="comp-info">Toutes destinations</span></button>
+        <button class="comp-btn" id="cp-bani" onclick="setComp('Bani Transport','cp-bani')"><span style="font-size:20px">🚌</span><span class="comp-name">Bani Transport</span><span class="comp-info">Nord Mali</span></button>
+        <button class="comp-btn" id="cp-bittar" onclick="setComp('Bittar Transport','cp-bittar')"><span style="font-size:20px">🚌</span><span class="comp-name">Bittar</span><span class="comp-info">Kayes-Dakar</span></button>
+        <button class="comp-btn" id="cp-diarra" onclick="setComp('Diarra Bus','cp-diarra')"><span style="font-size:20px">🚌</span><span class="comp-name">Diarra Bus</span><span class="comp-info">Sikasso-Bougouni</span></button>
+        <button class="comp-btn" id="cp-autre" onclick="setComp('Autre compagnie','cp-autre')"><span style="font-size:20px">🚌</span><span class="comp-name">Autre</span><span class="comp-info">Autre compagnie</span></button>
+      </div>
+      <div id="comp-choisie" style="display:none;text-align:center;font-size:12px;font-weight:700;color:#1d4ed8;margin-bottom:4px;padding:7px;background:#eff6ff;border-radius:8px">✅ Compagnie: <span id="comp-val"></span></div>
+<label class="m-label">📍 Ville de départ</label>
+      <select id="m-depart" onchange="majModal()" class="m-select">
+        <option value="">-- Choisir --</option>
+      </select>
+      <label class="m-label">🏁 Ville d'arrivée</label>
+      <select id="m-arrivee" onchange="majModal()" class="m-select">
+        <option value="">-- Choisir --</option>
+      </select>
+      <label class="m-label">📅 Date de voyage (aller)</label>
+      <input type="date" id="m-date" class="m-input" onchange="majModal()">
+
+      <div id="m-retour-box" style="display:none;margin-top:8px">
+        <label class="m-label" style="margin-top:0">🔄 Date de retour</label>
+        <input type="date" id="m-date-retour" class="m-input">
+      </div>      
+            <label class="m-label">⏰ Horaire de départ</label>
+      <div style="background:#f0fdf4;border-radius:12px;padding:10px 14px;border:1px solid #bbf7d0;margin-bottom:4px">
+        <div style="font-size:11px;color:#166534;font-weight:700;margin-bottom:8px">🏢 Horaires fixés par la compagnie</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+          <button class="m-hbtn" id="h1" onclick="selHeure('05h30','h1')">05h30<br><small>12 places</small></button>
+          <button class="m-hbtn" id="h2" onclick="selHeure('09h00','h2')">09h00<br><small>8 places</small></button>
+          <button class="m-hbtn" id="h3" onclick="selHeure('14h00','h3')">14h00<br><small>15 places</small></button>
+          <button class="m-hbtn" id="h4" onclick="selHeure('17h30','h4')">17h30<br><small>6 places</small></button>
+          <button class="m-hbtn" id="h5" onclick="selHeure('20h00','h5')">20h00<br><small>10 places</small></button>
+          <div style="background:#fde8e8;border-radius:8px;padding:8px;text-align:center;font-size:10px;font-weight:700;color:#dc2626">11h00<br>Complet</div>
+        </div>
         <div id="m-heure-choisie" style="display:none;text-align:center;font-size:12px;font-weight:700;color:#1d4ed8;margin-top:8px">
           ✅ Départ: <span id="m-heure-val"></span>
         </div>
