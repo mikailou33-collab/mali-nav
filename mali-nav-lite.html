@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mali Nav Lite</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--green:#14a34a;--yellow:#f5c400;--red:#dc2626;--blue:#2563eb;--bg:#f2f4f7;--text:#1a1f2e;--sub:#6b7280;--white:#fff;--shadow:0 2px 8px rgba(0,0,0,.1)}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:420px;margin:0 auto}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,#14a34a,#16a34a);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header-title{color:#fff;font-size:18px;font-weight:900}
+.header-sub{color:rgba(255,255,255,.8);font-size:11px}
+.header-flag{font-size:28px}
+
+/* SEARCH */
+.search-box{padding:12px 16px;background:#fff;border-bottom:1px solid #e4e7ec}
+.search-input{width:100%;padding:10px 14px;border:2px solid #e4e7ec;border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg)}
+.search-input:focus{border-color:var(--green)}
+
+/* QUICK ACTIONS */
+.quick-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 16px;background:#fff;border-bottom:1px solid #e4e7ec}
+.quick-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:12px;cursor:pointer;background:var(--bg);border:none;font-family:inherit}
+.quick-btn:active{transform:scale(.95)}
+.quick-ico{font-size:22px}
+.quick-lbl{font-size:10px;font-weight:700;color:var(--sub)}
+
+/* SECTIONS */
+.section{padding:12px 16px}
+.section-title{font-size:13px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+
+/* REGIONS GRID */
+.regions-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.region-card{background:#fff;border-radius:12px;padding:12px;cursor:pointer;border:1px solid #e4e7ec;transition:.2s;display:flex;align-items:center;gap:10px}
+.region-card:active{transform:scale(.97);border-color:var(--green)}
+.region-emoji{font-size:24px}
+.region-info{flex:1}
+.region-name{font-size:13px;font-weight:800;color:var(--text)}
+.region-num{font-size:10px;color:var(--sub)}
+
+/* PANEL */
+.panel{display:none;position:fixed;inset:0;background:#fff;z-index:200;overflow-y:auto}
+.panel.active{display:block}
+.panel-header{background:linear-gradient(135deg,#14a34a,#16a34a);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0}
+.panel-back{background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.panel-title{color:#fff;font-size:16px;font-weight:900}
+.panel-body{padding:16px}
+
+/* BUS FORM */
+.bus-form{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid #e4e7ec}
+.form-label{font-size:11px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
+.form-select{width:100%;padding:10px 12px;border:2px solid #e4e7ec;border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:#fff;margin-bottom:10px}
+.form-select:focus{border-color:var(--green)}
+.btn-bus{width:100%;padding:14px;background:var(--green);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit}
+.btn-bus:active{opacity:.85}
+
+/* INFO CARD */
+.info-card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid #e4e7ec}
+.info-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+.info-row:last-child{border-bottom:none}
+.info-key{color:var(--sub)}
+.info-val{font-weight:800;color:var(--text)}
+
+/* SOS */
+.sos-btn{width:100%;padding:16px;background:var(--red);border:none;border-radius:14px;color:#fff;font-size:18px;font-weight:900;cursor:pointer;font-family:inherit;margin-bottom:12px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.4)}50%{box-shadow:0 0 0 10px rgba(220,38,38,0)}}
+.sos-contact{display:flex;gap:10px;margin-bottom:10px}
+.sos-card{flex:1;background:#fff;border-radius:12px;padding:12px;text-align:center;border:1px solid #e4e7ec;cursor:pointer}
+.sos-ico{font-size:28px;margin-bottom:4px}
+.sos-name{font-size:12px;font-weight:800;color:var(--text)}
+.sos-num{font-size:18px;font-weight:900;color:var(--red)}
+
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a1f2e;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:999;display:none}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;max-width:420px;margin:0 auto;background:#fff;border-top:1px solid #e4e7ec;display:flex;padding:6px 0 10px}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:4px;border:none;background:none;font-family:inherit}
+.nav-ico{font-size:22px}
+.nav-lbl{font-size:10px;font-weight:700;color:var(--sub)}
+.nav-item.active .nav-lbl{color:var(--green)}
+
+.content-area{padding-bottom:80px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <div class="header-title">🇲🇱 Mali Nav Lite</div>
+    <div class="header-sub">Navigation simplifiée · Tout le Mali</div>
+  </div>
+  <div class="header-flag">🗺️</div>
+</div>
+
+<!-- CONTENT -->
+<div class="content-area" id="main-content">
+
+  <!-- SEARCH -->
+  <div class="search-box">
+    <input class="search-input" placeholder="🔍 Rechercher une région, ville..." oninput="rechercherRegion(this.value)"/>
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <div class="quick-btns">
+    <button class="quick-btn" onclick="ouvrirPanel('bus')">
+      <span class="quick-ico">🚌</span>
+      <span class="quick-lbl">Bus</span>
+    </button>
+    <button class="quick-btn" onclick="ouvrirPanel('info')">
+      <span class="quick-ico">🇲🇱</span>
+      <span class="quick-lbl">Mali Info</span>
+    </button>
+    <button class="quick-btn" onclick="ouvrirPanel('sos')">
+      <span class="quick-ico">🆘</span>
+      <span class="quick-lbl">Urgence</span>
+    </button>
+    <button class="quick-btn" onclick="partager()">
+      <span class="quick-ico">📤</span>
+      <span class="quick-lbl">Partager</span>
+    </button>
+  </div>
+
+  <!-- RÉGIONS -->
+  <div class="section">
+    <div class="section-title">🗺️ 19 Régions + District</div>
+    <div class="regions-grid" id="regions-grid">
+    </div>
+  </div>
+
+</div>
+
+<!-- PANEL BUS -->
+<div class="panel" id="panel-bus">
+  <div class="panel-header">
+    <button class="panel-back" onclick="fermerPanel('bus')">←</button>
+    <div class="panel-title">🚌 Réserver un billet bus</div>
+  </div>
+  <div class="panel-body">
+    <div class="bus-form">
+      <label class="form-label">🏙️ Ville de départ</label>
+      <select class="form-select" id="bus-depart">
+        <option value="">Choisir...</option>
+        <option value="Bamako">Bamako</option>
+        <option value="Ségou">Ségou</option>
+        <option value="Mopti">Mopti</option>
+        <option value="Kayes">Kayes</option>
+        <option value="Sikasso">Sikasso</option>
+        <option value="Gao">Gao</option>
+        <option value="Tombouctou">Tombouctou</option>
+        <option value="Koulikoro">Koulikoro</option>
+      </select>
+      <label class="form-label">🎯 Destination</label>
+      <select class="form-select" id="bus-dest">
+        <option value="">Choisir...</option>
+        <option value="Bamako">Bamako</option>
+        <option value="Ségou">Ségou</option>
+        <option value="Mopti">Mopti</option>
+        <option value="Kayes">Kayes</option>
+        <option value="Sikasso">Sikasso</option>
+        <option value="Gao">Gao</option>
+        <option value="Tombouctou">Tombouctou</option>
+        <option value="Koulikoro">Koulikoro</option>
+        <option value="Kidal">Kidal</option>
+        <option value="Taoudénit">Taoudénit</option>
+        <option value="Ménaka">Ménaka</option>
+        <option value="Bougouni">Bougouni</option>
+        <option value="Koutiala">Koutiala</option>
+        <option value="Dioïla">Dioïla</option>
+        <option value="Nioro">Nioro</option>
+        <option value="Kita">Kita</option>
+        <option value="Nara">Nara</option>
+        <option value="San">San</option>
+        <option value="Douentza">Douentza</option>
+        <option value="Bandiagara">Bandiagara</option>
+      </select>
+      <label class="form-label">📅 Date de voyage</label>
+      <input type="date" class="form-select" id="bus-date" style="margin-bottom:10px"/>
+      <label class="form-label">👥 Nombre de places</label>
+      <select class="form-select" id="bus-places">
+        <option>1 place</option>
+        <option>2 places</option>
+        <option>3 places</option>
+        <option>4 places</option>
+        <option>5 places</option>
+      </select>
+      <button class="btn-bus" onclick="reserverBus()">🎫 Réserver via WhatsApp</button>
+    </div>
+    <div class="info-card">
+      <div class="section-title" style="margin-bottom:8px">💰 Tarifs indicatifs</div>
+      <div class="info-row"><span class="info-key">Bamako → Ségou</span><span class="info-val">3 500 F</span></div>
+      <div class="info-row"><span class="info-key">Bamako → Mopti</span><span class="info-val">6 000 F</span></div>
+      <div class="info-row"><span class="info-key">Bamako → Sikasso</span><span class="info-val">5 000 F</span></div>
+      <div class="info-row"><span class="info-key">Bamako → Kayes</span><span class="info-val">7 000 F</span></div>
+      <div class="info-row"><span class="info-key">Bamako → Gao</span><span class="info-val">12 000 F</span></div>
+      <div class="info-row"><span class="info-key">Bamako → Tombouctou</span><span class="info-val">15 000 F</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL INFO MALI -->
+<div class="panel" id="panel-info">
+  <div class="panel-header" style="background:linear-gradient(135deg,#14a34a,#fcdd09,#ce1126)">
+    <button class="panel-back" onclick="fermerPanel('info')">←</button>
+    <div class="panel-title">🇲🇱 Mali — Informations</div>
+  </div>
+  <div class="panel-body">
+    <div class="info-card">
+      <div class="section-title" style="margin-bottom:8px">📊 Chiffres clés</div>
+      <div class="info-row"><span class="info-key">👥 Population</span><span class="info-val">22 millions</span></div>
+      <div class="info-row"><span class="info-key">📐 Superficie</span><span class="info-val">1 241 238 km²</span></div>
+      <div class="info-row"><span class="info-key">🗺️ Régions</span><span class="info-val">19 régions</span></div>
+      <div class="info-row"><span class="info-key">🏛️ Cercles</span><span class="info-val">159 cercles</span></div>
+      <div class="info-row"><span class="info-key">🏙️ Capitale</span><span class="info-val">Bamako</span></div>
+      <div class="info-row"><span class="info-key">💱 Monnaie</span><span class="info-val">Franc CFA (FCFA)</span></div>
+      <div class="info-row"><span class="info-key">🗣️ Langues</span><span class="info-val">Français + Bambara</span></div>
+    </div>
+    <div class="info-card">
+      <div class="section-title" style="margin-bottom:8px">🌤️ Météo Bamako</div>
+      <div style="background:linear-gradient(135deg,#0ea5e9,#38bdf8);border-radius:10px;padding:14px;text-align:center;color:#fff;margin-bottom:10px">
+        <div style="font-size:42px;font-weight:900">34°C</div>
+        <div style="font-size:20px">☀️ Ensoleillé</div>
+        <div style="font-size:12px;opacity:.8;margin-top:4px">Humidité 35% · Vent 18 km/h</div>
+      </div>
+      <div class="info-row"><span class="info-key">🏙️ Bamako</span><span class="info-val">34°C ☀️</span></div>
+      <div class="info-row"><span class="info-key">🏺 Ségou</span><span class="info-val">36°C ☀️</span></div>
+      <div class="info-row"><span class="info-key">🐊 Mopti</span><span class="info-val">38°C 🌤️</span></div>
+      <div class="info-row"><span class="info-key">🕌 Tombouctou</span><span class="info-val">42°C ☀️</span></div>
+      <div class="info-row"><span class="info-key">🚂 Kayes</span><span class="info-val">39°C ⛅</span></div>
+      <div class="info-row"><span class="info-key">🌿 Sikasso</span><span class="info-val">32°C 🌦️</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL SOS -->
+<div class="panel" id="panel-sos">
+  <div class="panel-header" style="background:#dc2626">
+    <button class="panel-back" onclick="fermerPanel('sos')">←</button>
+    <div class="panel-title">🆘 Urgences Mali</div>
+  </div>
+  <div class="panel-body">
+    <button class="sos-btn" onclick="alertSOS()">🆘 ENVOYER ALERTE SOS</button>
+    <div class="sos-contact">
+      <div class="sos-card" onclick="appeler('17')">
+        <div class="sos-ico">🚔</div>
+        <div class="sos-name">Police</div>
+        <div class="sos-num">17</div>
+      </div>
+      <div class="sos-card" onclick="appeler('15')">
+        <div class="sos-ico">🚑</div>
+        <div class="sos-name">SAMU</div>
+        <div class="sos-num">15</div>
+      </div>
+      <div class="sos-card" onclick="appeler('18')">
+        <div class="sos-ico">🚒</div>
+        <div class="sos-name">Pompiers</div>
+        <div class="sos-num">18</div>
+      </div>
+    </div>
+    <div class="info-card">
+      <div class="section-title" style="margin-bottom:8px">📞 Contacts utiles</div>
+      <div class="info-row"><span class="info-key">🏥 CHU Bamako</span><span class="info-val" style="color:var(--blue)">+223 20 22 50 00</span></div>
+      <div class="info-row"><span class="info-key">🚔 Gendarmerie</span><span class="info-val" style="color:var(--blue)">17</span></div>
+      <div class="info-row"><span class="info-key">🌡️ Centre Anti-poison</span><span class="info-val" style="color:var(--blue)">+223 20 22 57 36</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL RÉGION -->
+<div class="panel" id="panel-region">
+  <div class="panel-header" id="region-header">
+    <button class="panel-back" onclick="fermerPanel('region')">←</button>
+    <div class="panel-title" id="region-title">Région</div>
+  </div>
+  <div class="panel-body" id="region-body"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-item active" onclick="showTab('accueil')">
+    <span class="nav-ico">🏠</span>
+    <span class="nav-lbl">Accueil</span>
+  </button>
+  <button class="nav-item" onclick="ouvrirPanel('bus')">
+    <span class="nav-ico">🚌</span>
+    <span class="nav-lbl">Bus</span>
+  </button>
+  <button class="nav-item" onclick="ouvrirPanel('info')">
+    <span class="nav-ico">🇲🇱</span>
+    <span class="nav-lbl">Mali</span>
+  </button>
+  <button class="nav-item" onclick="ouvrirPanel('sos')">
+    <span class="nav-ico">🆘</span>
+    <span class="nav-lbl">SOS</span>
+  </button>
+</div>
+
+<script>
+const REGIONS = [
+  {id:"kayes",nom:"Kayes",emoji:"🚂",num:"R1",cercles:7,chef:"Kayes",desc:"Région minière et ferroviaire, frontalière avec le Sénégal et la Mauritanie"},
+  {id:"koulikoro",nom:"Koulikoro",emoji:"🌍",num:"R2",cercles:7,chef:"Koulikoro",desc:"Région agricole entourant Bamako"},
+  {id:"sikasso",nom:"Sikasso",emoji:"🌿",num:"R3",cercles:3,chef:"Sikasso",desc:"Le grenier du Mali, région agricole au Sud"},
+  {id:"segou",nom:"Ségou",emoji:"🏺",num:"R4",cercles:6,chef:"Ségou",desc:"Région du fleuve Niger et de l'artisanat"},
+  {id:"mopti",nom:"Mopti",emoji:"🐊",num:"R5",cercles:6,chef:"Mopti",desc:"La Venise du Mali, carrefour culturel"},
+  {id:"tombouctou",nom:"Tombouctou",emoji:"🕌",num:"R6",cercles:5,chef:"Tombouctou",desc:"Cité mystérieuse, patrimoine mondial UNESCO"},
+  {id:"gao",nom:"Gao",emoji:"⭐",num:"R7",cercles:4,chef:"Gao",desc:"Région du fleuve Niger au Nord-Est"},
+  {id:"kidal",nom:"Kidal",emoji:"🏔️",num:"R8",cercles:2,chef:"Kidal",desc:"Région désertique du Nord, massif de l'Adrar"},
+  {id:"taoudenit",nom:"Taoudénit",emoji:"🧂",num:"R9",cercles:3,chef:"Taoudénit",desc:"Région saharienne, mines de sel"},
+  {id:"menaka",nom:"Ménaka",emoji:"🦁",num:"R10",cercles:2,chef:"Ménaka",desc:"Région du Sahel oriental"},
+  {id:"bougouni",nom:"Bougouni",emoji:"🌳",num:"R11",cercles:3,chef:"Bougouni",desc:"Nouvelle région depuis 2023, Sud du Mali"},
+  {id:"dioila",nom:"Dioïla",emoji:"🌾",num:"R12",cercles:3,chef:"Dioïla",desc:"Région agricole, coton et céréales"},
+  {id:"nioro",nom:"Nioro",emoji:"🏔️",num:"R13",cercles:2,chef:"Nioro du Sahel",desc:"Région sahélienne, élevage"},
+  {id:"koutiala",nom:"Koutiala",emoji:"🏭",num:"R14",cercles:2,chef:"Koutiala",desc:"Capitale du coton malien"},
+  {id:"kita",nom:"Kita",emoji:"🌄",num:"R15",cercles:2,chef:"Kita",desc:"Région montagneuse, chutes d'eau"},
+  {id:"nara",nom:"Nara",emoji:"🏜️",num:"R16",cercles:2,chef:"Nara",desc:"Région sahélienne, élevage extensif"},
+  {id:"bandiagara",nom:"Bandiagara",emoji:"🏔️",num:"R17",cercles:3,chef:"Bandiagara",desc:"Pays Dogon, patrimoine mondial UNESCO"},
+  {id:"san",nom:"San",emoji:"🌾",num:"R18",cercles:3,chef:"San",desc:"Région agricole du centre Mali"},
+  {id:"douentza",nom:"Douentza",emoji:"🐘",num:"R19",cercles:2,chef:"Douentza",desc:"Région de transition Sahel-Sahara"},
+  {id:"bamako",nom:"District Bamako",emoji:"🏙️",num:"CAP",cercles:6,chef:"Bamako",desc:"Capitale du Mali, 6 communes"},
+];
+
+const TARIFS_BUS = {
+  "Bamako-Ségou":3500,"Bamako-Mopti":6000,"Bamako-Sikasso":5000,"Bamako-Kayes":7000,
+  "Bamako-Gao":12000,"Bamako-Tombouctou":15000,"Bamako-Koulikoro":1500,"Bamako-Kita":4000,
+  "Ségou-Mopti":4000,"Ségou-Bamako":3500,"Mopti-Gao":7000,"Kayes-Bamako":7000,
+};
+
+// Afficher les régions
+function afficherRegions(liste){
+  const grid = document.getElementById('regions-grid');
+  grid.innerHTML = liste.map(r=>`
+    <div class="region-card" onclick="ouvrirRegion('${r.id}')">
+      <div class="region-emoji">${r.emoji}</div>
+      <div class="region-info">
+        <div class="region-name">${r.nom}</div>
+        <div class="region-num">${r.num} · ${r.cercles} cercle${r.cercles>1?'s':''}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+afficherRegions(REGIONS);
+
+// Recherche
+function rechercherRegion(q){
+  if(!q){ afficherRegions(REGIONS); return; }
+  const r = REGIONS.filter(r=>r.nom.toLowerCase().includes(q.toLowerCase())||r.chef.toLowerCase().includes(q.toLowerCase()));
+  afficherRegions(r);
+}
+
+// Ouvrir région
+function ouvrirRegion(id){
+  const r = REGIONS.find(x=>x.id===id);
+  if(!r) return;
+  document.getElementById('region-title').textContent = r.emoji+' '+r.nom;
+  document.getElementById('region-header').style.background = 'linear-gradient(135deg,#14a34a,#16a34a)';
+  
+  let tarif = '';
+  const key = 'Bamako-'+r.nom;
+  if(TARIFS_BUS[key]) tarif = `<div class="info-row"><span class="info-key">🚌 Bus depuis Bamako</span><span class="info-val">${TARIFS_BUS[key].toLocaleString('fr-FR')} F</span></div>`;
+  
+  document.getElementById('region-body').innerHTML = `
+    <div class="info-card">
+      <div style="text-align:center;padding:10px 0;margin-bottom:10px">
+        <div style="font-size:52px">${r.emoji}</div>
+        <div style="font-size:20px;font-weight:900;margin-top:6px">${r.nom}</div>
+        <div style="font-size:12px;color:var(--sub);margin-top:4px">${r.desc}</div>
+      </div>
+      <div class="info-row"><span class="info-key">🏷️ Numéro</span><span class="info-val">${r.num}</span></div>
+      <div class="info-row"><span class="info-key">🏛️ Chef-lieu</span><span class="info-val">${r.chef}</span></div>
+      <div class="info-row"><span class="info-key">⭕ Cercles</span><span class="info-val">${r.cercles} cercle${r.cercles>1?'s':''}</span></div>
+      ${tarif}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button onclick="reserverBusRegion('${r.nom}')" style="padding:14px;background:var(--green);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">🚌 Réserver bus</button>
+      <button onclick="naviguerVers('${r.nom}')" style="padding:14px;background:var(--blue);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">🗺️ Naviguer</button>
+    </div>
+    <div style="margin-top:10px">
+      <button onclick="ouvrirMaliNav('${r.id}')" style="width:100%;padding:14px;background:#1a1f2e;border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">📱 Voir dans Mali Nav complet →</button>
+    </div>
+  `;
+  ouvrirPanel('region');
+}
+
+// Panels
+function ouvrirPanel(id){
+  document.getElementById('panel-'+id).classList.add('active');
+}
+function fermerPanel(id){
+  document.getElementById('panel-'+id).classList.remove('active');
+}
+
+// Réservation bus
+function reserverBus(){
+  const depart = document.getElementById('bus-depart').value;
+  const dest = document.getElementById('bus-dest').value;
+  const date = document.getElementById('bus-date').value;
+  const places = document.getElementById('bus-places').value;
+  if(!depart||!dest){ showToast('⚠️ Choisissez départ et destination'); return; }
+  if(depart===dest){ showToast('⚠️ Départ et destination identiques'); return; }
+  const key = depart+'-'+dest;
+  const prix = TARIFS_BUS[key]||TARIFS_BUS[dest+'-'+depart]||'variable';
+  const msg = encodeURIComponent('🚌 Réservation Mali Nav Lite\n\nDépart: '+depart+'\nDestination: '+dest+'\nDate: '+(date||'À confirmer')+'\nPlaces: '+places+'\nPrix estimé: '+(typeof prix==='number'?prix.toLocaleString('fr-FR')+' FCFA':prix)+'\n\nMerci de confirmer ma réservation.');
+  window.open('https://wa.me/+22396551630019?text='+msg,'_blank');
+}
+
+function reserverBusRegion(dest){
+  fermerPanel('region');
+  document.getElementById('bus-dest').value = dest;
+  ouvrirPanel('bus');
+}
+
+function naviguerVers(nom){
+  window.open('https://www.google.com/maps/search/'+encodeURIComponent(nom+', Mali'),'_blank');
+}
+
+function ouvrirMaliNav(id){
+  window.open('https://mikailou33-collab.github.io/mali-nav/region-'+id+'.html','_blank');
+}
+
+// SOS
+function alertSOS(){
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(pos=>{
+      const msg = encodeURIComponent('🆘 SOS URGENCE Mali Nav\nPosition: '+pos.coords.latitude.toFixed(4)+', '+pos.coords.longitude.toFixed(4)+'\nBesoin d\'aide immédiate!');
+      window.open('https://wa.me/+22396551630019?text='+msg,'_blank');
+    },()=>{
+      window.open('tel:15');
+    });
+  } else {
+    window.open('tel:15');
+  }
+}
+
+function appeler(num){
+  window.open('tel:'+num);
+}
+
+// Partager
+function partager(){
+  if(navigator.share){
+    navigator.share({title:'Mali Nav Lite',text:'Navigation simplifiée au Mali',url:window.location.href});
+  } else {
+    navigator.clipboard?.writeText(window.location.href);
+    showToast('✅ Lien copié !');
+  }
+}
+
+// Toast
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(()=>{ t.style.display='none'; }, 3000);
+}
+
+function showTab(tab){}
+</script>
+</body>
+</html>
