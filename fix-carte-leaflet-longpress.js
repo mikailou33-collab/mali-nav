@@ -1,0 +1,165 @@
+// fix-carte-leaflet-longpress.js
+// Remplace l'iframe OpenStreetMap par une vraie carte Leaflet interactive,
+// et ajoute la fonction d'appui long (Naviguer / Enregistrer / Partager).
+//
+// UTILISATION (dans CMD, depuis C:\Users\HP\Documents\mali-nav) :
+//   node fix-carte-leaflet-longpress.js
+
+const fs = require('fs');
+
+const NOM_FICHIER = 'district-bamako-v2.html';
+
+if (!fs.existsSync(NOM_FICHIER)) {
+  console.error('❌ Fichier introuvable: ' + NOM_FICHIER);
+  process.exit(1);
+}
+
+let contenu = fs.readFileSync(NOM_FICHIER, 'utf8');
+let etapesOk = 0;
+
+// ─── ÉTAPE 1 : Ajouter Leaflet (CSS + JS) dans le <head> ───
+const ancienHead = `<head>
+<meta charset="UTF-8">`;
+const nouveauHead = `<head>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<meta charset="UTF-8">`;
+
+if (contenu.includes(ancienHead)) {
+  contenu = contenu.replace(ancienHead, nouveauHead);
+  etapesOk++;
+  console.log('✅ Étape 1/3 : Leaflet ajouté dans le head');
+} else {
+  console.log('⚠️  Étape 1/3 : anchor non trouvé (head)');
+}
+
+// ─── ÉTAPE 2 : Remplacer l'iframe par une div pour Leaflet ───
+const ancienIframe = `<iframe src="https://www.openstreetmap.org/export/embed.html?bbox=-8.1,12.5,-7.8,12.7&layer=mapnik" style="width:100%;height:100%;border:none;min-height:400px;" allowfullscreen loading="lazy"></iframe>`;
+const nouvelleDiv = `<div id="leaflet-map" style="width:100%;height:100%;min-height:400px;"></div>`;
+
+if (contenu.includes(ancienIframe)) {
+  contenu = contenu.replace(ancienIframe, nouvelleDiv);
+  etapesOk++;
+  console.log('✅ Étape 2/3 : iframe remplacé par la carte Leaflet');
+} else {
+  console.log('⚠️  Étape 2/3 : anchor non trouvé (iframe)');
+}
+
+// ─── ÉTAPE 3 : Ajouter le script Leaflet + appui long avant </body> ───
+const ancienneFin = `</script>
+</body>
+</html>`;
+
+const nouveauScript = `</script>
+
+<script>
+// ── CARTE LEAFLET + APPUI LONG ──
+var maliNavMap = null;
+var longPressTimer = null;
+var longPressMenu = null;
+
+function initLeafletMap(){
+  if(typeof L === 'undefined'){ setTimeout(initLeafletMap, 300); return; }
+  var el = document.getElementById('leaflet-map');
+  if(!el) return;
+  maliNavMap = L.map('leaflet-map', {zoomControl: true}).setView([12.65, -8.0], 13);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19,
+    subdomains: 'abcd',
+    attribution: '&copy; OpenStreetMap &copy; CARTO'
+  }).addTo(maliNavMap);
+
+  // Appui long (mobile) : touchstart + timer
+  maliNavMap.on('mousedown', function(e){ startLongPress(e.latlng, e.originalEvent); });
+  maliNavMap.on('mouseup', cancelLongPress);
+  maliNavMap.on('drag', cancelLongPress);
+
+  // Clic droit (pratique pour tester sur PC)
+  maliNavMap.on('contextmenu', function(e){
+    L.DomEvent.preventDefault(e.originalEvent);
+    showLongPressMenu(e.latlng, e.originalEvent);
+  });
+}
+
+function startLongPress(latlng, originalEvent){
+  cancelLongPress();
+  longPressTimer = setTimeout(function(){
+    showLongPressMenu(latlng, originalEvent);
+  }, 550);
+}
+function cancelLongPress(){
+  if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer = null; }
+}
+
+function showLongPressMenu(latlng, originalEvent){
+  closeLongPressMenu();
+  var x = (originalEvent && originalEvent.clientX) ? originalEvent.clientX : window.innerWidth/2;
+  var y = (originalEvent && originalEvent.clientY) ? originalEvent.clientY : window.innerHeight/2;
+
+  var menu = document.createElement('div');
+  menu.id = 'long-press-menu';
+  menu.style.cssText = 'position:fixed;z-index:900;left:'+Math.min(x,window.innerWidth-190)+'px;top:'+Math.min(y,window.innerHeight-170)+'px;background:white;border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.35);overflow:hidden;min-width:170px;font-family:inherit';
+  menu.innerHTML =
+    '<div style="padding:9px 14px;font-size:11px;font-weight:800;color:#6b7280;border-bottom:1px solid #e4e7ec">📍 '+latlng.lat.toFixed(5)+', '+latlng.lng.toFixed(5)+'</div>'
+    +'<div class="lpm-item" style="padding:12px 14px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px" onclick="lpmNaviguer('+latlng.lat+','+latlng.lng+')">🗺️ Naviguer</div>'
+    +'<div class="lpm-item" style="padding:12px 14px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;border-top:1px solid #e4e7ec" onclick="lpmEnregistrer('+latlng.lat+','+latlng.lng+')">⭐ Enregistrer</div>'
+    +'<div class="lpm-item" style="padding:12px 14px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;border-top:1px solid #e4e7ec" onclick="lpmPartager('+latlng.lat+','+latlng.lng+')">📤 Partager</div>';
+  document.body.appendChild(menu);
+  longPressMenu = menu;
+
+  setTimeout(function(){
+    document.addEventListener('click', closeLongPressMenuOnce);
+  }, 50);
+}
+function closeLongPressMenuOnce(ev){
+  if(longPressMenu && !longPressMenu.contains(ev.target)){
+    closeLongPressMenu();
+  }
+}
+function closeLongPressMenu(){
+  if(longPressMenu){ longPressMenu.remove(); longPressMenu = null; }
+  document.removeEventListener('click', closeLongPressMenuOnce);
+}
+
+function lpmNaviguer(lat,lng){
+  window.open('https://maps.google.com/maps?daddr='+lat+','+lng+'&dirflg=d','_blank');
+  closeLongPressMenu();
+}
+function lpmEnregistrer(lat,lng){
+  try{
+    var favoris = JSON.parse(localStorage.getItem('maliNavFavoris') || '[]');
+    favoris.push({lat: lat, lng: lng, date: new Date().toISOString()});
+    localStorage.setItem('maliNavFavoris', JSON.stringify(favoris));
+    showToast('⭐ Position enregistrée !');
+  }catch(e){
+    showToast('⚠️ Impossible d\\'enregistrer');
+  }
+  closeLongPressMenu();
+}
+function lpmPartager(lat,lng){
+  var msg = '📍 Position sur Mali Nav\\nhttps://maps.google.com/?q='+lat+','+lng;
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+  closeLongPressMenu();
+}
+
+setTimeout(initLeafletMap, 300);
+</script>
+</body>
+</html>`;
+
+if (contenu.includes(ancienneFin)) {
+  contenu = contenu.replace(ancienneFin, nouveauScript);
+  etapesOk++;
+  console.log('✅ Étape 3/3 : script carte + appui long ajouté');
+} else {
+  console.log('⚠️  Étape 3/3 : anchor non trouvé (fin de fichier)');
+}
+
+if (etapesOk === 3) {
+  fs.writeFileSync(NOM_FICHIER, contenu, 'utf8');
+  console.log('\\n🎉 3/3 étapes réussies. Fichier sauvegardé.');
+  console.log('Prochaine étape : git add, commit, push.');
+} else {
+  console.log('\\n⚠️  Seulement ' + etapesOk + '/3 étapes réussies — rien n\\'a été sauvegardé pour éviter un fichier à moitié modifié.');
+  console.log('Copie-moi le contenu du fichier si besoin, on ajustera le script.');
+}

@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Région de Nioro — Mali</title>
@@ -106,7 +108,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
   <!-- CARTE -->
   <div class="panel active" id="panel-carte">
     <div class="map-wrap">
-      <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=-10.0,13.5,-7.5,16.0&layer=mapnik" style="width:100%;height:100%;border:none;min-height:400px;" allowfullscreen loading="lazy"></iframe>
+      <div id="leaflet-map" style="width:100%;height:100%;min-height:400px;"></div>
       <div style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,0.95);border-radius:10px;padding:6px 10px;font-size:9px;font-weight:800;color:#444;box-shadow:var(--shadow)">🏔️ 443km de Bamako</div>
     </div>
   </div>
@@ -513,6 +515,98 @@ function annulerBilletReg(){
   var msg=encodeURIComponent('❌ Annulation Mali Nav\n\nCode: '+c.value.trim()+'\n\nJe souhaite annuler ma réservation.\nMerci de traiter selon la politique d\'annulation.');
   window.open('https://wa.me/+22396551630019?text='+msg,'_blank');
 }
+</script>
+
+<script>
+// CARTE LEAFLET + APPUI LONG
+var maliNavMap = null;
+var longPressTimer = null;
+var longPressMenu = null;
+
+function initLeafletMap(){
+  if(typeof L === "undefined"){ setTimeout(initLeafletMap, 300); return; }
+  var el = document.getElementById("leaflet-map");
+  if(!el) return;
+  maliNavMap = L.map("leaflet-map", {zoomControl: true}).setView([14.75, -8.75], 9);
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+    maxZoom: 19,
+    subdomains: "abcd",
+    attribution: "OpenStreetMap CARTO"
+  }).addTo(maliNavMap);
+
+  maliNavMap.on("mousedown", function(e){ startLongPress(e.latlng, e.originalEvent); });
+  maliNavMap.on("mouseup", cancelLongPress);
+  maliNavMap.on("drag", cancelLongPress);
+
+  maliNavMap.on("contextmenu", function(e){
+    L.DomEvent.preventDefault(e.originalEvent);
+    showLongPressMenu(e.latlng, e.originalEvent);
+  });
+}
+
+function startLongPress(latlng, originalEvent){
+  cancelLongPress();
+  longPressTimer = setTimeout(function(){
+    showLongPressMenu(latlng, originalEvent);
+  }, 550);
+}
+function cancelLongPress(){
+  if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer = null; }
+}
+
+function showLongPressMenu(latlng, originalEvent){
+  closeLongPressMenu();
+  var x = (originalEvent && originalEvent.clientX) ? originalEvent.clientX : window.innerWidth/2;
+  var y = (originalEvent && originalEvent.clientY) ? originalEvent.clientY : window.innerHeight/2;
+
+  var menu = document.createElement("div");
+  menu.id = "long-press-menu";
+  menu.style.cssText = "position:fixed;z-index:900;left:"+Math.min(x,window.innerWidth-190)+"px;top:"+Math.min(y,window.innerHeight-170)+"px;background:white;border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.35);overflow:hidden;min-width:170px;font-family:inherit";
+  var qq = String.fromCharCode(34);
+  menu.innerHTML =
+    "<div style=" + qq + "padding:9px 14px;font-size:11px;font-weight:800;color:#6b7280;border-bottom:1px solid #e4e7ec" + qq + ">" + latlng.lat.toFixed(5) + ", " + latlng.lng.toFixed(5) + "</div>"
+    + "<div style=" + qq + "padding:12px 14px;font-size:13px;font-weight:700;cursor:pointer" + qq + " onclick=" + qq + "lpmNaviguer(" + latlng.lat + "," + latlng.lng + ")" + qq + ">Naviguer</div>"
+    + "<div style=" + qq + "padding:12px 14px;font-size:13px;font-weight:700;cursor:pointer;border-top:1px solid #e4e7ec" + qq + " onclick=" + qq + "lpmEnregistrer(" + latlng.lat + "," + latlng.lng + ")" + qq + ">Enregistrer</div>"
+    + "<div style=" + qq + "padding:12px 14px;font-size:13px;font-weight:700;cursor:pointer;border-top:1px solid #e4e7ec" + qq + " onclick=" + qq + "lpmPartager(" + latlng.lat + "," + latlng.lng + ")" + qq + ">Partager</div>";
+  document.body.appendChild(menu);
+  longPressMenu = menu;
+
+  setTimeout(function(){
+    document.addEventListener("click", closeLongPressMenuOnce);
+  }, 50);
+}
+function closeLongPressMenuOnce(ev){
+  if(longPressMenu && !longPressMenu.contains(ev.target)){
+    closeLongPressMenu();
+  }
+}
+function closeLongPressMenu(){
+  if(longPressMenu){ longPressMenu.remove(); longPressMenu = null; }
+  document.removeEventListener("click", closeLongPressMenuOnce);
+}
+
+function lpmNaviguer(lat,lng){
+  window.open("https://maps.google.com/maps?daddr="+lat+","+lng+"&dirflg=d","_blank");
+  closeLongPressMenu();
+}
+function lpmEnregistrer(lat,lng){
+  try{
+    var favoris = JSON.parse(localStorage.getItem("maliNavFavoris") || "[]");
+    favoris.push({lat: lat, lng: lng, date: new Date().toISOString()});
+    localStorage.setItem("maliNavFavoris", JSON.stringify(favoris));
+    showToast("Position enregistree !");
+  }catch(e){
+    showToast("Erreur : impossible d enregistrer");
+  }
+  closeLongPressMenu();
+}
+function lpmPartager(lat,lng){
+  var msg = "Position sur Mali Nav\nhttps://maps.google.com/?q="+lat+","+lng;
+  window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank");
+  closeLongPressMenu();
+}
+
+setTimeout(initLeafletMap, 300);
 </script>
 </body>
 </html>
