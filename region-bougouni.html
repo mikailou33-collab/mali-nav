@@ -336,7 +336,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
         <div id="m-heure-choisie" style="text-align:center;font-size:12px;font-weight:700;color:#1d4ed8;margin-top:8px;display:none">✅ Départ: <span id="m-heure-val"></span> — Heure fixée par compagnie</div>
       </div>
 
-      <label class="m-label">🪑 Choisir votre place</label>
+      <label class="m-label" id="lbl-sieges">🪑 Choisir votre place</label>
       <div style="background:#f8fafc;border-radius:12px;padding:10px 14px;border:1px solid #e4e7ec;margin-bottom:4px">
         <div style="text-align:center;margin-bottom:8px">
           <span style="background:#374151;color:white;padding:4px 16px;border-radius:8px;font-size:11px;font-weight:700">👨‍✈️ CHAUFFEUR</span>
@@ -439,7 +439,7 @@ function setComp(nom,btnId){
   majModal();
 }
 var mComp='';
-var mBillet='simple',mPass=1,mPay='',mHeure='',mSiege=0;
+var mBillet='simple',mPass=1,mPay='',mHeure='',mSieges=[],dernierRef='';
 
 function remplirSelects(){
   var optsM=VM.map(function(v){return '<option value="'+v.n+'|'+v.f+'|'+v.p+'">'+v.f+' '+v.n+'</option>';}).join('');
@@ -454,49 +454,36 @@ function remplirSelects(){
 }
 
 function genererPlan(){
-  var grid=document.getElementById('plan-grid');
-  if(!grid) return;
-  grid.innerHTML='';
-  var occ=[];
-  for(var i=1;i<=44;i++){if(Math.random()<0.28&&i!==mSiege) occ.push(i);}
+  var grid=document.getElementById("plan-grid");if(!grid)return;
+  var lbl=document.getElementById("lbl-sieges");
+  if(lbl)lbl.textContent="🪑 Choisir "+mPass+" place"+(mPass>1?"s":"")+" ("+mSieges.length+"/"+mPass+")";
+  grid.innerHTML="";var occ=[];
+  for(var i=1;i<=44;i++){if(Math.random()<0.28&&mSieges.indexOf(i)===-1)occ.push(i);}
   var col=0;
   for(var s=1;s<=44;s++){
-    if(col===2){
-      var sp=document.createElement('div');
-      sp.style.background='transparent';
-      grid.appendChild(sp);
-    }
+    if(col===2){var sp=document.createElement("div");sp.style.background="transparent";grid.appendChild(sp);}
     var isOcc=occ.indexOf(s)>=0;
-    var btn=document.createElement('button');
-    btn.textContent=s;
-    if(isOcc){
-      btn.style.cssText='padding:8px 4px;border:none;border-radius:7px;font-size:11px;font-weight:800;cursor:not-allowed;font-family:inherit;color:white;background:#ef4444;opacity:0.7';
-      btn.disabled=true;
-    } else if(s===mSiege){
-      btn.style.cssText='padding:8px 4px;border:none;border-radius:7px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;color:#1a1f2e;background:#f5c400';
-    } else {
-      btn.style.cssText='padding:8px 4px;border:none;border-radius:7px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;color:white;background:#16a34a';
-    }
-    if(!isOcc){
-      (function(num,b){
-        b.onclick=function(){
-          mSiege=num;
-          // Mettre à jour couleurs sans régénérer
-          document.querySelectorAll('#plan-grid button').forEach(function(btn){
-            if(!btn.disabled){
-              var n=parseInt(btn.textContent);
-              btn.style.background=(n===mSiege)?'#f5c400':'#16a34a';
-              btn.style.color=(n===mSiege)?'#1a1f2e':'white';
-            }
-          });
-          var si=document.getElementById('siege-info');
-          if(si){si.style.display='block';si.textContent='✅ Place N°'+num+(num<=15?' — Avant':num<=30?' — Milieu':' — Arrière');}
-          majModal();
-        };
-      })(s,btn);
-    }
-    grid.appendChild(btn);
-    col=(col+1)%4;
+    var isSel=mSieges.indexOf(s)>=0;
+    var btn=document.createElement("button");btn.textContent=s;
+    if(isOcc){btn.style.cssText="padding:8px 4px;border:none;border-radius:7px;font-size:11px;font-weight:800;cursor:not-allowed;font-family:inherit;color:white;background:#ef4444;opacity:0.7";btn.disabled=true;}
+    else if(isSel){btn.style.cssText="padding:8px 4px;border:none;border-radius:7px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;color:#1a1f2e;background:#f5c400";}
+    else{btn.style.cssText="padding:8px 4px;border:none;border-radius:7px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;color:white;background:#16a34a";}
+    if(!isOcc){(function(num,b){b.onclick=function(){
+      var idx=mSieges.indexOf(num);
+      if(idx>=0){ mSieges.splice(idx,1); }
+      else{
+        if(mSieges.length>=mPass){ showToast("⚠️ Vous avez deja choisi "+mPass+" place(s). Augmentez le nombre de passagers pour en ajouter."); return; }
+        mSieges.push(num);
+      }
+      genererPlan();
+      var si=document.getElementById("siege-info");
+      if(si){
+        if(mSieges.length>0){ si.style.display="block"; si.textContent="✅ Place(s) N°"+mSieges.slice().sort(function(a,b){return a-b;}).join(", N°"); }
+        else{ si.style.display="none"; }
+      }
+      majModal();
+    };})(s,btn);}
+    grid.appendChild(btn);col=(col+1)%4;
   }
 }
 
@@ -505,7 +492,7 @@ function ouvrirReservation(){
   document.getElementById('m-date').min=t;
   document.getElementById('m-date').value=t;
   document.getElementById('m-date-retour').min=t;
-  mBillet='simple';mPass=1;mPay='';mHeure='';mSiege=0;mComp='';
+  mBillet='simple';mPass=1;mPay='';mHeure='';mSieges=[];mComp='';
   document.getElementById('mb-simple').className='m-btn sel';
   document.getElementById('mb-retour').className='m-btn';
   document.getElementById('m-retour-box').style.display='none';
@@ -530,7 +517,7 @@ function setMBillet(b){
   document.getElementById('m-retour-box').style.display=b==='retour'?'block':'none';
   majModal();
 }
-function chgMPass(n){mPass=Math.max(1,Math.min(10,mPass+n));document.getElementById('m-nb-pass').textContent=mPass;majModal();}
+function chgMPass(n){mPass=Math.max(1,Math.min(10,mPass+n));document.getElementById("m-nb-pass").textContent=mPass;if(mSieges.length>mPass){mSieges=mSieges.slice(0,mPass);}genererPlan();majModal();}
 function setMPay(p){
   mPay=p;
   ['orange','wave','moov','card'].forEach(function(x){document.getElementById('mp-'+x).className='m-pay-btn'+(p===x?' sel':'');});
@@ -559,7 +546,7 @@ function majModal(){
   var arr=(document.getElementById('m-arrivee').value||'').split('|')[0];
   var date=document.getElementById('m-date').value;
   var nom=document.getElementById('m-nom').value.trim();
-  var ok=dep&&arr&&dep!==arr&&date&&nom&&mPay&&mHeure&&mSiege>0;
+  var ok=dep&&arr&&dep!==arr&&date&&nom&&mPay&&mHeure&&mSieges.length===mPass&&mPass>0;
   if(dep&&arr&&dep!==arr){
     var prix=getPrix(dep,arr);var frais=getFrais(dep,arr);
     document.getElementById('m-prix-lbl').textContent=(prix+frais).toLocaleString()+' FCFA';
@@ -567,7 +554,7 @@ function majModal(){
       document.getElementById('m-recap').style.display='block';
       var mc=document.getElementById('mr-comp');if(mc)mc.textContent=mComp?mComp:'À choisir';
       document.getElementById('mr-trajet').textContent=dep+' → '+arr;
-      if(document.getElementById('mr-siege')) document.getElementById('mr-siege').textContent=mSiege?'N°'+mSiege:'À choisir';
+      if(document.getElementById('mr-siege')) document.getElementById("mr-siege").textContent=mSieges.length?("N°"+mSieges.slice().sort(function(a,b){return a-b;}).join(", N°")):"À choisir";
       document.getElementById('mr-heure').textContent=mHeure?'⏰ '+mHeure:' À choisir';
       document.getElementById('mr-billet').textContent=mBillet==='retour'?'🔄 Aller-Retour':'🎫 Aller simple';
       var dr=document.getElementById('m-date-retour');
@@ -583,33 +570,55 @@ function majModal(){
   document.getElementById('btn-sms').className=ok?'btn-confirm on':'btn-confirm off';
 }
 function getMsg(){
-  var dep=(document.getElementById('m-depart').value||'').split('|')[0];
-  var arr=(document.getElementById('m-arrivee').value||'').split('|')[0];
-  var date=document.getElementById('m-date').value;
-  var nom=document.getElementById('m-nom').value;
-  var tel=document.getElementById('m-tel').value;
+  var dep=(document.getElementById("m-depart").value||"").split("|")[0];
+  var arr=(document.getElementById("m-arrivee").value||"").split("|")[0];
+  var date=document.getElementById("m-date").value;
+  var nom=document.getElementById("m-nom").value;var tel=document.getElementById("m-tel").value;
   var prix=getPrix(dep,arr);var frais=getFrais(dep,arr);
-  var ref='MT-'+Math.random().toString(36).substr(2,6).toUpperCase();
-  var dr=document.getElementById('m-date-retour');
-  var ret=mBillet==='retour'&&dr&&dr.value?'\n📅 Retour: '+dr.value:'';
-  return '🎫 BILLET MALITAXI\n━━━━━━━━━━━━━━\n🔖 Réf: '+ref+'\n🚌 '+mComp+'\n🗺️ '+dep+' → '+arr+'\n⏰ Départ: '+mHeure+' (fixé par compagnie)\n🪑 Place N°'+mSiege+'\n🎫 '+(mBillet==='retour'?'Aller-Retour':'Aller Simple')+'\n📅 Aller: '+date+ret+'\n👤 '+nom+(tel?' • '+tel:'')+' | 👥 '+mPass+' passager(s)\n💳 Paiement: '+mPay+'\n💰 Frais service: '+frais+' FCFA\n💰 TOTAL: '+(prix+frais).toLocaleString()+' FCFA\n━━━━━━━━━━━━━━\n✅ Avant 24h = 20% retenu / 80% remboursé\n⚠️ Après 24h = 40% retenu / 60% remboursé\n❌ No-show = 0% + pénalité 10%\n\n🇲🇱 Bon voyage ! Malinav';
+  var ref="MT-"+Math.random().toString(36).substr(2,6).toUpperCase();
+  dernierRef=ref;
+  var dr=document.getElementById("m-date-retour");
+  var ret=mBillet==="retour"&&dr&&dr.value?"\n📅 Retour: "+dr.value:"";
+  var placesTxt=mSieges.slice().sort(function(a,b){return a-b;}).map(function(s){return "N"+String.fromCharCode(176)+s;}).join(", ");
+  var compTxt=(typeof mComp!=="undefined"&&mComp)?mComp:"Non precisee";
+  return "🎫 BILLET MALINAV\n━━━━━━━━━━━━━━\n🔖 Ref: "+ref+"\n🚌 "+compTxt+"\n🗺 "+dep+" → "+arr+"\n⏰ Depart: "+mHeure+"\n🪑 Place(s) "+placesTxt+"\n🎫 "+(mBillet==="retour"?"Aller-Retour":"Aller Simple")+"\n📅 "+date+ret+"\n👤 "+nom+(tel?" • "+tel:"")+" | 👥 "+mPass+"p\n💳 "+mPay+"\n💰 Billet: "+prix.toLocaleString()+" FCFA\n💰 Frais service: "+frais+" FCFA (non remboursable)\n💰 TOTAL: "+(prix+frais).toLocaleString()+" FCFA\n━━━━━━━━━━━━━━\n📋 Politique d annulation:\n✅ Plus de 24h avant = 90% rembourse\n⚠️ Entre 24h et 3h avant = 50% rembourse\n❌ Moins de 3h / absence = 0% rembourse\n💳 Paiement en ligne OBLIGATOIRE\n\n🇲🇱 Bon voyage ! Malinav";
+}
+function afficherPanneauQR(ref,msg){
+  var ancien=document.getElementById("qr-panel");if(ancien)ancien.remove();
+  var url="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data="+encodeURIComponent(ref);
+  var panel=document.createElement("div");
+  panel.id="qr-panel";
+  panel.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:950;display:flex;align-items:center;justify-content:center;padding:20px";
+  var qc=String.fromCharCode(34);
+  panel.innerHTML=
+    "<div style="+qc+"background:white;border-radius:18px;padding:22px;max-width:320px;width:100%;text-align:center"+qc+">"
+    +"<div style="+qc+"font-size:15px;font-weight:900;margin-bottom:12px"+qc+">🎫 Votre billet</div>"
+    +"<img src="+qc+url+qc+" style="+qc+"width:180px;height:180px;margin:0 auto 12px"+qc+"/>"
+    +"<div style="+qc+"font-size:11px;color:#6b7280;font-weight:700;margin-bottom:16px"+qc+">Reference : "+ref+"</div>"
+    +"<button onclick="+qc+"document.getElementById('qr-panel').remove()"+qc+" style="+qc+"width:100%;padding:12px;background:#1d4ed8;color:white;border:none;border-radius:12px;font-weight:800;font-family:inherit;cursor:pointer"+qc+">Fermer</button></div>";
+  document.body.appendChild(panel);
 }
 function confirmerWA(){
-  var dep=(document.getElementById('m-depart').value||'').split('|')[0];
-  var arr=(document.getElementById('m-arrivee').value||'').split('|')[0];
-  if(!mComp){showToast('⚠️ Choisissez une compagnie !');return;}
-  if(!dep||!arr||dep===arr||!document.getElementById('m-date').value||!document.getElementById('m-nom').value.trim()||!mPay||!mHeure||!mSiege){showToast('⚠️ Complétez tous les champs !');return;}
-  window.open('https://wa.me/?text='+encodeURIComponent(getMsg()),'_blank');
-  fermerModal();showToast('✅ Réservation envoyée sur WhatsApp !');
+  var dep=(document.getElementById("m-depart").value||"").split("|")[0];
+  var arr=(document.getElementById("m-arrivee").value||"").split("|")[0];
+  if(!dep||!arr||dep===arr||!document.getElementById("m-date").value||!document.getElementById("m-nom").value.trim()||!mPay||!mHeure||mSieges.length!==mPass){showToast("⚠️ Completez tous les champs et choisissez vos places !");return;}
+  var msg=getMsg();
+  window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank");
+  fermerModal();showToast("✅ Reservation envoyee !");
+  afficherPanneauQR(dernierRef,msg);
 }
 function confirmerSMS(){
-  var dep=(document.getElementById('m-depart').value||'').split('|')[0];
-  var arr=(document.getElementById('m-arrivee').value||'').split('|')[0];
-  if(!mComp){showToast('⚠️ Choisissez une compagnie !');return;}
-  if(!dep||!arr||dep===arr||!document.getElementById('m-date').value||!document.getElementById('m-nom').value.trim()||!mPay||!mHeure||!mSiege){showToast('⚠️ Complétez tous les champs !');return;}
-  window.location.href='sms:?body='+encodeURIComponent(getMsg());
-  fermerModal();showToast('✅ Réservation envoyée par SMS !');
+  var dep=(document.getElementById("m-depart").value||"").split("|")[0];
+  var arr=(document.getElementById("m-arrivee").value||"").split("|")[0];
+  if(!dep||!arr||dep===arr||!document.getElementById("m-date").value||!document.getElementById("m-nom").value.trim()||!mPay||!mHeure||mSieges.length!==mPass){showToast("⚠️ Completez tous les champs et choisissez vos places !");return;}
+  var msg=getMsg();
+  window.location.href="sms:?body="+encodeURIComponent(msg);
+  fermerModal();showToast("✅ Reservation envoyee !");
+  afficherPanneauQR(dernierRef,msg);
 }
+
+
+
 
 
 function annulerReservation(){
