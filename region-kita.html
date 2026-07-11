@@ -301,9 +301,9 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
       </div>
       <div class="pol-box">
         <div class="pol-t">📋 Politique d'annulation</div>
-        <div class="pol-r">✅ Avant 24h → 20% retenu / 80% remboursé</div>
-        <div class="pol-r">⚠️ Après 24h → 40% retenu / 60% remboursé</div>
-        <div class="pol-r">❌ No-show → 0% + pénalité 10% prochaine résa</div>
+        <div class="pol-r">✅ Plus de 24h avant → 90% remboursé</div>
+        <div class="pol-r">⚠️ Entre 24h et 3h avant → 50% remboursé</div>
+        <div class="pol-r">❌ Moins de 3h avant / absence → 0% remboursé</div>
         <div class="pol-r" style="font-weight:700;color:#92400e">💳 Paiement en ligne OBLIGATOIRE</div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
@@ -654,6 +654,12 @@ function lpmPartager(lat,lng){
 }
 
 setTimeout(initLeafletMap, 300);
+function annulerReservation(){
+  var ref=prompt('Numéro de réf (MT-XXXXXX):');
+  if(!ref||ref.trim().length<4){showToast('⚠️ Réf invalide !');return;}
+  var msg='❌ ANNULATION MALINAV\n━━━━━━━━━━━━━━\n🔖 Réf: '+ref.trim().toUpperCase()+'\n📅 Le: '+new Date().toLocaleDateString('fr-FR')+'\n━━━━━━━━━━━━━━\n✅ Plus de 24h avant = 90% remboursé\n⚠️ Entre 24h et 3h avant = 50% remboursé\n❌ Moins de 3h avant = 0% remboursé\n🇲🇱 MaliNav — Service client';
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
 </script>
 </body>
 </html>
