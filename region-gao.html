@@ -489,8 +489,12 @@ function majModal(){
       document.getElementById('mr-total').textContent=(prix+frais).toLocaleString()+' FCFA';
     }
   } else {document.getElementById('m-recap').style.display='none';document.getElementById('m-prix-lbl').textContent='';}
-  document.getElementById('btn-wa').className=ok?'btn-confirm on':'btn-confirm off';
-  document.getElementById('btn-sms').className=ok?'btn-confirm on':'btn-confirm off';
+  document.getElementById("btn-wa").className=ok?"btn-confirm on":"btn-confirm off";
+  document.getElementById("btn-wa").style.background=ok?"linear-gradient(135deg,#14a34a,#16a34a)":"#f3f4f6";
+  document.getElementById("btn-wa").style.color=ok?"white":"#9ca3af";
+  document.getElementById("btn-sms").className=ok?"btn-confirm on":"btn-confirm off";
+  document.getElementById("btn-sms").style.background=ok?"linear-gradient(135deg,#14a34a,#16a34a)":"#f3f4f6";
+  document.getElementById("btn-sms").style.color=ok?"white":"#9ca3af";
 }
 function getMsg(){
   var dep=(document.getElementById("m-depart").value||"").split("|")[0];
