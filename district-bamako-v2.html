@@ -381,7 +381,8 @@ function remplirSelects(){
     var sel=document.getElementById(id);if(!sel)return;
     var old=sel.value;
     var optAutreFinal=(id==="m-arrivee")?optAutre:"";
-    sel.innerHTML='<option value="">-- Choisir --</option><optgroup label="🇲🇱 Mali">'+optsM+optAutreFinal+'</optgroup><optgroup label="🌍 Afrique Ouest">'+optsAO+'</optgroup>';
+    var optgroupAO=(id==="m-arrivee")?('<optgroup label="🌍 Afrique Ouest">'+optsAO+'</optgroup>'):'';
+    sel.innerHTML='<option value="">-- Choisir --</option><optgroup label="🇲🇱 Mali">'+optsM+optAutreFinal+'</optgroup>'+optgroupAO;
     if(old)sel.value=old;
     sel.onchange=function(){
       var champTexte=document.getElementById(id+"-autre");
