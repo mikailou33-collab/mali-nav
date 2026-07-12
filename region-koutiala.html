@@ -302,8 +302,11 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
       <div id="comp-choisie" style="display:none;text-align:center;font-size:12px;font-weight:700;color:#1d4ed8;margin-bottom:4px;padding:7px;background:#eff6ff;border-radius:8px">✅ Compagnie: <span id="comp-val"></span></div>
 <label class="m-label">📍 Ville de départ</label>
       <select id="m-depart" onchange="majModal()" class="m-select"><option value="">-- Choisir --</option></select>
+      <input type="text" id="m-depart-autre" class="m-input" placeholder="Nom du village" style="display:none;margin-top:6px" oninput="majModal()">
       <label class="m-label">🏁 Ville d'arrivée</label>
       <select id="m-arrivee" onchange="majModal()" class="m-select"><option value="">-- Choisir --</option></select>
+      <input type="text" id="m-arrivee-autre" class="m-input" placeholder="Nom du village (sur la route goudronnée)" style="display:none;margin-top:6px" autocomplete="off" oninput="chercherVillage(this,'sugg-arrivee')" onfocus="chercherVillage(this,'sugg-arrivee')">
+      <div id="sugg-arrivee" style="display:none;background:white;border:1px solid var(--border);border-radius:10px;margin-top:4px;overflow:hidden;max-height:180px;overflow-y:auto"></div>
       <label class="m-label">📅 Date de voyage (aller)</label>
       <input type="date" id="m-date" class="m-input" onchange="majModal()">
       <div id="m-retour-box" style="display:none;margin-top:8px">
@@ -360,6 +363,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
         <button class="m-pay-btn" id="mp-moov" onclick="setMPay('moov')"><div style="font-size:20px">🟡</div><div style="font-size:11px;font-weight:800">Moov Money</div></button>
         <button class="m-pay-btn" id="mp-card" onclick="setMPay('card')"><div style="font-size:20px">💳</div><div style="font-size:11px;font-weight:800">Carte bancaire</div></button>
       </div>
+      <div id="note-international" style="display:none;background:#fef3c7;border:1px solid #fbbf24;border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:12px;font-weight:700;color:#92400e">⚠️ Trajet international — disponibilité selon la compagnie. Confirmez par téléphone avant de valider.</div>
       <div class="m-recap" id="m-recap" style="display:none">
         <div class="m-recap-t">📋 Récapitulatif</div>
         <div class="m-rrow"><span style="color:var(--sub);font-weight:600">🚌 Compagnie</span><span style="font-weight:700" id="mr-comp">—</span></div>
@@ -435,14 +439,24 @@ var mComp='';
 var mBillet='simple',mPass=1,mPay='',mHeure='',mSieges=[],dernierRef='';
 
 function remplirSelects(){
-  var optsM=VM.map(function(v){return '<option value="'+v.n+'|'+v.f+'|'+v.p+'">'+v.f+' '+v.n+'</option>';}).join('');
-  var optsAO=VAO.map(function(v){return '<option value="'+v.n+'|'+v.f+'|'+v.p+'">'+v.f+' '+v.n+' ('+v.p+')</option>';}).join('');
-  ['m-depart','m-arrivee'].forEach(function(id){
-    var sel=document.getElementById(id);
-    if(!sel) return;
+  var optsM=VM.map(function(v){return "<option value="+String.fromCharCode(34)+v.n+"|"+v.f+"|"+v.p+String.fromCharCode(34)+">"+v.f+" "+v.n+"</option>";}).join("");
+  var optsAO=VAO.map(function(v){return "<option value="+String.fromCharCode(34)+v.n+"|"+v.f+"|"+v.p+String.fromCharCode(34)+">"+v.f+" "+v.n+" ("+v.p+")</option>";}).join("");
+  var optAutre="<option value="+String.fromCharCode(34)+"AUTRE|📍|Mali"+String.fromCharCode(34)+">📍 Autre destination (préciser)</option>";
+  ["m-depart","m-arrivee"].forEach(function(id){
+    var sel=document.getElementById(id);if(!sel)return;
     var old=sel.value;
-    sel.innerHTML='<option value="">-- Choisir --</option><optgroup label="🇲🇱 Mali">'+optsM+'</optgroup><optgroup label="🌍 Afrique Ouest">'+optsAO+'</optgroup>';
-    if(old) sel.value=old;
+    var optAutreFinal=(id==="m-arrivee")?optAutre:"";
+    var optgroupAO=(id==="m-arrivee")?("<optgroup label="+String.fromCharCode(34)+"🌍 Afrique Ouest"+String.fromCharCode(34)+">"+optsAO+"</optgroup>"):"";
+    sel.innerHTML="<option value="+String.fromCharCode(34)+String.fromCharCode(34)+">-- Choisir --</option><optgroup label="+String.fromCharCode(34)+"🇲🇱 Mali"+String.fromCharCode(34)+">"+optsM+optAutreFinal+"</optgroup>"+optgroupAO;
+    if(old)sel.value=old;
+    sel.onchange=function(){
+      var champTexte=document.getElementById(id+"-autre");
+      if(champTexte) champTexte.style.display=(sel.value.indexOf("AUTRE")===0)?"block":"none";
+      var idSugg=(id==="m-depart")?"sugg-depart":"sugg-arrivee";
+      var champSugg=document.getElementById(idSugg);
+      if(champSugg && sel.value.indexOf("AUTRE")!==0) champSugg.style.display="none";
+      majModal();
+    };
   });
 }
 
@@ -535,8 +549,12 @@ function getPrix(d,a){
   return base*(mBillet==='retour'?2:1);
 }
 function majModal(){
-  var dep=(document.getElementById('m-depart').value||'').split('|')[0];
-  var arr=(document.getElementById('m-arrivee').value||'').split('|')[0];
+  var depBrut=(document.getElementById('m-depart').value||'').split('|')[0];
+  var arrBrut=(document.getElementById('m-arrivee').value||'').split('|')[0];
+  var depAutreEl=document.getElementById('m-depart-autre');
+  var arrAutreEl=document.getElementById('m-arrivee-autre');
+  var dep=(depBrut==='AUTRE')?(depAutreEl?depAutreEl.value.trim():''):depBrut;
+  var arr=(arrBrut==='AUTRE')?(arrAutreEl?arrAutreEl.value.trim():''):arrBrut;
   var date=document.getElementById('m-date').value;
   var nom=document.getElementById('m-nom').value.trim();
   var ok=dep&&arr&&dep!==arr&&date&&nom&&mPay&&mHeure&&mSieges.length===mPass&&mPass>0;
@@ -555,10 +573,10 @@ function majModal(){
       document.getElementById('mr-frais').textContent=frais+' FCFA '+(frais===FMALI?'🇲🇱':'🌍');
       document.getElementById('mr-total').textContent=(prix+frais).toLocaleString()+' FCFA';
     }
-  } else {
-    document.getElementById('m-recap').style.display='none';
-    document.getElementById('m-prix-lbl').textContent='';
-  }
+    var noteInter=document.getElementById("note-international");
+  var estInternational=(typeof VAO!=="undefined")&&(VAO.some(function(v){return v.n===arr;})||VAO.some(function(v){return v.n===dep;}));
+  if(noteInter) noteInter.style.display=estInternational?"block":"none";
+} else {document.getElementById('m-recap').style.display='none';document.getElementById('m-prix-lbl').textContent='';}
   document.getElementById("btn-wa").className=ok?"btn-confirm on":"btn-confirm off";
   document.getElementById("btn-wa").style.background=ok?"linear-gradient(135deg,#14a34a,#16a34a)":"#f3f4f6";
   document.getElementById("btn-wa").style.color=ok?"white":"#9ca3af";
@@ -798,6 +816,44 @@ function lpmPartager(lat,lng){
 }
 
 setTimeout(initLeafletMap, 300);
+</script>
+
+<script>
+var villageSuggTimer=null;
+function chercherVillage(input,idListe){
+  clearTimeout(villageSuggTimer);
+  var q=input.value.trim();
+  var liste=document.getElementById(idListe);
+  if(!liste) return;
+  if(q.length<3){ liste.style.display="none"; liste.innerHTML=""; return; }
+  villageSuggTimer=setTimeout(function(){
+    fetch("https://nominatim.openstreetmap.org/search?format=json&countrycodes=ml&limit=6&q="+encodeURIComponent(q))
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if(!data || !data.length){ liste.innerHTML="<div style='padding:10px;font-size:12px;color:#9ca3af'>Aucun village trouvé — tape le nom complet</div>"; liste.style.display="block"; return; }
+        var qq=String.fromCharCode(34);
+        liste.innerHTML=data.map(function(v){
+          var nomCourt=v.display_name.split(",")[0];
+          var nomSur=v.display_name.replace(/"/g,"");
+          return "<div style="+qq+"padding:10px 12px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:1px solid #f1f5f9"+qq+" onmousedown="+qq+"selectionnerVillage("+qq+idListe+qq+","+qq+nomSur+qq+")"+qq+">📍 "+nomCourt+"</div>";
+        }).join("");
+        liste.style.display="block";
+      })
+      .catch(function(){ liste.style.display="none"; });
+  },400);
+}
+function selectionnerVillage(idListe,nomVillage){
+  var idChamp=(idListe==="sugg-depart")?"m-depart-autre":"m-arrivee-autre";
+  var champ=document.getElementById(idChamp);
+  if(champ) champ.value=nomVillage.split(",")[0];
+  var liste=document.getElementById(idListe);
+  if(liste){ liste.style.display="none"; liste.innerHTML=""; }
+  majModal();
+}
+document.addEventListener("click",function(e){
+  if(e.target.id!=="m-depart-autre") { var s1=document.getElementById("sugg-depart"); if(s1) s1.style.display="none"; }
+  if(e.target.id!=="m-arrivee-autre") { var s2=document.getElementById("sugg-arrivee"); if(s2) s2.style.display="none"; }
+});
 </script>
 </body>
 </html>
