@@ -93,7 +93,10 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
 </style>
 </head>
 <body>
-<div class="map-container" style="position:relative;width:100%;height:100%;border-radius:12px;overflow:hidden"><div id="leaflet-map" style="width:100%;height:100%;min-height:400px;"></div></div>
+
+<div class="topbar">
+  <button class="tb-back" onclick="window.location.href='index.html'">←</button>
+  <div class="tb-title">🕌 Région de <span>Tombouctou</span></div>
   <div class="tb-badge">Région 6</div>
 </div>
 
@@ -108,9 +111,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
 
   <!-- CARTE -->
   <div class="panel active" id="panel-carte">
-    <div class="map-wrap">
-      <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=-4.5,16.0,2.5,25.0&layer=mapnik" style="width:100%;height:100%;border:none;min-height:400px;" allowfullscreen loading="lazy"></iframe>
-      <div style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,0.95);border-radius:10px;padding:6px 10px;font-size:9px;font-weight:800;color:#444;box-shadow:var(--shadow)">🕌 890km de Bamako</div>
+    <div class="map-wrap"><div id="leaflet-map" style="width:100%;height:100%;min-height:400px;"></div></div>
     </div>
   </div>
 
@@ -277,7 +278,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
         </div>
         <div id="m-heure-choisie" style="display:none;text-align:center;font-size:12px;font-weight:700;color:#1d4ed8;margin-top:8px">✅ Départ: <span id="m-heure-val"></span></div>
       </div>
-      <label class="m-label" id="lbl-sieges-1">🪑 Choisir votre place</label>
+      <label class="m-label" id="lbl-sieges">🪑 Choisir votre place</label>
       <div style="background:#f8fafc;border-radius:12px;padding:10px 14px;border:1px solid #e4e7ec;margin-bottom:4px">
         <div style="text-align:center;margin-bottom:8px"><span style="background:#374151;color:white;padding:4px 16px;border-radius:8px;font-size:11px;font-weight:700">👨‍✈️ CHAUFFEUR</span></div>
         <div style="display:flex;gap:10px;justify-content:center;margin-bottom:8px">
@@ -331,7 +332,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
       <!-- ANNULATION SIMPLE -->
       <div style="text-align:center;margin-top:14px;padding-top:12px;border-top:2px dashed #fde047">
         <div style="font-size:11px;color:var(--sub);margin-bottom:8px">Vous avez déjà réservé ?</div>
-        <button onclick="annulerReservation()" style="background:#fef2f2;color:#dc2626;border:2px solid #fecaca;border-radius:12px;padding:10px 20px;font-size:13px;font-weight:800;font-family:inherit;cursor:pointer;width:100%">❌ Annuler ma réservation</button>
+        <button onclick="annulerReservation()" style="background:#fef2f2;color:#dc2626;border:2px solid #fecaca;border-radius:12px;padding:10px 20px;font-size:13px;font-weight:800;font-family:inherit;cursor:pointer;width:100%"><input id="code-annul-reg" placeholder="Ex: BUS-ABC123" style="width:100%;padding:10px;border:2px solid #e4e7ec;border-radius:8px;font-family:inherit;font-size:13px;outline:none;margin-bottom:8px"/><button onclick="annulerBilletReg()" style="background:#dc2626;color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:800;font-family:inherit;cursor:pointer;width:100%">❌ Annuler mon billet</button>
       </div>
     </div>
   </div>
@@ -363,7 +364,13 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
   </div>
 </div>
 
-
+<nav class="bottom-nav">
+  <button class="nav-btn" onclick="ouvrirReservation()"><span class="nav-btn-icon">🎫</span><span class="nav-btn-label">Billet</span></button>
+  <button class="nav-btn" onclick="openNav()"><span class="nav-btn-icon">🧭</span><span class="nav-btn-label">Naviguer</span></button>
+  <button class="nav-btn nav-btn-mali" onclick="ouvrirMaliTaxi()"><span class="nav-btn-icon-mali">🚖</span><span class="nav-btn-label-mali">MaliTaxi</span></button>
+  <button class="nav-btn" onclick="callSOS()"><span class="nav-btn-icon">🆘</span><span class="nav-btn-label">SOS</span></button>
+  <button class="nav-btn" onclick="partager()"><span class="nav-btn-icon">↗️</span><span class="nav-btn-label">Partager</span></button>
+</nav>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -409,7 +416,7 @@ function remplirSelects(){
 }
 function genererPlan(){
   var grid=document.getElementById("plan-grid");if(!grid)return;
-  var lbl=document.getElementById("lbl-sieges-1");
+  var lbl=document.getElementById("lbl-sieges");
   if(lbl)lbl.textContent="🪑 Choisir "+mPass+" place"+(mPass>1?"s":"")+" ("+mSieges.length+"/"+mPass+")";
   grid.innerHTML="";var occ=[];
   for(var i=1;i<=44;i++){if(Math.random()<0.28&&mSieges.indexOf(i)===-1)occ.push(i);}
@@ -579,6 +586,15 @@ function copyPosition(){if(navigator.clipboard){navigator.clipboard.writeText('h
 function openGoogleMaps(){window.open('https://maps.google.com/?q=16.775,-3.009','_blank');closeShare();}
 var tt;
 function showToast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(function(){t.classList.remove('show');},2500);}
+</script>
+
+<script>
+function annulerBilletReg(){
+  var c=document.getElementById('code-annul-reg');
+  if(!c||!c.value.trim()){alert('Entrez votre code de réservation');return;}
+  var msg=encodeURIComponent('❌ Annulation Mali Nav\n\nCode: '+c.value.trim()+'\n\nJe souhaite annuler ma réservation.\nMerci de traiter selon la politique d\'annulation.');
+  window.open('https://wa.me/+22396551630019?text='+msg,'_blank');
+}
 </script>
 
 <script>
