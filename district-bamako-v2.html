@@ -376,7 +376,8 @@ function remplirSelects(){
   ['m-depart','m-arrivee'].forEach(function(id){
     var sel=document.getElementById(id);if(!sel)return;
     var old=sel.value;
-    sel.innerHTML='<option value="">-- Choisir --</option><optgroup label="🇲🇱 Mali">'+optsM+optAutre+'</optgroup><optgroup label="🌍 Afrique Ouest">'+optsAO+'</optgroup>';
+    var optAutreFinal=(id==="m-arrivee")?optAutre:"";
+    sel.innerHTML='<option value="">-- Choisir --</option><optgroup label="🇲🇱 Mali">'+optsM+optAutreFinal+'</optgroup><optgroup label="🌍 Afrique Ouest">'+optsAO+'</optgroup>';
     if(old)sel.value=old;
     sel.onchange=function(){
       var champTexte=document.getElementById(id+"-autre");
