@@ -402,12 +402,27 @@ function setComp(nom,btnId){
   var cv=document.getElementById('comp-val');if(cv)cv.textContent=nom;
   majModal();
 }
+var siegesOccupesReel = [];
+function chargerSiegesOccupes(){
+  return new Promise(function(resolve){
+    if(!window.db){ resolve(); return; }
+    window.db.ref("reservations_bus").once("value").then(function(snap){
+      var data = snap.val() || {};
+      var occ = [];
+      Object.keys(data).forEach(function(key){
+        var r = data[key];
+        if(r.statut !== "refused" && r.siege){ occ.push(r.siege); }
+      });
+      siegesOccupesReel = occ;
+      resolve();
+    }).catch(function(){ resolve(); });
+  });
+}
 function genererPlan(){
   var grid=document.getElementById("plan-grid");if(!grid)return;
   var lbl=document.getElementById("lbl-sieges");
   if(lbl)lbl.textContent="🪑 Choisir "+mPass+" place"+(mPass>1?"s":"")+" ("+mSieges.length+"/"+mPass+")";
-  grid.innerHTML="";var occ=[];
-  for(var i=1;i<=44;i++){if(Math.random()<0.28&&mSieges.indexOf(i)===-1)occ.push(i);}
+  grid.innerHTML="";var occ=siegesOccupesReel.filter(function(i){return mSieges.indexOf(i)===-1;});
   var col=0;
   for(var s=1;s<=44;s++){
     if(col===2){var sp=document.createElement("div");sp.style.background="transparent";grid.appendChild(sp);}
@@ -443,7 +458,7 @@ function selHeure(h,id){
   document.getElementById('m-heure-val').textContent=h;
   majModal();
 }
-function ouvrirReservation(){
+async function ouvrirReservation(){
   var t=new Date().toISOString().split('T')[0];
   document.getElementById('m-date').min=t;document.getElementById('m-date').value=t;
   document.getElementById('m-date-retour').min=t;
@@ -458,7 +473,9 @@ function ouvrirReservation(){
   var cd=document.getElementById('comp-choisie');if(cd)cd.style.display='none';
   var si=document.getElementById('siege-info');if(si)si.style.display='none';
   document.getElementById('m-recap').style.display='none';
-  remplirSelects();genererPlan();majModal();
+  remplirSelects();
+  await chargerSiegesOccupes();
+  genererPlan();majModal();
   document.getElementById('modal-resa').style.display='flex';
 }
 function fermerModal(){document.getElementById('modal-resa').style.display='none';}
