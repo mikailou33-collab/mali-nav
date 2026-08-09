@@ -503,6 +503,32 @@ function majModal(){
   document.getElementById("btn-sms").style.background=ok?"linear-gradient(135deg,#14a34a,#16a34a)":"#f3f4f6";
   document.getElementById("btn-sms").style.color=ok?"white":"#9ca3af";
 }
+var NOMS_VERS_ID = {
+  'SONEF':'sonef', 'Rimbo Transport':'rimbo', 'Bani Transport':'bani',
+  'Bittar Transport':'bittar', 'Diarra Bus':'diarra'
+};
+function sauvegarderReservationBus(dep,arr,date,nom,tel,prix,ref){
+  if(!window.db) return;
+  var compId = NOMS_VERS_ID[mComp] || null;
+  mSieges.forEach(function(s){
+    window.db.ref("reservations_bus").push({
+      reference: ref,
+      compagnie: mComp || "Non precisee",
+      compagnie_id: compId,
+      depart: dep,
+      arrivee: arr,
+      date: date,
+      heure: mHeure,
+      nom: nom,
+      tel: tel,
+      siege: s,
+      paiement: mPay,
+      prix: prix,
+      statut: "pending",
+      timestamp: Date.now()
+    }).catch(function(){});
+  });
+}
 function getMsg(){
   var depBrutMsg=(document.getElementById("m-depart").value||"").split("|")[0];
   var arrBrutMsg=(document.getElementById("m-arrivee").value||"").split("|")[0];
@@ -540,6 +566,7 @@ function confirmerWA(){
   var arr=(document.getElementById("m-arrivee").value||"").split("|")[0];
   if(!dep||!arr||dep===arr||!document.getElementById("m-date").value||!document.getElementById("m-nom").value.trim()||!mPay||!mHeure||mSieges.length!==mPass){showToast("⚠️ Completez tous les champs et choisissez vos places !");return;}
   var msg=getMsg();
+  sauvegarderReservationBus(dep,arr,document.getElementById("m-date").value,document.getElementById("m-nom").value,document.getElementById("m-tel").value,getPrix(dep,arr),dernierRef);
   window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank");
   fermerModal();showToast("✅ Reservation envoyee !");
   afficherPanneauQR(dernierRef,msg);
@@ -549,6 +576,7 @@ function confirmerSMS(){
   var arr=(document.getElementById("m-arrivee").value||"").split("|")[0];
   if(!dep||!arr||dep===arr||!document.getElementById("m-date").value||!document.getElementById("m-nom").value.trim()||!mPay||!mHeure||mSieges.length!==mPass){showToast("⚠️ Completez tous les champs et choisissez vos places !");return;}
   var msg=getMsg();
+  sauvegarderReservationBus(dep,arr,document.getElementById("m-date").value,document.getElementById("m-nom").value,document.getElementById("m-tel").value,getPrix(dep,arr),dernierRef);
   window.location.href="sms:?body="+encodeURIComponent(msg);
   fermerModal();showToast("✅ Reservation envoyee !");
   afficherPanneauQR(dernierRef,msg);
@@ -714,6 +742,26 @@ document.addEventListener("click",function(e){
   if(e.target.id!=="m-depart-autre") { var s1=document.getElementById("sugg-depart"); if(s1) s1.style.display="none"; }
   if(e.target.id!=="m-arrivee-autre") { var s2=document.getElementById("sugg-arrivee"); if(s2) s2.style.display="none"; }
 });
+</script>
+
+<script>
+(function(){
+  var s1 = document.createElement('script');
+  s1.src = 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js';
+  s1.onload = function(){
+    var s2 = document.createElement('script');
+    s2.src = 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js';
+    s2.onload = function(){
+      try{
+        var cfg = {apiKey:'AIzaSyDdM8PcwhNnfCjaLmqwV5gLgLe9UUsgnZU',databaseURL:'https://malitaxi-default-rtdb.firebaseio.com'};
+        if(!firebase.apps.length) firebase.initializeApp(cfg);
+        window.db = firebase.database();
+      }catch(e){}
+    };
+    document.head.appendChild(s2);
+  };
+  document.head.appendChild(s1);
+})();
 </script>
 </body>
 </html>
