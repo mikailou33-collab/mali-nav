@@ -495,8 +495,8 @@ function majModal(){
   var nom=document.getElementById('m-nom').value.trim();
   var ok=dep&&arr&&dep!==arr&&date&&nom&&mPay&&mHeure&&mSieges.length===mPass&&mPass>0;
   if(dep&&arr&&dep!==arr){
-    var prix=getPrix(dep,arr);var frais=getFrais(dep,arr);
-    document.getElementById('m-prix-lbl').textContent=(prix+frais).toLocaleString()+' FCFA';
+    var prix=getPrix(dep,arr);var frais=0;
+    document.getElementById('m-prix-lbl').textContent=(prix).toLocaleString()+' FCFA';
     if(date){
       document.getElementById('m-recap').style.display='block';
       var mc=document.getElementById('mr-comp');if(mc)mc.textContent=mComp?mComp:'Non sélectionnée';
@@ -555,7 +555,7 @@ function getMsg(){
   var arr=(arrBrutMsg==="AUTRE")?(arrAutreElMsg?arrAutreElMsg.value.trim():""):arrBrutMsg;
   var date=document.getElementById("m-date").value;
   var nom=document.getElementById("m-nom").value;var tel=document.getElementById("m-tel").value;
-  var prix=getPrix(dep,arr);var frais=getFrais(dep,arr);
+  var prix=getPrix(dep,arr);var frais=0;
   var ref="MT-"+Math.random().toString(36).substr(2,6).toUpperCase();
   dernierRef=ref;
   var dr=document.getElementById("m-date-retour");
