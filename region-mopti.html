@@ -654,7 +654,7 @@ function confirmerWA(){
   if(!dep||!arr||dep===arr||!document.getElementById("m-date").value||!document.getElementById("m-nom").value.trim()||!mPay||!mHeure||mSieges.length!==mPass){showToast("⚠️ Completez tous les champs et choisissez vos places !");return;}
   var msg=getMsg();
   sauvegarderReservationBus(dep,arr,document.getElementById("m-date").value,document.getElementById("m-nom").value,document.getElementById("m-tel").value,getPrix(dep,arr),dernierRef);
-  window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank");
+  window.open("https://wa.me/22382826508?text="+encodeURIComponent(msg),"_blank");
   fermerModal();showToast("✅ Reservation envoyee !");
   afficherPanneauQR(dernierRef,msg);
 }
