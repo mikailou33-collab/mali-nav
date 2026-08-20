@@ -408,7 +408,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
 <script>
 
 function ouvrirMaliTaxi(){
-  window.open('https://mikailou33-collab.github.io/malitaxi-vip/malitaxi-vip-final-12.html','_blank');
+  window.open('https://mikailou33-collab.github.io/malitaxi-vip/malitaxi-vip-final-37.html','_blank');
 }
 
 var VM=[
@@ -692,6 +692,19 @@ function annulerReservation(){
   var msg = '❌ DEMANDE ANNULATION\n━━━━━━━━━━━━━━\n';
   var ref = prompt('Entrez votre numéro de référence (ex: MT-ABC123):');
   if(!ref || ref.trim().length < 4){showToast('⚠️ Réf invalide !'); return;}
+  (function(){
+    var refMaj = ref.trim().toUpperCase();
+    if(window.db){
+      window.db.ref("reservations_bus").orderByChild("reference").equalTo(refMaj).once("value").then(function(snap){
+        var data = snap.val();
+        if(data){
+          Object.keys(data).forEach(function(key){
+            window.db.ref("reservations_bus/"+key).update({statut:"refused"}).catch(function(){});
+          });
+        }
+      }).catch(function(){});
+    }
+  })();
   var motifs = ['📅 Changement de programme','👨‍👩‍👧 Urgence familiale','🏥 Problème de santé','💼 Raisons professionnelles','🎫 Billet en double','✏️ Autre motif'];
   var motif = motifs[0];
   msg += '🔖 Réf: ' + ref.trim().toUpperCase() + '\n';
