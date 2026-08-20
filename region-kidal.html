@@ -376,7 +376,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
 <script>
 
 function ouvrirMaliTaxi(){
-  window.open('https://mikailou33-collab.github.io/malitaxi-vip/malitaxi-vip-final-12.html','_blank');
+  window.open('https://mikailou33-collab.github.io/malitaxi-vip/malitaxi-vip-final-37.html','_blank');
 }
 
 var VM=[
@@ -745,6 +745,19 @@ setTimeout(initLeafletMap, 300);
 function annulerReservation(){
   var ref=prompt('Numéro de réf (MT-XXXXXX):');
   if(!ref||ref.trim().length<4){showToast('⚠️ Réf invalide !');return;}
+  (function(){
+    var refMaj = ref.trim().toUpperCase();
+    if(window.db){
+      window.db.ref("reservations_bus").orderByChild("reference").equalTo(refMaj).once("value").then(function(snap){
+        var data = snap.val();
+        if(data){
+          Object.keys(data).forEach(function(key){
+            window.db.ref("reservations_bus/"+key).update({statut:"refused"}).catch(function(){});
+          });
+        }
+      }).catch(function(){});
+    }
+  })();
   var msg='❌ ANNULATION MALINAV\n━━━━━━━━━━━━━━\n🔖 Réf: '+ref.trim().toUpperCase()+'\n📅 Le: '+new Date().toLocaleDateString('fr-FR')+'\n━━━━━━━━━━━━━━\n✅ Plus de 24h avant = 90% remboursé\n⚠️ Entre 24h et 3h avant = 50% remboursé\n❌ Moins de 3h avant = 0% remboursé\n🇲🇱 MaliNav — Service client';
   window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
