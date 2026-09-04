@@ -18,7 +18,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
 .tb-badge{background:var(--yellow);color:#1a1f2e;font-size:10px;font-weight:800;padding:3px 8px;border-radius:50px}
 .tabs{display:flex;background:white;border-bottom:2px solid var(--border);flex-shrink:0}
 .tab{flex:1;padding:10px 4px;border:none;background:transparent;font-family:inherit;font-size:11px;font-weight:700;color:var(--sub);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px}
-.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}.tab-bus{color:#fff!important;font-weight:900!important;background:#14B53F!important;border-radius:10px!important;margin:4px 3px!important;padding:8px 4px!important}.tab-bus.active{color:#fff!important;background:#0D8A2E!important;border-bottom-color:transparent!important}
 .content{flex:1;overflow:hidden;position:relative}
 .panel{display:none;height:100%;flex-direction:column}
 .panel.active{display:flex}
@@ -102,7 +102,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
   <button class="tab active" onclick="switchTab('carte',this)">🗺️ Carte</button>
   <button class="tab" onclick="switchTab('lieux',this)">📍 Lieux</button>
   <button class="tab" onclick="switchTab('cercles',this)">🏛️ Cercles</button>
-  <button class="tab" onclick="switchTab('transport',this)">🚌 Bus</button>
+  <button class="tab tab-bus" onclick="switchTab('transport',this)">🚌 Bus</button>
 </div>
 <div class="content">
   <!-- CARTE -->
