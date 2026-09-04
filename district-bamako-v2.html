@@ -105,9 +105,12 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
   <!-- LIEUX -->
   <div class="panel" id="panel-lieux">
     <div class="scroll-area">
-      <div style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);padding:14px 16px;color:white">
-        <div style="font-size:16px;font-weight:900;margin-bottom:4px">🏙️ Bamako — Capitale du Mali</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.8)">~3 millions hab. • 6 communes • Fleuve Niger</div>
+      <div style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);padding:9px 16px;color:white;display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div>
+          <div style="font-size:14px;font-weight:900;margin-bottom:2px">🏙️ Bamako — Capitale du Mali</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.8)">~3 millions hab. • 6 communes • Fleuve Niger</div>
+        </div>
+        <button onclick="document.querySelector('[onclick*=\'transport\']').click()" style="background:linear-gradient(135deg,#14B53F,#0D8A2E);color:#fff;border:none;border-radius:20px;padding:8px 14px;font-size:11px;font-weight:900;cursor:pointer;white-space:nowrap;font-family:inherit;box-shadow:0 3px 10px rgba(20,181,63,.4);flex-shrink:0">🚌 Réserver bus</button>
       </div>
       <div class="section-header">🏥 Hôpitaux</div>
       <div class="lieu-item" onclick="showToast('CHU Gabriel Touré — Plus grand hôpital du Mali')">
