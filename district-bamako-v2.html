@@ -91,7 +91,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
   <button class="tab active" onclick="switchTab('carte',this)">🗺️ Carte</button>
   <button class="tab" onclick="switchTab('lieux',this)">📍 Lieux</button>
   <button class="tab" onclick="switchTab('communes',this)">🏛️ Communes</button>
-  <button class="tab tab-bus" onclick="switchTab('transport',this)">🚌 Bus</button>
+  <button class="tab tab-bus" onclick="switchTab('transport',this)">🚌 Billet</button>
 </div>
 <div class="content">
   <!-- CARTE -->
@@ -191,7 +191,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
   <!-- TRANSPORT -->
   <div class="panel" id="panel-transport">
     <div class="scroll-area">
-      <div class="section-header">🎫 Réserver un Billet Bus</div>
+      <div class="section-header">🚌 Réserver un Billet</div>
       <div class="lieu-item" onclick="ouvrirReservation()" style="background:linear-gradient(135deg,#14B53F,#FCD116,#CE1126)">
         <div class="lieu-icon" style="background:rgba(255,255,255,.25)">🎫</div>
         <div class="lieu-info"><div class="lieu-name" style="color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4)">Réserver — Départ Bamako</div><div class="lieu-sub" style="color:rgba(255,255,255,.85)">Choisir compagnie + destination</div></div>
@@ -206,7 +206,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
 <div class="modal" id="modal-resa">
   <div class="modal-box">
     <div class="modal-hdr">
-      <div class="modal-title">🎫 Réserver Bus — Bamako</div>
+      <div class="modal-title">🚌 Réserver — Bamako</div>
       <button class="modal-close" onclick="fermerModal()">×</button>
     </div>
     <div class="modal-body">
