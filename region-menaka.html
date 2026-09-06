@@ -482,9 +482,9 @@ function genererPlan(){
   if(lbl)lbl.textContent="🪑 Choisir "+mPass+" place"+(mPass>1?"s":"")+" ("+mSieges.length+"/"+mPass+")";
   grid.innerHTML="";var occ=siegesOccupesReel.filter(function(i){return mSieges.indexOf(i)===-1;});
   var col=0;
-  for(var s=1;s<=placesHoraireChoisi;s++){
+  for(var s=1;s<=44;s++){
     if(col===2){var sp=document.createElement("div");sp.style.background="transparent";grid.appendChild(sp);}
-    var isOcc=occ.indexOf(s)>=0;
+    var isOcc=occ.indexOf(s)>=0 || s>placesHoraireChoisi;
     var isSel=mSieges.indexOf(s)>=0;
     var btn=document.createElement("button");btn.textContent=s;
     if(isOcc){btn.style.cssText="padding:8px 4px;border:none;border-radius:7px;font-size:11px;font-weight:800;cursor:not-allowed;font-family:inherit;color:white;background:#ef4444;opacity:0.7";btn.disabled=true;}
