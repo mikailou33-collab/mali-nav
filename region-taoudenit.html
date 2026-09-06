@@ -650,10 +650,14 @@ function validerReservation(){
   dep=dep.split("|")[0];arr=arr.split("|")[0];
   var nomOk=document.getElementById("m-nom")&&document.getElementById("m-nom").value.trim();
   var dateOk=document.getElementById("m-date")&&document.getElementById("m-date").value;
-  if(!mComp || !dep || !arr || dep===arr || !dateOk || !nomOk || !mPay || !mHeure || mSieges.length!==mPass){
-    showToast("⚠️ Completez tous les champs et choisissez vos places !");
-    return;
-  }
+  if(!mComp){ showToast("⚠️ Choisissez une compagnie de transport"); return; }
+  if(!dep || !arr){ showToast("⚠️ Choisissez votre ville de depart et d'arrivee"); return; }
+  if(dep===arr){ showToast("⚠️ Le depart et l'arrivee ne peuvent pas etre identiques"); return; }
+  if(!dateOk){ showToast("⚠️ Choisissez votre date de voyage"); return; }
+  if(!mHeure){ showToast("⚠️ Choisissez votre horaire de depart"); return; }
+  if(mSieges.length!==mPass){ showToast("⚠️ Choisissez votre/vos place(s) dans le bus"); return; }
+  if(!nomOk){ showToast("⚠️ Renseignez votre nom complet"); return; }
+  if(!mPay){ showToast("⚠️ Choisissez votre mode de paiement"); return; }
   var btnConf = document.getElementById("btn-confirmer-resa");
   var boutons = document.getElementById("boutons-envoi-resa");
   if(btnConf) btnConf.style.display = "none";
