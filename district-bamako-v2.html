@@ -221,7 +221,8 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
         <button class="m-btn" id="mb-retour" onclick="setMBillet('retour')">🔄 Aller-Retour</button>
       </div>
       <label class="m-label">🚌 Compagnie de transport</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <input type="text" id="recherche-compagnie" class="m-input" placeholder="🔍 Rechercher une compagnie..." oninput="filtrerCompagnies(this.value)" style="margin-bottom:8px">
+      <div id="grille-compagnies" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <button class="comp-btn" id="cp-sonef" onclick="setComp('SONEF','cp-sonef')"><span style="font-size:20px">🚌</span><span class="comp-name">SONEF</span><span class="comp-info">Bamako-Ségou-Mopti</span></button>
         <button class="comp-btn" id="cp-rimbo" onclick="setComp('Rimbo Transport','cp-rimbo')"><span style="font-size:20px">🚌</span><span class="comp-name">Rimbo</span><span class="comp-info">Toutes destinations</span></button>
         <button class="comp-btn" id="cp-bani" onclick="setComp('Bani Transport','cp-bani')"><span style="font-size:20px">🚌</span><span class="comp-name">Bani Transport</span><span class="comp-info">Nord Mali</span></button>
@@ -391,6 +392,16 @@ function remplirSelects(){
       if(champSugg && sel.value.indexOf("AUTRE")!==0) champSugg.style.display="none";
       majModal();
     };
+  });
+}
+function filtrerCompagnies(recherche){
+  var termeMinuscule = recherche.trim().toLowerCase();
+  var boutons = document.querySelectorAll('#grille-compagnies .comp-btn');
+  boutons.forEach(function(btn){
+    var nomComp = btn.querySelector('.comp-name').textContent.toLowerCase();
+    var infoComp = btn.querySelector('.comp-info').textContent.toLowerCase();
+    var correspond = nomComp.indexOf(termeMinuscule) !== -1 || infoComp.indexOf(termeMinuscule) !== -1;
+    btn.style.display = correspond ? 'flex' : 'none';
   });
 }
 function setComp(nom,btnId){
