@@ -462,8 +462,12 @@ function setComp(nom,btnId){
   var cv=document.getElementById('comp-val');if(cv)cv.textContent=nom;
   var etape2=document.getElementById('etape-2-apres-compagnie');if(etape2)etape2.style.display='block';
   mHeure='';
+  mSieges=[];
+  placesHoraireChoisi=0;
   var mhc=document.getElementById('m-heure-choisie');if(mhc)mhc.style.display='none';
+  var si2=document.getElementById('siege-info');if(si2)si2.style.display='none';
   afficherHorairesCompagnie(nom);
+  genererPlan();
   majModal();
 }
 var siegesOccupesReel = [];
