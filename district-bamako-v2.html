@@ -424,8 +424,7 @@ function filtrerCompagniesAccueil(recherche){
   }).join("");
 }
 function choisirCompagnieDepuisAccueil(nom, btnId){
-  ouvrirReservation();
-  setTimeout(function(){ setComp(nom, btnId); }, 300);
+  showToast("📍 Adresse et localisation de " + nom + " bientôt disponibles");
 }
 function filtrerCompagnies(recherche){
   var termeMinuscule = recherche.trim().toLowerCase();
