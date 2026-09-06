@@ -690,6 +690,15 @@ function afficherPanneauQR(ref,msg){
   document.body.appendChild(panel);
 }
 function validerReservation(){
+  var dep=(document.getElementById("m-depart")?document.getElementById("m-depart").value:"")||"";
+  var arr=(document.getElementById("m-arrivee")?document.getElementById("m-arrivee").value:"")||"";
+  dep=dep.split("|")[0];arr=arr.split("|")[0];
+  var nomOk=document.getElementById("m-nom")&&document.getElementById("m-nom").value.trim();
+  var dateOk=document.getElementById("m-date")&&document.getElementById("m-date").value;
+  if(!mComp || !dep || !arr || dep===arr || !dateOk || !nomOk || !mPay || !mHeure || mSieges.length!==mPass){
+    showToast("⚠️ Completez tous les champs et choisissez vos places !");
+    return;
+  }
   var btnConf = document.getElementById("btn-confirmer-resa");
   var boutons = document.getElementById("boutons-envoi-resa");
   if(btnConf) btnConf.style.display = "none";
