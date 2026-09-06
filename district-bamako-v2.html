@@ -378,7 +378,7 @@ var VAO=[
 ];
 var DIST={Ségou:240,Mopti:620,Sikasso:370,Kayes:600,Tombouctou:1000,Gao:1200,Koulikoro:60,Bougouni:160,Koutiala:480,San:430,Nioro:443,Kita:190,Nara:379,Douentza:800,Bandiagara:680,Kidal:1500,Dakar:1300,Abidjan:1000,Ouagadougou:900,Conakry:800,Niamey:1350,Lomé:1600,Cotonou:1700,Kumasi:1100,Banjul:1200};
 var FMALI=0,FHORS=0;
-var mBillet='simple',mPass=1,mPay='',mHeure='',mSieges=[],mComp='',dernierRef='';
+var mBillet='simple',mPass=1,mPay='',mHeure='',mSieges=[],mComp='',dernierRef='',placesHoraireChoisi=44;
 function remplirSelects(){
   var optsM=VM.map(function(v){return '<option value="'+v.n+'|'+v.f+'|'+v.p+'">'+v.f+' '+v.n+'</option>';}).join('');
   var optsAO=VAO.map(function(v){return '<option value="'+v.n+'|'+v.f+'|'+v.p+'">'+v.f+' '+v.n+' ('+v.p+')</option>';}).join('');
@@ -451,7 +451,7 @@ function afficherHorairesCompagnie(nomCompagnie){
   var conteneur = document.querySelector("#etape-2-apres-compagnie [style*='grid-template-columns:1fr 1fr 1fr']");
   if(!conteneur) return;
   conteneur.innerHTML = horaires.map(function(h, i){
-    return '<button class="m-hbtn" id="h'+(i+1)+'" onclick="selHeure(\''+h[0]+'\',\'h'+(i+1)+'\')">'+h[0]+'<br><small>'+h[1]+' places</small></button>';
+    return '<button class="m-hbtn" id="h'+(i+1)+'" onclick="selHeure(\''+h[0]+'\',\'h'+(i+1)+'\',\''+h[1]+'\')">'+h[0]+'<br><small>'+h[1]+' places</small></button>';
   }).join("");
 }
 function setComp(nom,btnId){
@@ -488,7 +488,7 @@ function genererPlan(){
   if(lbl)lbl.textContent="🪑 Choisir "+mPass+" place"+(mPass>1?"s":"")+" ("+mSieges.length+"/"+mPass+")";
   grid.innerHTML="";var occ=siegesOccupesReel.filter(function(i){return mSieges.indexOf(i)===-1;});
   var col=0;
-  for(var s=1;s<=44;s++){
+  for(var s=1;s<=placesHoraireChoisi;s++){
     if(col===2){var sp=document.createElement("div");sp.style.background="transparent";grid.appendChild(sp);}
     var isOcc=occ.indexOf(s)>=0;
     var isSel=mSieges.indexOf(s)>=0;
@@ -514,8 +514,10 @@ function genererPlan(){
     grid.appendChild(btn);col=(col+1)%4;
   }
 }
-function selHeure(h,id){
+function selHeure(h,id,nbPlaces){
   mHeure=h;
+  if(nbPlaces) placesHoraireChoisi=parseInt(nbPlaces,10)||44;
+  mSieges=[];
   ['h1','h2','h3','h4','h5'].forEach(function(x){var b=document.getElementById(x);if(b)b.className='m-hbtn';});
   var sel=document.getElementById(id);if(sel)sel.className='m-hbtn sel';
   document.getElementById('m-heure-choisie').style.display='block';
