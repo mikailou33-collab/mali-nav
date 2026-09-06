@@ -518,6 +518,7 @@ function selHeure(h,id,nbPlaces){
   mHeure=h;
   if(nbPlaces) placesHoraireChoisi=parseInt(nbPlaces,10)||44;
   mSieges=[];
+  genererPlan();
   ['h1','h2','h3','h4','h5'].forEach(function(x){var b=document.getElementById(x);if(b)b.className='m-hbtn';});
   var sel=document.getElementById(id);if(sel)sel.className='m-hbtn sel';
   document.getElementById('m-heure-choisie').style.display='block';
