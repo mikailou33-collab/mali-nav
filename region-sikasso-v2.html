@@ -498,9 +498,14 @@ function chargerSiegesOccupes(){
     window.db.ref("reservations_bus").once("value").then(function(snap){
       var data = snap.val() || {};
       var occ = [];
+      var dateChoisie = document.getElementById("m-date") ? document.getElementById("m-date").value : "";
       Object.keys(data).forEach(function(key){
         var r = data[key];
-        if(r.statut !== "refused" && r.siege){ occ.push(r.siege); }
+        if(r.statut === "refused" || !r.siege) return;
+        var memeCompagnie = !r.compagnie || !mComp || r.compagnie === mComp;
+        var memeDate = !r.date || !dateChoisie || r.date === dateChoisie;
+        var memeHeure = !r.heure || !mHeure || r.heure === mHeure;
+        if(memeCompagnie && memeDate && memeHeure){ occ.push(r.siege); }
       });
       siegesOccupesReel = occ;
       resolve();
@@ -581,7 +586,7 @@ function selHeure(h,id,nbPlaces){
   mHeure=h;
   if(nbPlaces) placesHoraireChoisi=parseInt(nbPlaces,10)||44;
   mSieges=[];
-  genererPlan();
+  chargerSiegesOccupes().then(genererPlan);
   ['h1','h2','h3','h4','h5'].forEach(function(x){
     var b=document.getElementById(x);
     if(b) b.className='m-hbtn';

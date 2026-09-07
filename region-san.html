@@ -461,9 +461,14 @@ function chargerSiegesOccupes(){
     window.db.ref("reservations_bus").once("value").then(function(snap){
       var data = snap.val() || {};
       var occ = [];
+      var dateChoisie = document.getElementById("m-date") ? document.getElementById("m-date").value : "";
       Object.keys(data).forEach(function(key){
         var r = data[key];
-        if(r.statut !== "refused" && r.siege){ occ.push(r.siege); }
+        if(r.statut === "refused" || !r.siege) return;
+        var memeCompagnie = !r.compagnie || !mComp || r.compagnie === mComp;
+        var memeDate = !r.date || !dateChoisie || r.date === dateChoisie;
+        var memeHeure = !r.heure || !mHeure || r.heure === mHeure;
+        if(memeCompagnie && memeDate && memeHeure){ occ.push(r.siege); }
       });
       siegesOccupesReel = occ;
       resolve();
