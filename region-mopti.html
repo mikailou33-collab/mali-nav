@@ -462,12 +462,54 @@ var HORAIRES_PAR_COMPAGNIE = {
   "Autre compagnie": [["08h00",10],["16h00",10]]
 };
 function afficherHorairesCompagnie(nomCompagnie){
-  var horaires = HORAIRES_PAR_COMPAGNIE[nomCompagnie] || HORAIRES_PAR_COMPAGNIE["Autre compagnie"];
   var conteneur = document.querySelector("#etape-2-apres-compagnie [style*='grid-template-columns:1fr 1fr 1fr']");
   if(!conteneur) return;
-  conteneur.innerHTML = horaires.map(function(h, i){
-    return '<button class="m-hbtn" id="h'+(i+1)+'" onclick="selHeure(\''+h[0]+'\',\'h'+(i+1)+'\',\''+h[1]+'\')">'+h[0]+'<br><small>'+h[1]+' places</small></button>';
-  }).join("");
+  var compId = NOMS_VERS_ID[nomCompagnie];
+  if(!window.db || !compId){
+    var horaires = HORAIRES_PAR_COMPAGNIE[nomCompagnie] || HORAIRES_PAR_COMPAGNIE["Autre compagnie"];
+    conteneur.innerHTML = horaires.map(function(h, i){
+      return '<button class="m-hbtn" id="h'+(i+1)+'" onclick="selHeure(\''+h[0]+'\',\'h'+(i+1)+'\',\''+h[1]+'\')">'+h[0]+'<br><small>'+h[1]+' places</small></button>';
+    }).join("");
+    return;
+  }
+  conteneur.innerHTML = '<div style="grid-column:1/-1;text-align:center;font-size:12px;color:#9ca3af;padding:10px">Chargement des horaires...</div>';
+  window.db.ref("horaires_compagnies/"+compId).once("value").then(function(snap){
+    var data = snap.val() || {};
+    var codes = Object.keys(data);
+    if(codes.length === 0){
+      var horairesExemple = HORAIRES_PAR_COMPAGNIE[nomCompagnie] || HORAIRES_PAR_COMPAGNIE["Autre compagnie"];
+      conteneur.innerHTML = horairesExemple.map(function(h, i){
+        return '<button class="m-hbtn" id="h'+(i+1)+'" onclick="selHeure(\''+h[0]+'\',\'h'+(i+1)+'\',\''+h[1]+'\')">'+h[0]+'<br><small>'+h[1]+' places</small></button>';
+      }).join("");
+      return;
+    }
+    var dateChoisieClient = document.getElementById("m-date") ? document.getElementById("m-date").value : "";
+    var codesFiltres = codes.filter(function(k){
+      var h = data[k];
+      return !h.date || !dateChoisieClient || h.date === dateChoisieClient;
+    });
+    if(codesFiltres.length === 0){
+      conteneur.innerHTML = '<div style="grid-column:1/-1;text-align:center;font-size:12px;color:#dc2626;padding:10px">Aucun depart disponible pour cette date</div>';
+      return;
+    }
+    window.horairesReelsCourants = {};
+    conteneur.innerHTML = codesFiltres.map(function(k, i){
+      var h = data[k];
+      window.horairesReelsCourants["h"+(i+1)] = h;
+      var texteDestination = h.destination ? (' vers '+h.destination) : '';
+      return '<button class="m-hbtn" id="h'+(i+1)+'" onclick="selHeureReelle(\'h'+(i+1)+'\')" style="text-align:center">'+h.heure+'<br><small style="font-size:9px">'+(h.destination||"")+'</small><br><small>'+h.places+' places'+(h.prix?(' · '+h.prix+'F'):'')+'</small></button>';
+    }).join("");
+  }).catch(function(){
+    var horairesSecours = HORAIRES_PAR_COMPAGNIE[nomCompagnie] || HORAIRES_PAR_COMPAGNIE["Autre compagnie"];
+    conteneur.innerHTML = horairesSecours.map(function(h, i){
+      return '<button class="m-hbtn" id="h'+(i+1)+'" onclick="selHeure(\''+h[0]+'\',\'h'+(i+1)+'\',\''+h[1]+'\')">'+h[0]+'<br><small>'+h[1]+' places</small></button>';
+    }).join("");
+  });
+}
+function selHeureReelle(id){
+  var h = window.horairesReelsCourants ? window.horairesReelsCourants[id] : null;
+  if(!h) return;
+  selHeure(h.heure, id, h.places);
 }
 function setComp(nom,btnId){
   mComp=nom;
