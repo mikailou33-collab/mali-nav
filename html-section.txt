@@ -1,0 +1,41 @@
+﻿    </div>
+    <div class="modal-body">
+      <label class="m-label" style="margin-top:0">🎫 Type de billet</label>
+      <div class="m-grid2">
+        <button class="m-btn sel" id="mb-simple" onclick="setMBillet('simple')">🎫 Aller simple</button>
+        <button class="m-btn" id="mb-retour" onclick="setMBillet('retour')">🔄 Aller-Retour</button>
+      </div>
+      <select id="m-depart" style="display:none"></select>
+      <label class="m-label" style="margin-top:0">📍 Ville de départ</label>
+      <div style="position:relative">
+        <input type="text" id="recherche-depart-comparateur" class="m-input" placeholder="🔍 D'où partez-vous ?" autocomplete="off" oninput="chercherDepartComparateur(this)" style="margin-bottom:4px">
+        <div id="sugg-depart-comparateur" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1px solid var(--border);border-radius:10px;max-height:200px;overflow-y:auto;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
+      </div>
+      <input type="hidden" id="m-depart-autre">
+      <select id="m-arrivee" style="display:none"></select>
+      <input type="hidden" id="m-arrivee-autre">
+      <label class="m-label" style="margin-top:0">📅 Date de voyage</label>
+      <input type="date" id="m-date" class="m-input" onchange="lancerRechercheComparateur()">
+      <div id="m-retour-box" style="display:none;margin-top:8px">
+        <label class="m-label" style="margin-top:0">🔄 Date de retour</label>
+        <input type="date" id="m-date-retour" class="m-input">
+      </div>
+      <label class="m-label">🏁 Destination</label>
+      <div style="position:relative">
+        <input type="text" id="recherche-destination-comparateur" class="m-input" placeholder="🔍 Où voulez-vous aller ?" autocomplete="off" oninput="chercherDestinationComparateur(this)" style="margin-bottom:4px">
+        <div id="sugg-destination-comparateur" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1px solid var(--border);border-radius:10px;max-height:200px;overflow-y:auto;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
+      </div>
+      <div id="resultats-comparateur" style="margin-top:10px"></div>
+      <div id="etape-2-apres-compagnie" style="display:none">
+      <div id="m-heure-choisie" style="display:none;text-align:center;font-size:12px;font-weight:700;color:#1d4ed8;margin-top:8px">✅ Départ: <span id="m-heure-val"></span></div>
+      </div>
+      <label class="m-label" id="lbl-sieges">🪑 Choisir votre place</label>
+      <div style="background:#f8fafc;border-radius:12px;padding:10px 14px;border:1px solid #e4e7ec;margin-bottom:4px">
+        <div style="text-align:center;margin-bottom:8px"><span style="background:#374151;color:white;padding:4px 16px;border-radius:8px;font-size:11px;font-weight:700">👨‍✈️ CHAUFFEUR</span></div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#6b7280"><div style="width:12px;height:12px;border-radius:3px;background:#16a34a"></div>Libre</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#6b7280"><div style="width:12px;height:12px;border-radius:3px;background:#ef4444"></div>Occupé</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#6b7280"><div style="width:12px;height:12px;border-radius:3px;background:#f5c400"></div>Votre choix</div>
+        </div>
+        <div id="plan-grid" style="display:grid;grid-template-columns:1fr 8px 1fr 1fr;gap:4px;max-width:260px;margin:0 auto"></div>
+        <div id="siege-info" style="display:none;text-align:center;font-size:12px;font-weight:700;color:#1d4ed8;margin-top:8px;padding:7px;background:#eff6ff;border-radius:8px"></div>

@@ -245,16 +245,27 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
         <button class="m-btn" id="mb-retour" onclick="setMBillet('retour')">🔄 Aller-Retour</button>
       </div>
       
-      <label class="m-label">🚌 Compagnie de transport</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
-        <button class="comp-btn" id="cp-sonef" onclick="setComp('SONEF','cp-sonef')"><span style="font-size:20px">🚌</span><span class="comp-name">SONEF</span><span class="comp-info">Bamako-Ségou-Mopti</span></button>
-        <button class="comp-btn" id="cp-rimbo" onclick="setComp('Rimbo Transport','cp-rimbo')"><span style="font-size:20px">🚌</span><span class="comp-name">Rimbo</span><span class="comp-info">Toutes destinations</span></button>
-        <button class="comp-btn" id="cp-bani" onclick="setComp('Bani Transport','cp-bani')"><span style="font-size:20px">🚌</span><span class="comp-name">Bani Transport</span><span class="comp-info">Nord Mali</span></button>
-        <button class="comp-btn" id="cp-bittar" onclick="setComp('Bittar Transport','cp-bittar')"><span style="font-size:20px">🚌</span><span class="comp-name">Bittar</span><span class="comp-info">Kayes-Dakar</span></button>
-        <button class="comp-btn" id="cp-diarra" onclick="setComp('Diarra Bus','cp-diarra')"><span style="font-size:20px">🚌</span><span class="comp-name">Diarra Bus</span><span class="comp-info">Sikasso-Bougouni</span></button>
-        <button class="comp-btn" id="cp-autre" onclick="setComp('Autre compagnie','cp-autre')"><span style="font-size:20px">🚌</span><span class="comp-name">Autre</span><span class="comp-info">Autre compagnie</span></button>
+            <select id="m-depart" style="display:none"></select>
+      <label class="m-label" style="margin-top:0">📍 Ville de départ</label>
+      <div style="position:relative">
+        <input type="text" id="recherche-depart-comparateur" class="m-input" placeholder="🔍 D'où partez-vous ?" autocomplete="off" oninput="chercherDepartComparateur(this)" style="margin-bottom:4px">
+        <div id="sugg-depart-comparateur" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1px solid var(--border);border-radius:10px;max-height:200px;overflow-y:auto;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
       </div>
-      <div id="comp-choisie" style="display:none;text-align:center;font-size:12px;font-weight:700;color:#1d4ed8;margin-bottom:4px;padding:7px;background:#eff6ff;border-radius:8px">✅ Compagnie: <span id="comp-val"></span></div>
+      <input type="hidden" id="m-depart-autre">
+      <select id="m-arrivee" style="display:none"></select>
+      <input type="hidden" id="m-arrivee-autre">
+      <label class="m-label" style="margin-top:0">📅 Date de voyage</label>
+      <input type="date" id="m-date" class="m-input" onchange="lancerRechercheComparateur()">
+      <div id="m-retour-box" style="display:none;margin-top:8px">
+        <label class="m-label" style="margin-top:0">🔄 Date de retour</label>
+        <input type="date" id="m-date-retour" class="m-input">
+      </div>
+      <label class="m-label">🏁 Destination</label>
+      <div style="position:relative">
+        <input type="text" id="recherche-destination-comparateur" class="m-input" placeholder="🔍 Où voulez-vous aller ?" autocomplete="off" oninput="chercherDestinationComparateur(this)" style="margin-bottom:4px">
+        <div id="sugg-destination-comparateur" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1px solid var(--border);border-radius:10px;max-height:200px;overflow-y:auto;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
+      </div>
+      <div id="resultats-comparateur" style="margin-top:10px"></div>
       <div id="etape-2-apres-compagnie" style="display:none">
 <label class="m-label">📍 Ville de départ</label>
       <select id="m-depart" onchange="majModal()" class="m-select"><option value="">-- Choisir --</option></select>
@@ -269,18 +280,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
         <label class="m-label" style="margin-top:0">🔄 Date de retour</label>
         <input type="date" id="m-date-retour" class="m-input">
       </div>
-      <label class="m-label">⏰ Horaire de départ</label>
-      <div style="background:#f0fdf4;border-radius:12px;padding:10px 14px;border:1px solid #bbf7d0;margin-bottom:4px">
-        <div style="font-size:11px;color:#166534;font-weight:700;margin-bottom:8px">🏢 Horaires fixés par la compagnie</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
-          <button class="m-hbtn" id="h1" onclick="selHeure('05h30','h1','12')">05h30<br><small>12 places</small></button>
-          <button class="m-hbtn" id="h2" onclick="selHeure('09h00','h2','8')">09h00<br><small>8 places</small></button>
-          <button class="m-hbtn" id="h3" onclick="selHeure('14h00','h3','15')">14h00<br><small>15 places</small></button>
-          <button class="m-hbtn" id="h4" onclick="selHeure('17h30','h4','6')">17h30<br><small>6 places</small></button>
-          <button class="m-hbtn" id="h5" onclick="selHeure('20h00','h5','10')">20h00<br><small>10 places</small></button>
-          <div style="background:#fde8e8;border-radius:8px;padding:8px;text-align:center;font-size:10px;font-weight:700;color:#dc2626">11h00<br>Complet</div>
-        </div>
-        <div id="m-heure-choisie" style="display:none;text-align:center;font-size:12px;font-weight:700;color:#1d4ed8;margin-top:8px">✅ Départ: <span id="m-heure-val"></span></div>
+      <div id="m-heure-choisie" style="display:none;text-align:center;font-size:12px;font-weight:700;color:#1d4ed8;margin-top:8px">✅ Départ: <span id="m-heure-val"></span></div>
       </div>
       <label class="m-label" id="lbl-sieges">🪑 Choisir votre place</label>
       <div style="background:#f8fafc;border-radius:12px;padding:10px 14px;border:1px solid #e4e7ec;margin-bottom:4px">
@@ -487,6 +487,109 @@ function selHeureReelle(id){
   var h = window.horairesReelsCourants ? window.horairesReelsCourants[id] : null;
   if(!h) return;
   selHeure(h.heure, id, h.places);
+}
+var COMPAGNIES_COMPARATEUR = [
+  {id:"sonef", nom:"SONEF"},
+  {id:"rimbo", nom:"Rimbo Transport"},
+  {id:"bani", nom:"Bani Transport"},
+  {id:"bittar", nom:"Bittar Transport"},
+  {id:"diarra", nom:"Diarra Bus"}
+];
+var departComparateurSuggTimer = null;
+function chercherDepartComparateur(input){
+  clearTimeout(departComparateurSuggTimer);
+  var q = input.value.trim();
+  var liste = document.getElementById("sugg-depart-comparateur");
+  if(!liste) return;
+  if(q.length < 2){ liste.style.display = "none"; liste.innerHTML = ""; return; }
+  var villesConnues = VM.map(function(v){return v.n;}).concat(VAO.map(function(v){return v.n;}));
+  var villesTrouvees = villesConnues.filter(function(v){ return v.toLowerCase().indexOf(q.toLowerCase()) !== -1; });
+  var htmlVilles = villesTrouvees.map(function(v){
+    return "<div onmousedown=\"selectionnerDepartComparateur('"+v+"')\" style=\"padding:10px 12px;font-size:13px;font-weight:700;cursor:pointer;border-bottom:1px solid #f1f5f9;color:#2563eb\">🏙️ "+v+"</div>";
+  }).join("");
+  liste.innerHTML = htmlVilles;
+  liste.style.display = htmlVilles ? "block" : "none";
+}
+function selectionnerDepartComparateur(nom){
+  document.getElementById("recherche-depart-comparateur").value = nom;
+  document.getElementById("sugg-depart-comparateur").style.display = "none";
+  document.getElementById("m-depart").innerHTML = '<option value="'+nom+'|" selected>'+nom+'</option>';
+  lancerRechercheComparateur();
+}
+var destComparateurSuggTimer = null;
+function chercherDestinationComparateur(input){
+  clearTimeout(destComparateurSuggTimer);
+  var q = input.value.trim();
+  var liste = document.getElementById("sugg-destination-comparateur");
+  if(!liste) return;
+  if(q.length < 2){ liste.style.display = "none"; liste.innerHTML = ""; return; }
+  var villesConnues = VM.map(function(v){return v.n;}).concat(VAO.map(function(v){return v.n;}));
+  var villesTrouvees = villesConnues.filter(function(v){ return v.toLowerCase().indexOf(q.toLowerCase()) !== -1; });
+  var htmlVilles = villesTrouvees.map(function(v){
+    return "<div onmousedown=\"selectionnerDestinationComparateur('"+v+"')\" style=\"padding:10px 12px;font-size:13px;font-weight:700;cursor:pointer;border-bottom:1px solid #f1f5f9;color:#2563eb\">🏙️ "+v+"</div>";
+  }).join("");
+  liste.innerHTML = htmlVilles;
+  liste.style.display = htmlVilles ? "block" : "none";
+}
+function selectionnerDestinationComparateur(nom){
+  document.getElementById("recherche-destination-comparateur").value = nom;
+  document.getElementById("sugg-destination-comparateur").style.display = "none";
+  document.getElementById("m-arrivee").innerHTML = '<option value="'+nom+'|" selected>'+nom+'</option>';
+  lancerRechercheComparateur();
+}
+function lancerRechercheComparateur(){
+  var depart = document.getElementById("recherche-depart-comparateur") ? document.getElementById("recherche-depart-comparateur").value.trim() : "";
+  var destination = document.getElementById("recherche-destination-comparateur").value.trim();
+  var dateChoisie = document.getElementById("m-date").value;
+  var conteneur = document.getElementById("resultats-comparateur");
+  if(!depart || !destination || !dateChoisie){ conteneur.innerHTML = ""; return; }
+  if(!window.db){ conteneur.innerHTML = '<div style="text-align:center;color:#9ca3af;font-size:12px;padding:10px">Connexion indisponible</div>'; return; }
+  conteneur.innerHTML = '<div style="text-align:center;color:#9ca3af;font-size:12px;padding:10px">🔎 Recherche des departs...</div>';
+  var promesses = COMPAGNIES_COMPARATEUR.map(function(c){
+    return window.db.ref("horaires_compagnies/"+c.id).once("value").then(function(snap){
+      var data = snap.val() || {};
+      return Object.keys(data).map(function(k){
+        var h = data[k];
+        h._compagnieNom = c.nom;
+        h._compagnieId = c.id;
+        return h;
+      });
+    }).catch(function(){ return []; });
+  });
+  Promise.all(promesses).then(function(listes){
+    var tous = [].concat.apply([], listes);
+    var correspondants = tous.filter(function(h){
+      var bonDepart = h.depart === depart;
+      var bonneDestination = h.destination === destination;
+      var bonneDate = !h.date || h.date === dateChoisie;
+      return bonDepart && bonneDestination && bonneDate;
+    });
+    if(correspondants.length === 0){
+      conteneur.innerHTML = '<div style="text-align:center;color:#dc2626;font-size:12px;padding:14px;background:#fef2f2;border-radius:10px">😕 Aucun depart trouve pour ce trajet a cette date</div>';
+      return;
+    }
+    correspondants.sort(function(a,b){ return (a.heure||"").localeCompare(b.heure||""); });
+    window.resultatsComparateurCourants = correspondants;
+    conteneur.innerHTML = '<div style="font-size:12px;font-weight:800;color:#374151;margin-bottom:8px">'+correspondants.length+' option(s) trouvee(s) :</div>'
+      + correspondants.map(function(h, i){
+        return '<button onclick="choisirResultatComparateur('+i+')" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:2px solid #e4e7ec;border-radius:12px;background:#fff;cursor:pointer;font-family:inherit;margin-bottom:8px;text-align:left"><div><div style="font-weight:800;font-size:13px">🚌 '+h._compagnieNom+'</div><div style="font-size:12px;color:#6b7280;margin-top:2px">'+h.heure+' · '+h.places+' places</div></div><div style="font-weight:900;color:#16a34a;font-size:14px">'+(h.prix?h.prix.toLocaleString()+' F':'-')+'</div></button>';
+      }).join("");
+  });
+}
+function choisirResultatComparateur(index){
+  var h = window.resultatsComparateurCourants ? window.resultatsComparateurCourants[index] : null;
+  if(!h) return;
+  mComp = h._compagnieNom;
+  var cd=document.getElementById('comp-choisie');if(cd)cd.style.display='none';
+  var etape2=document.getElementById('etape-2-apres-compagnie');if(etape2)etape2.style.display='block';
+  mSieges=[];
+  placesHoraireChoisi=parseInt(h.places,10)||65;
+  window.prixHoraireChoisi = h.prix || null;
+  chargerSiegesOccupes().then(genererPlan);
+  mHeure = h.heure;
+  var mhc=document.getElementById('m-heure-choisie');if(mhc)mhc.style.display='block';
+  var mhv=document.getElementById('m-heure-val');if(mhv)mhv.textContent=h.heure;
+  majModal();
 }
 function setComp(nom,btnId){
   mComp=nom;
