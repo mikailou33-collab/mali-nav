@@ -231,6 +231,10 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
       <input type="hidden" id="m-arrivee-autre">
       <label class="m-label" style="margin-top:0">📅 Date de voyage</label>
       <input type="date" id="m-date" class="m-input" onchange="lancerRechercheComparateur()">
+      <div id="m-retour-box" style="display:none;margin-top:8px">
+        <label class="m-label" style="margin-top:0">🔄 Date de retour</label>
+        <input type="date" id="m-date-retour" class="m-input">
+      </div>
       <label class="m-label">🏁 Destination</label>
       <div style="position:relative">
         <input type="text" id="recherche-destination-comparateur" class="m-input" placeholder="🔍 Où voulez-vous aller ?" autocomplete="off" oninput="chercherDestinationComparateur(this)" style="margin-bottom:4px">
@@ -238,10 +242,6 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
       </div>
       <div id="resultats-comparateur" style="margin-top:10px"></div>
       <div id="etape-2-apres-compagnie" style="display:none">
-      <div id="m-retour-box" style="display:none;margin-top:8px">
-        <label class="m-label" style="margin-top:0">🔄 Date de retour</label>
-        <input type="date" id="m-date-retour" class="m-input">
-      </div>
       <div id="m-heure-choisie" style="display:none;text-align:center;font-size:12px;font-weight:700;color:#1d4ed8;margin-top:8px">✅ Départ: <span id="m-heure-val"></span></div>
       </div>
       <label class="m-label" id="lbl-sieges">🪑 Choisir votre place</label>
