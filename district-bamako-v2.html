@@ -499,7 +499,7 @@ function chercherDepartComparateur(input){
   var liste = document.getElementById("sugg-depart-comparateur");
   if(!liste) return;
   if(q.length < 2){ liste.style.display = "none"; liste.innerHTML = ""; return; }
-  var villesConnues = VM.map(function(v){return v.n;});
+  var villesConnues = VM.map(function(v){return v.n;}).concat(VAO.map(function(v){return v.n;}));
   var villesTrouvees = villesConnues.filter(function(v){ return v.toLowerCase().indexOf(q.toLowerCase()) !== -1; });
   var htmlVilles = villesTrouvees.map(function(v){
     return "<div onmousedown=\"selectionnerDepartComparateur('"+v+"')\" style=\"padding:10px 12px;font-size:13px;font-weight:700;cursor:pointer;border-bottom:1px solid #f1f5f9;color:#2563eb\">🏙️ "+v+"</div>";
