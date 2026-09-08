@@ -225,7 +225,12 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
         <button class="m-btn sel" id="mb-simple" onclick="setMBillet('simple')">🎫 Aller simple</button>
         <button class="m-btn" id="mb-retour" onclick="setMBillet('retour')">🔄 Aller-Retour</button>
       </div>
-      <select id="m-depart" style="display:none"><option value="Bamako|">Bamako</option></select>
+      <select id="m-depart" style="display:none"></select>
+      <label class="m-label" style="margin-top:0">📍 Ville de départ</label>
+      <div style="position:relative">
+        <input type="text" id="recherche-depart-comparateur" class="m-input" placeholder="🔍 D'où partez-vous ?" autocomplete="off" oninput="chercherDepartComparateur(this)" style="margin-bottom:4px">
+        <div id="sugg-depart-comparateur" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1px solid var(--border);border-radius:10px;max-height:200px;overflow-y:auto;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
+      </div>
       <input type="hidden" id="m-depart-autre">
       <select id="m-arrivee" style="display:none"></select>
       <input type="hidden" id="m-arrivee-autre">
@@ -487,6 +492,27 @@ var COMPAGNIES_COMPARATEUR = [
   {id:"diarra", nom:"Diarra Bus"}
 ];
 var destComparateurSuggTimer = null;
+var departComparateurSuggTimer = null;
+function chercherDepartComparateur(input){
+  clearTimeout(departComparateurSuggTimer);
+  var q = input.value.trim();
+  var liste = document.getElementById("sugg-depart-comparateur");
+  if(!liste) return;
+  if(q.length < 2){ liste.style.display = "none"; liste.innerHTML = ""; return; }
+  var villesConnues = VM.map(function(v){return v.n;});
+  var villesTrouvees = villesConnues.filter(function(v){ return v.toLowerCase().indexOf(q.toLowerCase()) !== -1; });
+  var htmlVilles = villesTrouvees.map(function(v){
+    return "<div onmousedown=\"selectionnerDepartComparateur('"+v+"')\" style=\"padding:10px 12px;font-size:13px;font-weight:700;cursor:pointer;border-bottom:1px solid #f1f5f9;color:#2563eb\">🏙️ "+v+"</div>";
+  }).join("");
+  liste.innerHTML = htmlVilles;
+  liste.style.display = htmlVilles ? "block" : "none";
+}
+function selectionnerDepartComparateur(nom){
+  document.getElementById("recherche-depart-comparateur").value = nom;
+  document.getElementById("sugg-depart-comparateur").style.display = "none";
+  document.getElementById("m-depart").innerHTML = '<option value="'+nom+'|" selected>'+nom+'</option>';
+  lancerRechercheComparateur();
+}
 function chercherDestinationComparateur(input){
   clearTimeout(destComparateurSuggTimer);
   var q = input.value.trim();
@@ -508,10 +534,11 @@ function selectionnerDestinationComparateur(nom){
   lancerRechercheComparateur();
 }
 function lancerRechercheComparateur(){
+  var depart = document.getElementById("recherche-depart-comparateur") ? document.getElementById("recherche-depart-comparateur").value.trim() : "Bamako";
   var destination = document.getElementById("recherche-destination-comparateur").value.trim();
   var dateChoisie = document.getElementById("m-date").value;
   var conteneur = document.getElementById("resultats-comparateur");
-  if(!destination || !dateChoisie){ conteneur.innerHTML = ""; return; }
+  if(!depart || !destination || !dateChoisie){ conteneur.innerHTML = ""; return; }
   if(!window.db){ conteneur.innerHTML = '<div style="text-align:center;color:#9ca3af;font-size:12px;padding:10px">Connexion indisponible</div>'; return; }
   conteneur.innerHTML = '<div style="text-align:center;color:#9ca3af;font-size:12px;padding:10px">🔎 Recherche des departs...</div>';
   var promesses = COMPAGNIES_COMPARATEUR.map(function(c){
@@ -528,7 +555,7 @@ function lancerRechercheComparateur(){
   Promise.all(promesses).then(function(listes){
     var tous = [].concat.apply([], listes);
     var correspondants = tous.filter(function(h){
-      var bonDepart = h.depart === "Bamako";
+      var bonDepart = h.depart === depart;
       var bonneDestination = h.destination === destination;
       var bonneDate = !h.date || h.date === dateChoisie;
       return bonDepart && bonneDestination && bonneDate;
