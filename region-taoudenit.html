@@ -512,6 +512,20 @@ function chercherDestinationComparateur(input){
   }).join("");
   liste.innerHTML = htmlVilles;
   liste.style.display = htmlVilles ? "block" : "none";
+  if(q.length < 3) return;
+  destComparateurSuggTimer = setTimeout(function(){
+    fetch("https://nominatim.openstreetmap.org/search?format=json&countrycodes=ml&limit=6&q="+encodeURIComponent(q))
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if(!data || !data.length) return;
+        var htmlVillages = data.map(function(v){
+          var nomCourt = v.display_name.split(",")[0];
+          return "<div onmousedown=\"selectionnerDestinationComparateur('"+nomCourt.replace(/'/g,"")+"')\" style=\"padding:10px 12px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:1px solid #f1f5f9\">📍 "+nomCourt+"</div>";
+        }).join("");
+        liste.innerHTML = htmlVilles + htmlVillages;
+        liste.style.display = "block";
+      }).catch(function(){});
+  }, 400);
 }
 function selectionnerDestinationComparateur(nom){
   document.getElementById("recherche-destination-comparateur").value = nom;
