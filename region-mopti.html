@@ -290,20 +290,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
       </div>
       <div id="resultats-comparateur" style="margin-top:10px"></div>
       <div id="etape-2-apres-compagnie" style="display:none">
-<label class="m-label">📍 Ville de départ</label>
-      <select id="m-depart" onchange="majModal()" class="m-select"><option value="">-- Choisir --</option></select>
-      <input type="text" id="m-depart-autre" class="m-input" placeholder="Nom du village" style="display:none;margin-top:6px" oninput="majModal()">
-      <label class="m-label">🏁 Ville d'arrivée</label>
-      <select id="m-arrivee" onchange="majModal()" class="m-select"><option value="">-- Choisir --</option></select>
-      <input type="text" id="m-arrivee-autre" class="m-input" placeholder="Nom du village (sur la route goudronnée)" style="display:none;margin-top:6px" autocomplete="off" oninput="chercherVillage(this,'sugg-arrivee')" onfocus="chercherVillage(this,'sugg-arrivee')">
-      <div id="sugg-arrivee" style="display:none;background:white;border:1px solid var(--border);border-radius:10px;margin-top:4px;overflow:hidden;max-height:180px;overflow-y:auto"></div>
-      <label class="m-label">📅 Date de voyage (aller)</label>
-      <input type="date" id="m-date" class="m-input" onchange="majModal()">
-      <div id="m-retour-box" style="display:none;margin-top:8px">
-        <label class="m-label" style="margin-top:0">🔄 Date de retour</label>
-        <input type="date" id="m-date-retour" class="m-input">
-      </div>
-      <div id="m-heure-choisie" style="display:none;text-align:center;font-size:12px;font-weight:700;color:#1d4ed8;margin-top:8px">✅ Départ: <span id="m-heure-val"></span></div>
+<div id="m-heure-choisie" style="display:none;text-align:center;font-size:12px;font-weight:700;color:#1d4ed8;margin-top:8px">✅ Départ: <span id="m-heure-val"></span></div>
       </div>
       <label class="m-label" id="lbl-sieges">🪑 Choisir votre place</label>
       <div style="background:#f8fafc;border-radius:12px;padding:10px 14px;border:1px solid #e4e7ec;margin-bottom:4px">
@@ -630,22 +617,7 @@ function choisirResultatComparateur(index){
   var mhv=document.getElementById('m-heure-val');if(mhv)mhv.textContent=h.heure;
   majModal();
 }
-function setComp(nom,btnId){
-  mComp=nom;
-  ['cp-sonef','cp-rimbo','cp-bani','cp-bittar','cp-diarra','cp-autre'].forEach(function(x){var b=document.getElementById(x);if(b)b.className='comp-btn';});
-  var sel=document.getElementById(btnId);if(sel)sel.className='comp-btn sel';
-  var cd=document.getElementById('comp-choisie');if(cd)cd.style.display='block';
-  var cv=document.getElementById('comp-val');if(cv)cv.textContent=nom;
-  var etape2=document.getElementById('etape-2-apres-compagnie');if(etape2)etape2.style.display='block';
-  mHeure='';
-  mSieges=[];
-  placesHoraireChoisi=0;
-  var mhc=document.getElementById('m-heure-choisie');if(mhc)mhc.style.display='none';
-  var si2=document.getElementById('siege-info');if(si2)si2.style.display='none';
-  afficherHorairesCompagnie(nom);
-  genererPlan();
-  majModal();
-}
+
 var mComp='';
 var mBillet='simple',mPass=1,mPay='',mHeure='',mSieges=[],dernierRef='',placesHoraireChoisi=65;
 

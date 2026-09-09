@@ -414,76 +414,6 @@ function filtrerCompagniesAccueil(recherche){
 function choisirCompagnieDepuisAccueil(nom, btnId){
   showToast("📍 Adresse et localisation de " + nom + " bientôt disponibles");
 }
-function filtrerCompagnies(recherche){
-  var termeMinuscule = recherche.trim().toLowerCase();
-  var boutons = document.querySelectorAll('#grille-compagnies .comp-btn');
-  boutons.forEach(function(btn){
-    var nomComp = btn.querySelector('.comp-name').textContent.toLowerCase();
-    var infoComp = btn.querySelector('.comp-info').textContent.toLowerCase();
-    var correspond = nomComp.indexOf(termeMinuscule) !== -1 || infoComp.indexOf(termeMinuscule) !== -1;
-    btn.style.display = correspond ? 'flex' : 'none';
-  });
-}
-var HORAIRES_PAR_COMPAGNIE = {
-  "SONEF": [["06h00",10],["12h00",6],["18h00",14]],
-  "Rimbo Transport": [["05h30",12],["09h00",8],["14h00",15],["17h30",6],["20h00",10]],
-  "Bani Transport": [["07h00",9],["15h00",11]],
-  "Bittar Transport": [["08h00",7],["16h00",13]],
-  "Diarra Bus": [["06h30",8],["11h30",5],["19h00",12]],
-  "Autre compagnie": [["08h00",10],["16h00",10]]
-};
-function afficherHorairesCompagnie(nomCompagnie){
-  var conteneur = document.querySelector("#etape-2-apres-compagnie [style*='grid-template-columns:1fr 1fr 1fr']");
-  if(!conteneur) return;
-  var compId = NOMS_VERS_ID[nomCompagnie];
-  if(!window.db || !compId){
-    var horaires = HORAIRES_PAR_COMPAGNIE[nomCompagnie] || HORAIRES_PAR_COMPAGNIE["Autre compagnie"];
-    conteneur.innerHTML = horaires.map(function(h, i){
-      return '<button class="m-hbtn" id="h'+(i+1)+'" onclick="selHeure(\''+h[0]+'\',\'h'+(i+1)+'\',\''+h[1]+'\')">'+h[0]+'<br><small>'+h[1]+' places</small></button>';
-    }).join("");
-    return;
-  }
-  conteneur.innerHTML = '<div style="grid-column:1/-1;text-align:center;font-size:12px;color:#9ca3af;padding:10px">Chargement des horaires...</div>';
-  window.db.ref("horaires_compagnies/"+compId).once("value").then(function(snap){
-    var data = snap.val() || {};
-    var codes = Object.keys(data);
-    if(codes.length === 0){
-      var horairesExemple = HORAIRES_PAR_COMPAGNIE[nomCompagnie] || HORAIRES_PAR_COMPAGNIE["Autre compagnie"];
-      conteneur.innerHTML = horairesExemple.map(function(h, i){
-        return '<button class="m-hbtn" id="h'+(i+1)+'" onclick="selHeure(\''+h[0]+'\',\'h'+(i+1)+'\',\''+h[1]+'\')">'+h[0]+'<br><small>'+h[1]+' places</small></button>';
-      }).join("");
-      return;
-    }
-    var dateChoisieClient = document.getElementById("m-date") ? document.getElementById("m-date").value : "";
-    var codesFiltres = codes.filter(function(k){
-      var h = data[k];
-      var bonneDate = !h.date || !dateChoisieClient || h.date === dateChoisieClient;
-      var bonDepart = !h.depart || h.depart === "Bamako";
-      return bonneDate && bonDepart;
-    });
-    if(codesFiltres.length === 0){
-      conteneur.innerHTML = '<div style="grid-column:1/-1;text-align:center;font-size:12px;color:#dc2626;padding:10px">Aucun depart disponible pour cette date</div>';
-      return;
-    }
-    window.horairesReelsCourants = {};
-    conteneur.innerHTML = codesFiltres.map(function(k, i){
-      var h = data[k];
-      window.horairesReelsCourants["h"+(i+1)] = h;
-      var texteDestination = h.destination ? (' vers '+h.destination) : '';
-      return '<button class="m-hbtn" id="h'+(i+1)+'" onclick="selHeureReelle(\'h'+(i+1)+'\')" style="text-align:center">'+h.heure+'<br><small style="font-size:9px">'+(h.destination||"")+'</small><br><small>'+h.places+' places'+(h.prix?(' · '+h.prix+'F'):'')+'</small></button>';
-    }).join("");
-  }).catch(function(){
-    var horairesSecours = HORAIRES_PAR_COMPAGNIE[nomCompagnie] || HORAIRES_PAR_COMPAGNIE["Autre compagnie"];
-    conteneur.innerHTML = horairesSecours.map(function(h, i){
-      return '<button class="m-hbtn" id="h'+(i+1)+'" onclick="selHeure(\''+h[0]+'\',\'h'+(i+1)+'\',\''+h[1]+'\')">'+h[0]+'<br><small>'+h[1]+' places</small></button>';
-    }).join("");
-  });
-}
-function selHeureReelle(id){
-  var h = window.horairesReelsCourants ? window.horairesReelsCourants[id] : null;
-  if(!h) return;
-  selHeure(h.heure, id, h.places);
-}
 var COMPAGNIES_COMPARATEUR = [
   {id:"sonef", nom:"SONEF"},
   {id:"rimbo", nom:"Rimbo Transport"},
@@ -601,22 +531,7 @@ function choisirResultatComparateur(index){
   var mhv=document.getElementById('m-heure-val');if(mhv)mhv.textContent=h.heure;
   majModal();
 }
-function setComp(nom,btnId){
-  mComp=nom;
-  ['cp-sonef','cp-rimbo','cp-bani','cp-bittar','cp-diarra','cp-autre'].forEach(function(x){var b=document.getElementById(x);if(b)b.className='comp-btn';});
-  var sel=document.getElementById(btnId);if(sel)sel.className='comp-btn sel';
-  var cd=document.getElementById('comp-choisie');if(cd)cd.style.display='block';
-  var cv=document.getElementById('comp-val');if(cv)cv.textContent=nom;
-  var etape2=document.getElementById('etape-2-apres-compagnie');if(etape2)etape2.style.display='block';
-  mHeure='';
-  mSieges=[];
-  placesHoraireChoisi=0;
-  var mhc=document.getElementById('m-heure-choisie');if(mhc)mhc.style.display='none';
-  var si2=document.getElementById('siege-info');if(si2)si2.style.display='none';
-  afficherHorairesCompagnie(nom);
-  genererPlan();
-  majModal();
-}
+
 var siegesOccupesReel = [];
 function chargerSiegesOccupes(){
   return new Promise(function(resolve){
